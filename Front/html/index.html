@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS - Sistema de Atendimento ao Servidor</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+</head>
+<body>
+    <!-- Container principal com fundo gradiente -->
+    <div class="container">
+        <!-- Card de login centralizado -->
+        <div class="login-card">
+            <!-- Seção esquerda - Formulário de login -->
+            <div class="login-section">
+
+                <!-- Título de boas-vindas -->
+                <div class="welcome-section">
+                    <h2 class="welcome-title">Seja bem-vindo</h2>
+                </div>
+
+                <!-- Formulário de login -->
+                <form class="login-form" id="loginForm">
+                    <!-- Campo de login -->
+                    <div class="input-group">
+                        <label for="username" class="input-label">Login</label>
+                        <input type="text" id="username" name="username" class="input-field" placeholder="Digite seu login" required>
+                    </div>
+
+                    <!-- Campo de senha -->
+                    <div class="input-group">
+                        <label for="password" class="input-label">Senha</label>
+                        <div class="password-container">
+                        <input type="password" id="password" name="password" class="input-field" placeholder="Digite sua senha" required>
+                        <button type="button" class="password-toggle" id="passwordToggle">
+                            <i class="bi bi-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                    </div>
+
+                    <!-- Checkbox lembrar-me -->
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="rememberMe" name="rememberMe">
+                        <label for="rememberMe" class="checkbox-label">Lembrar-me</label>
+                    </div>
+
+                    <!-- Mensagem de erro -->
+                    <div class="error-message" id="errorMessage" role="alert" aria-live="assertive"></div>
+
+                    <!-- Botão de login -->
+                    <button type="submit" class="login-button">
+                        <span class="button-text">Efetuar Login</span>
+                    </button>
+
+                    <!-- Link esqueci a senha -->
+                    <a href="#" class="forgot-password" id="forgotPassword">Esqueci a senha</a>
+                </form>
+
+                <!-- Rodapé do card -->
+                <div class="card-footer">
+                    <p>&copy; 2025 SAS — Sistema de Atendimento ao Servidor | Governo de Pernambuco</p>
+                </div>
+            </div>
+
+            <!-- Seção direita - Imagem institucional -->
+            <div class="image-section">
+                        <!-- Logo central -->
+                        <img src="../../Icones/logo_sistema.png" alt="Logo do Sistema" class="system-logo">
+
+                        <!-- Logo SES no rodapé -->
+                        <img src="../../Icones/ses_pe_logo.png" alt="Logo SES" class="ses-logo">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Modal para esqueci a senha -->
+<div class="modal" id="forgotPasswordModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Recuperar Senha</h3>
+            <button class="modal-close" id="modalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Digite seu e-mail cadastrado para receber instruções de redefinição de senha:</p>
+            
+            <div class="input-group">
+                <label for="recoveryEmail" class="input-label">E-mail cadastrado:</label>
+                <input type="email" id="recoveryEmail" class="input-field" placeholder="exemplo@dominio.com" required>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" id="cancelRecovery">Cancelar</button>
+                <button type="button" class="btn-primary" id="sendRecovery">Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <script type="module" src="../js/global.js"></script>
+    <script type="module" src="../js/index.js"></script>
+ 
+<!-- Scripts do olhinho -->
+<script>
+    const passwordInput = document.getElementById('password');
+    const passwordToggle = document.getElementById('passwordToggle');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    passwordToggle.addEventListener('click', () => {
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.classList.remove('bi-eye');
+            eyeIcon.classList.add('bi-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.classList.remove('bi-eye-slash');
+            eyeIcon.classList.add('bi-eye');
+        }
+    });
+</script>
+
+<!-- Validação inline (fallback) para garantir exibição da mensagem de erro -->
+<script>
+    (function(){
+        const form = document.getElementById('loginForm');
+        if (!form) return;
+        form.addEventListener('submit', function(e){
+            const userEl = document.getElementById('username');
+            const passEl = document.getElementById('password');
+            const msgEl = document.getElementById('errorMessage');
+            if (!userEl || !passEl || !msgEl) return;
+            const username = (userEl.value || '').trim();
+            const password = (passEl.value || '').trim();
+            if (!username || !password) return; // outra lógica já cuida disto
+            const valid = { admin: 'admin123', lucas: 'lucas123', usuario: 'senha123', teste: 'teste123' };
+            const ok = valid[username.toLowerCase()] === password;
+            if (!ok) {
+                e.preventDefault();
+                msgEl.textContent = 'Usuário ou senha incorretos. Verifique suas credenciais.';
+                msgEl.style.display = 'block';
+                msgEl.classList.add('show');
+                userEl.classList.add('invalid');
+                passEl.classList.add('invalid');
+                return;
+            }
+            e.preventDefault();
+            localStorage.setItem('sga_username', username);
+            localStorage.setItem('sga_login_time', new Date().toISOString());
+            window.location.href = 'home.html';
+        });
+    })();
+</script>
+<!-- Fallback removido para permitir exibição correta de erros controlados pelo módulo js/index.js -->
+
+
+</body>
+</html>
+

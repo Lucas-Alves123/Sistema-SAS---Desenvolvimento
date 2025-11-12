@@ -1,0 +1,279 @@
+/* ===========================
+   Home page styles
+=========================== */
+
+/* ============================================
+   REMOÇÃO DE SCROLL - Ajuste específico para página Home
+   ============================================
+   Este bloco remove completamente as barras de rolagem vertical e horizontal
+   garantindo que o conteúdo se ajuste na tela sem overflow.
+   
+   IMPORTANTE: Se no futuro for necessário permitir scroll quando o conteúdo
+   crescer, altere overflow: hidden para overflow: auto ou remova estas regras.
+   ============================================ */
+/* Aplicar quando a página home estiver ativa */
+/* Como este CSS só é carregado na página home, podemos aplicar diretamente */
+html,
+body {
+    overflow: hidden !important;
+    height: 100vh;
+    width: 100vw;
+    position: fixed;
+}
+
+/* Garantir que o conteúdo principal se ajuste na viewport */
+.main-content {
+    height: calc(100vh - 70px - 60px); /* altura total menos header fixo e footer */
+    overflow: hidden; /* Sem scroll - conteúdo se ajusta na tela */
+    overflow-x: hidden;
+    padding-top: 10px; /* reduzido para subir o conteúdo */
+}
+
+.content-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 10px 20px 20px 20px; /* reduzido padding superior */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Conteúdo começa do topo */
+    align-items: stretch; /* Conteúdo ocupa largura disponível */
+}
+
+/* Garantir que o footer fique visível no final da viewport */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #002B7F; /* Azul original do footer */
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.footer-content {
+    text-align: center;
+}
+
+.footer-content p {
+    margin: 0;
+    color: white;
+    font-size: 0.8rem;
+}
+
+/* ============================================
+   Estilos específicos da home
+   ============================================ */
+.institutional-text {
+    max-width: 800px;
+    margin: 0 auto 40px;
+    padding: 30px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 51, 160, 0.1);
+    border-left: 5px solid #0033A0;
+}
+
+.institutional-text p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #333;
+    margin: 0;
+}
+
+.institutional-text strong {
+    color: #0033A0;
+    font-weight: 600;
+}
+
+.access-section {
+    margin-bottom: 50px;
+}
+.access-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #0033A0 0%, #002B7F 100%);
+    color: white;
+    text-decoration: none;
+    padding: 18px 35px;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    box-shadow: 0 8px 25px rgba(0, 51, 160, 0.3);
+    transition: all 0.3s ease;
+}
+.access-button:hover {
+    background: linear-gradient(135deg, #002B7F 0%, #001F5C 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(0, 51, 160, 0.4);
+}
+.button-icon {
+    font-size: 1.3rem;
+}
+
+.info-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-top: 40px;
+}
+.info-card {
+    background: white;
+    padding: 30px 25px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 51, 160, 0.1);
+    transition: all 0.25s ease;
+    border-top: 4px solid #0033A0;
+    position: relative; /* necessário para o pseudo-elemento do underline */
+    overflow: hidden; /* garante que a animação não vaze além do card */
+}
+.info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 51, 160, 0.15);
+}
+
+/* Efeito similar ao dos menus: barra de cores que vai aparecendo por baixo ao hover */
+.info-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; /* aparece na borda inferior do card */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 6px; /* espessura da barra colorida */
+    background: linear-gradient(90deg, #0033A0, #FFD100, #EF3340, #009739);
+    border-radius: 3px 3px 0 0;
+    transition: width 0.35s ease;
+}
+.info-card:hover::after {
+    width: 100%;
+}
+.card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+.info-card h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #0033A0;
+    margin-bottom: 12px;
+}
+.info-card p {
+    color: #666;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Header container */
+
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* logo esquerda, menu centro, usuário direita */
+    padding: 0 20px;
+    height: 70px; /* alinha com a altura do .header global */
+    max-width: none; /* ocupa toda a largura da tela */
+    width: 100%;
+    margin: 0; /* remove centralização por margens */
+    padding-left: 8px; /* leve respiro da borda esquerda */
+}
+
+.header-left {
+    flex: 0 0 auto; /* logo não estica */
+}
+
+.header-logo {
+    height: 100px; /* acompanha o global */
+    width: auto;
+}
+
+/* Afasta a logo do menu na home */
+.logo-section {
+    margin-right: 56px; /* ainda mais afastado do menu */
+}
+
+.header-center {
+    flex: 1;
+    display: flex;
+    justify-content: center; /* centraliza menu */
+    gap: 50px;
+}
+
+.header-right {
+    flex: 0 0 auto; /* usuário não estica */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Ajuste do usuário para ficar à direita */
+.header-right {
+    margin-left: auto; /* força ir para a extrema direita */
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+/* Reduz espaço interno do usuário */
+.user-section {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* distância entre avatar e nome */
+}
+
+/* Dropdown do usuário alinhado e responsivo */
+.user-dropdown {
+    position: absolute;
+    top: 100%; /* logo abaixo do avatar */
+    right: 0; /* alinha à direita do avatar */
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    padding: 10px 0;
+    display: none; /* aparecerá via JS ou hover */
+    z-index: 1000;
+}
+
+/* Mostra dropdown ao hover */
+.user-section:hover .user-dropdown {
+    display: block;
+}
+
+/* Links do dropdown */
+.user-dropdown ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.user-dropdown li {
+    padding: 8px 20px;
+}
+.user-dropdown li a {
+    text-decoration: none;
+    color: #0033A0;
+    font-weight: 500;
+}
+.user-dropdown li a:hover {
+    background: rgba(0, 51, 160, 0.05);
+    border-radius: 5px;
+}
+
+/* Responsivo para telas menores */
+@media (max-width: 768px) {
+    .header-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .header-right {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+    .user-dropdown {
+        left: 0;
+    }
+}

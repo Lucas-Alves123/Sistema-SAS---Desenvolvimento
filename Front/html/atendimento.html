@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS - Sistema de Atendimento ao Servidor | Atendimento</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/atendimento.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="header-left">
+                <div class="logo-section">
+                    <img src="../../Icones/logo_sistema.png" alt="Logo SES-PE" class="header-logo">
+                    <div class="system-info">
+                    </div>
+                </div>
+            </div>
+
+            <nav class="header-center">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="home.html" class="nav-link"><i class="fas fa-home nav-icon"></i><span class="nav-text">Início</span></a></li>
+                    <li class="nav-item"><a href="agendamento.html" class="nav-link"><i class="fas fa-calendar-alt nav-icon"></i><span class="nav-text">Agendamento</span></a></li>
+                    <li class="nav-item"><a href="atendimento.html" class="nav-link active"><i class="fas fa-comments nav-icon"></i><span class="nav-text">Atendimento</span></a></li>
+                    <li class="nav-item"><a href="configuracoes.html" class="nav-link"><i class="fas fa-cog nav-icon"></i><span class="nav-text">Configurações</span></a></li>
+                    <li class="nav-item"><a href="monitor.html" class="nav-link"><i class="fas fa-desktop nav-icon"></i><span class="nav-text">Monitor</span></a></li>
+                    <li class="nav-item relatorios">
+                        <a href="#" class="nav-link"><i class="fas fa-chart-bar nav-icon"></i><span class="nav-text">Relatórios</span></a>
+                        <div class="relatorios-dropdown">
+                            <a href="relatorios-servicos-global.html" class="relatorios-dropdown-item"><i class="fas fa-file-alt"></i> Serviços – Global</a>
+                            <a href="relatorios-servicos-unidade.html" class="relatorios-dropdown-item"><i class="fas fa-building"></i> Serviços – Unidade</a>
+                            <a href="relatorios-servicos-executados.html" class="relatorios-dropdown-item"><i class="fas fa-check-circle"></i> Executados</a>
+                            <a href="relatorios-atendimentos-concluidos.html" class="relatorios-dropdown-item"><i class="fas fa-check"></i> Concluídos</a>
+                            <a href="relatorios-status.html" class="relatorios-dropdown-item"><i class="fas fa-clipboard-list"></i> Todos os status</a>
+                            <a href="relatorios-tempos-atendente.html" class="relatorios-dropdown-item"><i class="fas fa-stopwatch"></i> Tempos médios</a>
+                            <a href="relatorios-lotacoes-perfis.html" class="relatorios-dropdown-item"><i class="fas fa-users"></i> Lotações & Perfis</a>
+                            <a href="graficos.html" class="relatorios-dropdown-item"><i class="fas fa-chart-line"></i> Gráfico</a>
+                        </div>
+                    </li>
+                    <li class="nav-item"><a href="triagem.html" class="nav-link"><i class="fas fa-file-invoice nav-icon"></i><span class="nav-text">Triagem</span></a></li>
+                    <li class="nav-item"><a href="usuarios.html" class="nav-link"><i class="fas fa-users nav-icon"></i><span class="nav-text">Usuários</span></a></li>
+                </ul>
+            </nav>
+
+            <div class="header-right">
+                <div class="user-section">
+                    <div class="user-info" id="userInfo">
+                        <div class="user-avatar"><i class="fas fa-user"></i></div>
+                        <div class="user-details">
+                            <span class="user-name" id="userName">Carregando...</span>
+                        </div>
+                    </div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <ul class="dropdown-menu">
+                            <li><a href="#" id="logout"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
+                            <li><a href="#" id="changeUser"><i class="fas fa-exchange-alt"></i> Trocar Usuário</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="content-container">
+            <div class="welcome-section">
+                <h2 class="welcome-title">Atendimentos</h2>
+                <div class="welcome-divider"></div>
+            </div>
+
+            <section class="attendance-header">
+                <div class="kiosk-card">
+                    <div class="kiosk-number" id="kioskNumber">1</div>
+                    <div class="kiosk-text">Guichê - Todos</div>
+                </div>
+                <div class="services-header">
+                    <h3 class="services-title">Serviços Disponíveis</h3>
+                    <button id="btnCallNext" class="btn-primary call-next"><i class="fas fa-bullhorn"></i> Chamar Próximo</button>
+                </div>
+            </section>
+
+            <section id="currentServiceInfo" class="current-service" style="display:none;">
+                <div class="current-service-content">
+                    <div><strong>Nome:</strong> <span id="currentName"></span></div>
+                    <div><strong>Serviço:</strong> <span id="currentService"></span></div>
+                </div>
+            </section>
+
+            <section id="attendanceList" class="attendance-list"></section>
+        </div>
+    </main>
+
+    <footer class="footer footer-fixed">
+        <div class="footer-content">
+            <p>Sistema de Atendimento ao Servidor (SAS) | Governo de Pernambuco</p>
+        </div>
+    </footer>
+
+    <script type="module" src="../js/global.js"></script>
+    <script type="module" src="../js/atendimento.js"></script>
+</body>
+</html>
+
+
+
