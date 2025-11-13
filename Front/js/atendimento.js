@@ -3,6 +3,7 @@
 // - Simple call action highlight
 
 import { tryPopulateHeaderUser, initHeaderUserCommon, initReportsMenuClick } from './global.js';
+import { apiAtendimentos } from './api.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     if (!window.location.pathname.includes('atendimento.html')) return;
@@ -12,11 +13,17 @@ document.addEventListener('DOMContentLoaded', function() {
     populateCurrentServiceFromSchedules();
 });
 
-export function renderAtendimentoList() {
+export async function renderAtendimentoList() {
     const listContainer = document.getElementById('attendanceList');
     if (!listContainer) return;
-    const data = getAttendanceData();
-    listContainer.innerHTML = data.map(renderAttendanceCard).join('');
+    try {
+        const resp = await apiAtendimentos.list({ per_page: 20 });
+        const itens = (resp && resp.atendimentos) ? resp.atendimentos.map(a => ({ nome: `Usuário ${a.usuario_id}`, tipo: a.descricao || 'Atendimento' })) : [];
+        listContainer.innerHTML = itens.map(renderAttendanceCard).join('');
+    } catch (err) {
+        const data = getAttendanceData();
+        listContainer.innerHTML = data.map(renderAttendanceCard).join('');
+    }
     const callNextBtn = document.getElementById('btnCallNext');
     if (callNextBtn) {
         callNextBtn.addEventListener('click', () => { alert('Chamando próximo atendimento...'); });

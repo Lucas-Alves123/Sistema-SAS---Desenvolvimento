@@ -4,6 +4,7 @@
 // - Wait time computation
 
 import { tryPopulateHeaderUser, initHeaderUserCommon, initReportsMenuClick } from './global.js';
+import { apiAgendamentos } from './api.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     const scheduleForm = document.getElementById('scheduleForm');
@@ -249,16 +250,54 @@ export function handleScheduleSubmit(e) {
     const cpfEl = document.getElementById('cpf');
     if (cpfEl && cpfEl.value) handleCpfMaskAndValidate({ target: cpfEl });
     if (!ok) { alert('Por favor, preencha os campos obrigatórios antes de continuar.'); return; }
-    alert('Agendamento realizado com sucesso!');
-    persistSchedule(form);
-    const protocol = document.getElementById('protocol')?.value;
-    if (protocol) {
-        const list = JSON.parse(localStorage.getItem('sas_protocol_history') || '[]');
-        list.push({ protocol, createdAt: new Date().toISOString() });
-        localStorage.setItem('sas_protocol_history', JSON.stringify(list));
-    }
-    form.reset();
-    initSchedulePage();
+    (async () => {
+        try {
+            const usuarioId = parseInt(localStorage.getItem('sga_usuario_id') || '1', 10);
+            const nomeCompleto = form.querySelector('#fullName')?.value?.trim() || '';
+            const cpf = (form.querySelector('#cpf')?.value || '').replace(/\D/g,'');
+            const matricula = form.querySelector('#registration')?.value?.trim() || '';
+            const cargo = form.querySelector('#role')?.value?.trim() || '';
+            const tipoVinculo = form.querySelector('#bondType')?.value?.trim() || '';
+            const localTrabalho = form.querySelector('#workplace')?.value?.trim() || '';
+            const email = form.querySelector('#email')?.value?.trim() || '';
+            const tipoServico = form.querySelector('#serviceType')?.value?.trim() || '';
+            const prioridade = form.querySelector('#priority')?.value?.trim() || '';
+            const tipoAtendimento = form.querySelector('#attendanceType')?.value?.trim() || '';
+            const dataAgendamento = form.querySelector('#startDate')?.value?.trim() || '';
+            const horaInicio = form.querySelector('#startTime')?.value?.trim() || '';
+            let horaTermino = form.querySelector('#endTime')?.value?.trim() || '';
+            const numeroProtocolo = form.querySelector('#protocol')?.value?.trim() || '';
+            if (!horaTermino) {
+                horaTermino = addMinutesToTime(horaInicio || '08:00', 30);
+            }
+            const payload = {
+                usuario_id: usuarioId,
+                nome_completo: nomeCompleto,
+                cpf,
+                matricula,
+                cargo,
+                tipo_vinculo: tipoVinculo,
+                local_trabalho: localTrabalho,
+                email,
+                tipo_servico: tipoServico,
+                prioridade,
+                tipo_atendimento: tipoAtendimento,
+                data_agendamento: dataAgendamento,
+                hora_inicio: horaInicio || '08:00',
+                hora_termino: horaTermino,
+                numero_protocolo: numeroProtocolo || `TMP-${Date.now()}`
+            };
+            const resp = await apiAgendamentos.create(payload);
+            alert('Agendamento realizado com sucesso!');
+            const list = JSON.parse(localStorage.getItem('sas_protocol_history') || '[]');
+            const proto = numeroProtocolo || '';
+            if (proto) { list.push({ protocol: proto, createdAt: new Date().toISOString() }); localStorage.setItem('sas_protocol_history', JSON.stringify(list)); }
+            form.reset();
+            initSchedulePage();
+        } catch (err) {
+            alert(`Erro ao criar agendamento: ${err?.message || err}`);
+        }
+    })();
 }
 
 // Validate CPF digits
