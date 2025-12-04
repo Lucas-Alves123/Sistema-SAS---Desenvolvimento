@@ -119,11 +119,7 @@
         } catch(e) {}
       })();
     </script>
-    <!-- Script de dados de teste para simular o backend -->
-    <script src="../js/test-data.js"></script>
-    <script type="module" src="../js/auth.js"></script>
-    <script type="module" src="../js/global.js"></script>
-    <script type="module" src="../js/index.js"></script>
+   
  
 <!-- Scripts do olhinho -->
 <script>
@@ -144,7 +140,48 @@
     });
 </script>
 
-<!-- Fallback removido: autenticação é feita via módulo js/index.js com a API -->
+<!-- Usuário de teste embutido no HTML -->
+<script>
+// Base de usuários simulada
+const usuariosTeste = [
+  {
+    username: "admin",
+    password: "123",
+    nome: "Administrador Teste"
+  },
+  {
+    username: "lucas",
+    password: "1234",
+    nome: "Lucas Mateus"
+  }
+];
+
+// Lógica de login para usar usuários de teste
+document.getElementById("loginForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  const user = document.getElementById("username").value.trim();
+  const pass = document.getElementById("password").value.trim();
+  const errorBox = document.getElementById("errorMessage");
+
+  const usuarioEncontrado = usuariosTeste.find(
+    u => u.username === user && u.password === pass
+  );
+
+  if (!usuarioEncontrado) {
+    errorBox.textContent = "Usuário ou senha inválidos.";
+    return;
+  }
+
+  // Salva nome do usuário
+  localStorage.setItem("nomeUsuario", usuarioEncontrado.nome);
+
+  // Redireciona para a página inicial do sistema
+  window.location.href = "./home.html";
+;
+
+});
+</script>
 
 
 </body>
