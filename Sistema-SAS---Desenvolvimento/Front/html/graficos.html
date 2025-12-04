@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS - Gráficos</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/graficos.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="header-left">
+                <div class="logo-section">
+                    <img src="../../Icones/logo_sistema.png" alt="Logo SES-PE" class="header-logo">
+                    <div class="system-info">
+                        <h1 class="system-name"></h1>
+                    </div>
+                </div>
+            </div>
+            <nav class="header-center">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="home.html" class="nav-link"><span class="nav-icon">🏠</span><span class="nav-text">Início</span></a></li>
+                    <li class="nav-item"><a href="agendamento.html" class="nav-link"><span class="nav-icon">📅</span><span class="nav-text">Agendamento</span></a></li>
+                    <li class="nav-item"><a href="atendimento.html" class="nav-link"><span class="nav-icon">💬</span><span class="nav-text">Atendimento</span></a></li>
+                    <li class="nav-item"><a href="configuracoes.html" class="nav-link"><span class="nav-icon">⚙️</span><span class="nav-text">Configurações</span></a></li>
+                    <li class="nav-item"><a href="monitor.html" class="nav-link"><span class="nav-icon">🖥️</span><span class="nav-text">Monitor</span></a></li>
+                    <li class="nav-item relatorios"><a href="relatorios.html" class="nav-link"><span class="nav-icon">📊</span><span class="nav-text">Relatórios</span></a>
+                        <div class="relatorios-dropdown">
+                            <a href="relatorios-servicos-global.html" class="relatorios-dropdown-item"><span class="icon">📄</span><span>Serviços disponíveis – Global</span></a>
+                            <a href="relatorios-servicos-unidade.html" class="relatorios-dropdown-item"><span class="icon">🏢</span><span>Serviços disponíveis – Unidade</span></a>
+                            <a href="relatorios-servicos-executados.html" class="relatorios-dropdown-item"><span class="icon">✅</span><span>Serviços executados</span></a>
+                            <a href="relatorios-atendimentos-concluidos.html" class="relatorios-dropdown-item"><span class="icon">✔️</span><span>Atendimentos concluídos</span></a>
+                            <a href="relatorios-status.html" class="relatorios-dropdown-item"><span class="icon">📋</span><span>Atendimentos em todos os status</span></a>
+                            <a href="relatorios-tempos-atendente.html" class="relatorios-dropdown-item"><span class="icon">⏱️</span><span>Tempos médios por atendente</span></a>
+                            <a href="relatorios-lotacoes-perfis.html" class="relatorios-dropdown-item"><span class="icon">👥</span><span>Lotações e Perfis</span></a>
+                            <a href="graficos.html" class="relatorios-dropdown-item graph-item"><span class="icon">📈</span><span>Gráfico</span></a>
+                        </div>
+                    </li>
+                    <li class="nav-item"><a href="usuarios.html" class="nav-link"><span class="nav-icon">👥</span><span class="nav-text">Usuários</span></a></li>
+                </ul>
+            </nav>
+            <div class="header-right">
+                <div class="user-section">
+                    <div class="user-info" id="userInfo">
+                        <div class="user-avatar">👤</div>
+                        <div class="user-details">
+                            <span class="user-name" id="userName">Usuário</span>
+                            <span class="user-role" id="userRole">Guichê 1</span>
+                        </div>
+                    </div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <ul class="dropdown-menu">
+                            <li><a href="#" id="logout">Sair</a></li>
+                            <li><a href="#" id="changeUser">Trocar Usuário</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="content-container">
+            <div class="welcome-section">
+                <h2 class="welcome-title">Gráficos</h2>
+                <div class="welcome-divider"></div>
+            </div>
+
+            <section class="charts-filters">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="chartType">Tipo de Gráfico</label>
+                        <select id="chartType" class="input-field">
+                            <option>Atendimento por status</option>
+                            <option>Atendimento por serviço</option>
+                            <option>Tempo médio de atendimento</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="startDateFilter">Data inicial</label>
+                        <input type="date" id="startDateFilter" class="input-field">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDateFilter">Data final</label>
+                        <input type="date" id="endDateFilter" class="input-field">
+                    </div>
+                    <div class="form-group">
+                        <label for="userFilter">Usuário</label>
+                        <select id="userFilter" class="input-field">
+                            <option>Todos</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions" style="justify-content:flex-start;">
+                    <button id="btnGenerateChart" class="btn-primary action-button">Gerar Gráfico</button>
+                </div>
+            </section>
+
+            <section class="chart-area">
+                <div class="chart-legend">
+                    <span>Senha emitida</span>
+                    <span>Chamada pela mesa</span>
+                    <span>Atendimento iniciado</span>
+                    <span>Encerrado</span>
+                    <span>Não compareceu</span>
+                    <span>Senha encerrada</span>
+                </div>
+                <canvas id="donutCanvas" width="400" height="400"></canvas>
+                <div id="chartTooltip" class="chart-tooltip" style="display:none;"></div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>SAS - Sistem ade Atendimento ao Servidor | Governo de Pernambuco — 2025</p>
+        </div>
+    </footer>
+
+    <script type="module" src="../js/usuario.js"></script>
+    <script type="module" src="../js/global.js"></script>
+    <script type="module" src="../js/graficos.js"></script>
+</body>
+</html>
+
+

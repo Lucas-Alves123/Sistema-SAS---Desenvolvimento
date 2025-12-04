@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Primeiro Acesso</title>
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/index.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="login-card">
+      <div class="login-section">
+        <div class="welcome-section">
+          <h2 class="welcome-title">Primeiro acesso</h2>
+        </div>
+        <form class="login-form" id="primeiroForm">
+          <div class="input-group">
+            <label for="primeiroNome" class="input-label">Nome de usuário</label>
+            <input type="text" id="primeiroNome" class="input-field" placeholder="Digite seu nome" required>
+          </div>
+          <div class="input-group">
+            <label for="primeiroSenha" class="input-label">Criar senha</label>
+            <input type="password" id="primeiroSenha" class="input-field" placeholder="Crie uma senha" required>
+          </div>
+          <div class="input-group">
+            <label for="primeiroConfirma" class="input-label">Confirmar senha</label>
+            <input type="password" id="primeiroConfirma" class="input-field" placeholder="Confirme a senha" required>
+          </div>
+          <div class="error-message" id="primeiroErro" role="alert" aria-live="assertive"></div>
+          <button type="submit" class="login-button"><span class="button-text">Criar conta</span></button>
+          <div style="margin-top:12px;text-align:center;"><a href="index.html">Voltar ao login</a></div>
+        </form>
+      </div>
+      <div class="image-section">
+        <img src="../../Icones/logo_sistema.png" alt="Logo do Sistema" class="system-logo">
+        <img src="../../Icones/ses_pe_logo.png" alt="Logo SES" class="ses-logo">
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../js/auth.js"></script>
+  <script type="module" src="../js/primeiro_acesso.js"></script>
+</body>
+</html>

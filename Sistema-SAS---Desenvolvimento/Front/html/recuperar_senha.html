@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperar Senha</title>
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/index.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="login-card">
+      <div class="login-section">
+        <div class="welcome-section">
+          <h2 class="welcome-title">Recuperar senha</h2>
+        </div>
+        <form class="login-form" id="recuperarForm">
+          <div class="input-group">
+            <label for="recNome" class="input-label">Nome de usuário</label>
+            <input type="text" id="recNome" class="input-field" placeholder="Digite seu nome" required>
+          </div>
+          <div class="input-group">
+            <label for="recNova" class="input-label">Nova senha</label>
+            <input type="password" id="recNova" class="input-field" placeholder="Nova senha" required>
+          </div>
+          <div class="input-group">
+            <label for="recConfirma" class="input-label">Confirmar nova senha</label>
+            <input type="password" id="recConfirma" class="input-field" placeholder="Confirmar nova senha" required>
+          </div>
+          <div class="error-message" id="recErro" role="alert" aria-live="assertive"></div>
+          <button type="submit" class="login-button"><span class="button-text">Redefinir senha</span></button>
+          <div style="margin-top:12px;text-align:center;"><a href="index.html">Voltar ao login</a></div>
+        </form>
+      </div>
+      <div class="image-section">
+        <img src="../../Icones/logo_sistema.png" alt="Logo do Sistema" class="system-logo">
+        <img src="../../Icones/ses_pe_logo.png" alt="Logo SES" class="ses-logo">
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../js/auth.js"></script>
+  <script type="module" src="../js/recuperar_senha.js"></script>
+</body>
+</html>

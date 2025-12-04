@@ -1,0 +1,6 @@
+/* Gráficos page styles */
+.charts-filters { background: #FFFFFF; border-radius: 12px; padding: 20px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); margin-bottom: 20px; }
+.chart-area { background: #FFFFFF; border-radius: 12px; padding: 20px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; color: #333; font-size: 0.9rem; }
+
+
