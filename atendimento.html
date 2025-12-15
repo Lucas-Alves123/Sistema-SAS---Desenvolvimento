@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atendimento - SAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sonner@1.4.0/dist/sonner.js"></script>
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/layout.js"></script>
+
+    <script>
+        const user = window.SAS.utils.checkAuth();
+        window.SAS.layout.renderLayout('Atendimento');
+
+        const content = document.getElementById('page-content');
+
+        // Load Guichê from LocalStorage or default to 1
+        let currentGuiche = localStorage.getItem('sas_guiche') || '1';
+
+        content.innerHTML = `
+            <div class="flex flex-col items-center justify-center mb-6 animate-fade-in">
+                <div class="flex items-center gap-3 mb-2">
+                    <i data-lucide="headset" class="w-8 h-8 text-blue-700"></i>
+                    <h1 class="text-3xl font-bold text-blue-700">Atendimentos</h1>
+                </div>
+                <!-- Decorative Line -->
+                <div class="flex justify-center items-center gap-1">
+                    <div class="h-1.5 w-16 bg-blue-600 rounded-full"></div>
+                    <div class="h-1.5 w-3 bg-yellow-400 rounded-full"></div>
+                    <div class="h-1.5 w-1.5 bg-red-500 rounded-full"></div>
+                </div>
+            </div>
+
+            <!-- Guichê Selector -->
+            <div class="flex justify-center items-center gap-4 mb-6">
+                <div class="bg-blue-800 text-white px-8 py-2 rounded-lg font-bold text-xl shadow-lg">
+                    Guichê <span id="guicheDisplay">${currentGuiche}</span>
+                </div>
+                <button id="alterarGuicheBtn" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                    Alterar
+                </button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-8">
+                <!-- Agendados Card -->
+                <div class="bg-blue-50 border-2 border-blue-400 rounded-xl p-6 text-center shadow-sm">
+                    <div class="text-4xl font-bold text-blue-800 mb-1" id="totalAgendados">0</div>
+                    <div class="text-blue-600 font-medium">Agendados para hoje</div>
+                </div>
+                
+                <!-- Aguardando Card -->
+                <div class="bg-yellow-50 border-2 border-yellow-400 rounded-xl p-6 text-center shadow-sm">
+                    <div class="text-4xl font-bold text-yellow-800 mb-1" id="totalAguardando">0</div>
+                    <div class="text-yellow-600 font-medium">Pessoas aguardando</div>
+                </div>
+            </div>
+
+            <!-- Main Content Area (Dynamic) -->
+            <div id="mainArea" class="max-w-5xl mx-auto space-y-8">
+                
+                <!-- 1. Active Call (Chamado / Em Atendimento) -->
+                <div id="activeCallSection" class="hidden">
+                    <!-- Injected via JS -->
+                </div>
+
+                <!-- 2. Services Available (Queue) -->
+                <div id="queueSection" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">Serviços Disponíveis</h2>
+                        <button id="chamarProximoBtn" class="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition-all flex items-center gap-2">
+                            <i data-lucide="megaphone" class="w-5 h-5"></i>
+                            Chamar Próximo
+                        </button>
+                    </div>
+                    <div id="queueList" class="space-y-2">
+                        <!-- Queue Items -->
+                    </div>
+                </div>
+
+                <!-- 3. Arrivals (Agendados Today) -->
+                <div id="arrivalsSection" class="bg-white rounded-xl shadow-sm border border-blue-200 p-6">
+                    <h2 class="text-xl font-bold text-blue-700 mb-4">Agendamentos de Hoje - Confirmar Chegada</h2>
+                    <div id="arrivalsList" class="space-y-2">
+                        <!-- Arrival Items -->
+                    </div>
+                </div>
+
+            </div>
+        `;
+
+        lucide.createIcons();
+
+        // Logic
+        const guicheDisplay = document.getElementById('guicheDisplay');
+        const alterarGuicheBtn = document.getElementById('alterarGuicheBtn');
+
+        const activeCallSection = document.getElementById('activeCallSection');
+        const queueSection = document.getElementById('queueSection');
+        const arrivalsSection = document.getElementById('arrivalsSection');
+
+        const queueList = document.getElementById('queueList');
+        const arrivalsList = document.getElementById('arrivalsList');
+        const chamarBtn = document.getElementById('chamarProximoBtn');
+
+        const totalAgendadosEl = document.getElementById('totalAgendados');
+        const totalAguardandoEl = document.getElementById('totalAguardando');
+
+        let currentActiveItem = null;
+
+        // Guichê Logic
+        alterarGuicheBtn.addEventListener('click', () => {
+            const newGuiche = prompt('Informe o número do Guichê:', currentGuiche);
+            if (newGuiche && newGuiche.trim() !== '') {
+                currentGuiche = newGuiche.trim();
+                localStorage.setItem('sas_guiche', currentGuiche);
+                guicheDisplay.textContent = currentGuiche;
+                if (window.toast) window.toast.success(`Guichê alterado para ${currentGuiche}`);
+            }
+        });
+
+        const loadData = async () => {
+            const all = await window.SAS.base44.entities.Agendamento.list();
+            const today = new Date().toISOString().split('T')[0];
+
+            // Filter for today
+            const todayAppointments = all.filter(a => a.data_agendamento === today);
+
+            // Stats
+            totalAgendadosEl.textContent = todayAppointments.length;
+
+            // Filter by Status
+            const arrivals = todayAppointments.filter(a => a.status === 'agendado').sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio));
+            const queue = todayAppointments.filter(a => a.status === 'chegou').sort((a, b) => {
+                // Priority logic: Urgente first
+                if (a.prioridade === 'Urgente' && b.prioridade !== 'Urgente') return -1;
+                if (a.prioridade !== 'Urgente' && b.prioridade === 'Urgente') return 1;
+                return a.hora_inicio.localeCompare(b.hora_inicio);
+            });
+
+            // Check if there is an active call for this user/guiche
+            // We look for 'pendente' (Chamado) or 'em_andamento' assigned to this attendant
+            const active = todayAppointments.find(a =>
+                (a.status === 'pendente' || a.status === 'em_andamento') &&
+                a.atendente_id === user.id
+            );
+
+            totalAguardandoEl.textContent = queue.length;
+
+            renderArrivals(arrivals);
+            renderQueue(queue);
+            renderActiveCall(active);
+        };
+
+        const renderArrivals = (items) => {
+            arrivalsList.innerHTML = '';
+            if (items.length === 0) {
+                arrivalsList.innerHTML = '<p class="text-gray-400 italic">Nenhum agendamento pendente de chegada.</p>';
+                return;
+            }
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-4 border border-gray-100 rounded-lg hover:bg-gray-50';
+                div.innerHTML = `
+                    <div>
+                        <div class="font-bold text-gray-800">${item.nome_completo}</div>
+                        <div class="text-sm text-gray-500">${item.hora_inicio} - ${item.tipo_servico}</div>
+                    </div>
+                    <div class="flex gap-2">
+                         <button onclick="confirmArrival('${item.id}')" class="bg-green-600 text-white px-4 py-1.5 rounded font-bold text-sm hover:bg-green-700 flex items-center gap-1">
+                            <i data-lucide="check" class="w-4 h-4"></i> Confirmar Chegada
+                        </button>
+                        <button onclick="markNoShow('${item.id}')" class="bg-red-100 text-red-600 px-4 py-1.5 rounded font-bold text-sm hover:bg-red-200">
+                            Não Compareceu
+                        </button>
+                    </div>
+                `;
+                arrivalsList.appendChild(div);
+            });
+            lucide.createIcons();
+        };
+
+        const renderQueue = (items) => {
+            queueSection.classList.remove('hidden');
+            queueList.innerHTML = '';
+
+            if (items.length === 0) {
+                queueList.innerHTML = `
+                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-yellow-800 flex justify-between items-center">
+                        <span>Ninguém aguardando na fila.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            items.forEach(item => {
+                const isUrgent = item.prioridade === 'Urgente';
+                const bgClass = isUrgent ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200';
+                const textClass = isUrgent ? 'text-red-800' : 'text-green-800';
+                const badge = isUrgent ? '<span class="bg-red-200 text-red-800 text-xs px-2 py-0.5 rounded-full font-bold">URGENTE</span>' : '';
+
+                const div = document.createElement('div');
+                div.className = `${bgClass} border p-4 rounded-lg flex justify-between items-center`;
+                div.innerHTML = `
+                    <div>
+                        <div class="font-bold ${textClass} text-lg">${item.nome_completo} ${badge}</div>
+                        <div class="text-sm ${textClass} opacity-80">${item.tipo_servico}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold ${textClass}">Aguardando</div>
+                        <div class="text-xs ${textClass} opacity-80">Prioridade: ${item.prioridade}</div>
+                    </div>
+                `;
+                queueList.appendChild(div);
+            });
+        };
+
+        const renderActiveCall = (item) => {
+            // Check for same item to prevent re-render (and input loss)
+            if (currentActiveItem && item && currentActiveItem.id === item.id && currentActiveItem.status === item.status) {
+                return;
+            }
+
+            currentActiveItem = item;
+
+            if (!item) {
+                activeCallSection.classList.add('hidden');
+                // Show other sections if no active call
+                queueSection.classList.remove('hidden');
+                arrivalsSection.classList.remove('hidden');
+                return;
+            }
+
+            // If active call, hide other sections to focus? Or keep them?
+            // User images show Active Call taking up space. Let's keep others visible but maybe pushed down.
+            // Actually, if "Em Atendimento", maybe we focus on that.
+
+            activeCallSection.classList.remove('hidden');
+            activeCallSection.innerHTML = ''; // Clear
+
+            if (item.status === 'pendente') {
+                // STAGE: CHAMADO (Image 3)
+                activeCallSection.innerHTML = `
+                    <div class="bg-white rounded-xl shadow-lg border-2 border-blue-500 p-8 animate-fade-in">
+                        <div class="mb-6">
+                            <h2 class="text-3xl font-bold text-blue-800 mb-1">${item.nome_completo}</h2>
+                            <div class="text-gray-500 text-lg">${item.tipo_servico}</div>
+                            <span class="bg-gray-600 text-white px-3 py-1 rounded-full text-sm font-bold mt-2 inline-block">Prioridade: ${item.prioridade}</span>
+                        </div>
+                        
+                        <div class="flex gap-4">
+                            <button onclick="startService('${item.id}')" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-bold text-lg flex items-center gap-2 transition-all">
+                                <i data-lucide="play" class="w-5 h-5"></i>
+                                Iniciar Atendimento
+                            </button>
+                            <button onclick="cancelService('${item.id}')" class="bg-white border border-gray-300 text-gray-600 px-6 py-3 rounded-lg font-bold text-lg hover:bg-gray-50 flex items-center gap-2">
+                                <i data-lucide="x" class="w-5 h-5"></i>
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (item.status === 'em_andamento') {
+                // STAGE: EM ATENDIMENTO (Image 4)
+                activeCallSection.innerHTML = `
+                    <div class="bg-white rounded-xl shadow-lg border-2 border-blue-500 p-8 animate-fade-in">
+                        <div class="mb-6 border-b pb-4">
+                            <h2 class="text-3xl font-bold text-blue-800 mb-1">${item.nome_completo}</h2>
+                            <div class="text-gray-500 text-lg">${item.tipo_servico}</div>
+                            <span class="bg-gray-600 text-white px-3 py-1 rounded-full text-sm font-bold mt-2 inline-block">Prioridade: ${item.prioridade}</span>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-blue-700 font-bold mb-2">Observação 1 - Problema relatado pelo cliente</label>
+                                <textarea id="obs1" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Descreva o problema relatado..."></textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-blue-700 font-bold mb-2">Observação 2 - Resposta/Solução dada pelo atendente</label>
+                                <textarea id="obs2" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Descreva a solução fornecida..."></textarea>
+                            </div>
+
+                            <button onclick="finishService('${item.id}')" class="w-full bg-gray-300 hover:bg-blue-600 hover:text-white text-gray-700 font-bold py-4 rounded-lg transition-all flex justify-center items-center gap-2 mt-4" id="finishBtn">
+                                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                                Encerrar Atendimento
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            lucide.createIcons();
+        };
+
+        // Actions
+        window.confirmArrival = async (id) => {
+            await window.SAS.base44.entities.Agendamento.update(id, { status: 'chegou' });
+            loadData();
+            if (window.toast) window.toast.success('Chegada confirmada!');
+        };
+
+        window.markNoShow = async (id) => {
+            if (confirm('Confirmar que o cidadão NÃO compareceu?')) {
+                await window.SAS.base44.entities.Agendamento.update(id, { status: 'nao_compareceu' });
+                loadData();
+            }
+        };
+
+        chamarBtn.addEventListener('click', async () => {
+            if (currentActiveItem) {
+                alert('Você já tem um atendimento ativo. Encerre-o antes de chamar o próximo.');
+                return;
+            }
+
+            const all = await window.SAS.base44.entities.Agendamento.list();
+            const today = new Date().toISOString().split('T')[0];
+
+            // Get queue
+            const queue = all.filter(a => a.data_agendamento === today && a.status === 'chegou').sort((a, b) => {
+                if (a.prioridade === 'Urgente' && b.prioridade !== 'Urgente') return -1;
+                if (a.prioridade !== 'Urgente' && b.prioridade === 'Urgente') return 1;
+                return a.hora_inicio.localeCompare(b.hora_inicio);
+            });
+
+            if (queue.length === 0) {
+                alert('Não há ninguém aguardando na fila.');
+                return;
+            }
+
+            const next = queue[0];
+
+            await window.SAS.base44.entities.Agendamento.update(next.id, {
+                status: 'pendente', // Chamado
+                guiche: currentGuiche,
+                atendente_id: user.id
+            });
+
+            loadData();
+        });
+
+        window.startService = async (id) => {
+            await window.SAS.base44.entities.Agendamento.update(id, { status: 'em_andamento' });
+            loadData();
+        };
+
+        window.cancelService = async (id) => {
+            if (confirm('Deseja cancelar este chamado e devolver para a fila?')) {
+                await window.SAS.base44.entities.Agendamento.update(id, { status: 'chegou', atendente_id: null, guiche: null });
+                loadData();
+            }
+        };
+
+        window.finishService = async (id) => {
+            const obs1 = document.getElementById('obs1').value;
+            const obs2 = document.getElementById('obs2').value;
+
+            if (!obs1.trim() || !obs2.trim()) {
+                alert('É preciso preencher as duas observações para encerrar.');
+                return;
+            }
+
+            await window.SAS.base44.entities.Agendamento.update(id, {
+                status: 'concluido',
+                observacao_problema: obs1,
+                observacao_solucao: obs2
+            });
+
+            if (window.toast) window.toast.success('Atendimento encerrado com sucesso!');
+            loadData();
+        };
+
+        // Initial Load
+        loadData();
+
+        // Refresh every 10s
+        setInterval(loadData, 10000);
+
+    </script>
+</body>
+
+</html>
