@@ -34,11 +34,9 @@
                     <i data-lucide="headset" class="w-8 h-8 text-blue-700"></i>
                     <h1 class="text-3xl font-bold text-blue-700">Atendimentos</h1>
                 </div>
-                <!-- Decorative Line -->
-                <div class="flex justify-center items-center gap-1">
-                    <div class="h-1.5 w-16 bg-blue-600 rounded-full"></div>
-                    <div class="h-1.5 w-3 bg-yellow-400 rounded-full"></div>
-                    <div class="h-1.5 w-1.5 bg-red-500 rounded-full"></div>
+                <!-- Decorative Line (Pernambuco Colors) -->
+                <div class="flex justify-center items-center">
+                    <div class="h-1.5 w-32 bg-gradient-to-r from-blue-600 via-yellow-400 to-red-500 rounded-full"></div>
                 </div>
             </div>
 
@@ -98,6 +96,39 @@
                     </div>
                 </div>
 
+            </div>
+
+            <!-- Transfer Modal -->
+            <div id="transferModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+                <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md animate-fade-in">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <i data-lucide="arrow-right-left" class="w-5 h-5 text-blue-600"></i>
+                        Transferir Atendimento
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Selecione o Atendente</label>
+                            <select id="transferUserSelect" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                <option value="">Carregando usuários...</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Motivo da Transferência</label>
+                            <textarea id="transferObs" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Explique o motivo da transferência..."></textarea>
+                        </div>
+
+                        <div class="flex gap-3 mt-6">
+                            <button onclick="closeTransferModal()" class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors">
+                                Cancelar
+                            </button>
+                            <button onclick="confirmTransfer()" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors">
+                                Confirmar
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -244,17 +275,19 @@
                 return;
             }
 
-            // If active call, hide other sections to focus? Or keep them?
-            // User images show Active Call taking up space. Let's keep others visible but maybe pushed down.
-            // Actually, if "Em Atendimento", maybe we focus on that.
-
             activeCallSection.classList.remove('hidden');
             activeCallSection.innerHTML = ''; // Clear
 
             if (item.status === 'pendente') {
                 // STAGE: CHAMADO (Image 3)
                 activeCallSection.innerHTML = `
-                    <div class="bg-white rounded-xl shadow-lg border-2 border-blue-500 p-8 animate-fade-in">
+                    <div class="bg-white rounded-xl shadow-lg border-2 border-blue-500 p-8 animate-fade-in relative">
+                        ${item.observacao_transferencia ? `
+                            <div class="mb-4 bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                                <div class="text-xs font-bold text-blue-800 uppercase mb-1">Motivo da Transferência</div>
+                                <p class="text-blue-900 text-sm">${item.observacao_transferencia}</p>
+                            </div>
+                        ` : ''}
                         <div class="mb-6">
                             <h2 class="text-3xl font-bold text-blue-800 mb-1">${item.nome_completo}</h2>
                             <div class="text-gray-500 text-lg">${item.tipo_servico}</div>
@@ -276,7 +309,13 @@
             } else if (item.status === 'em_andamento') {
                 // STAGE: EM ATENDIMENTO (Image 4)
                 activeCallSection.innerHTML = `
-                    <div class="bg-white rounded-xl shadow-lg border-2 border-blue-500 p-8 animate-fade-in">
+                    <div class="bg-white rounded-xl shadow-lg border-2 border-blue-500 p-8 animate-fade-in relative">
+                        ${item.observacao_transferencia ? `
+                            <div class="mb-4 bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                                <div class="text-xs font-bold text-blue-800 uppercase mb-1">Motivo da Transferência</div>
+                                <p class="text-blue-900 text-sm">${item.observacao_transferencia}</p>
+                            </div>
+                        ` : ''}
                         <div class="mb-6 border-b pb-4">
                             <h2 class="text-3xl font-bold text-blue-800 mb-1">${item.nome_completo}</h2>
                             <div class="text-gray-500 text-lg">${item.tipo_servico}</div>
@@ -297,6 +336,11 @@
                             <button onclick="finishService('${item.id}')" class="w-full bg-gray-300 hover:bg-blue-600 hover:text-white text-gray-700 font-bold py-4 rounded-lg transition-all flex justify-center items-center gap-2 mt-4" id="finishBtn">
                                 <i data-lucide="check-circle" class="w-5 h-5"></i>
                                 Encerrar Atendimento
+                            </button>
+
+                            <button onclick="openTransferModal('${item.id}')" class="w-full bg-white border-2 border-blue-100 hover:bg-blue-50 text-blue-700 font-bold py-3 rounded-lg transition-all flex justify-center items-center gap-2">
+                                <i data-lucide="arrow-right-left" class="w-5 h-5"></i>
+                                Transferir Atendimento
                             </button>
                         </div>
                     </div>
@@ -380,6 +424,65 @@
 
             if (window.toast) window.toast.success('Atendimento encerrado com sucesso!');
             loadData();
+        };
+
+        // Transfer Logic
+        const transferModal = document.getElementById('transferModal');
+        const transferUserSelect = document.getElementById('transferUserSelect');
+        const transferObs = document.getElementById('transferObs');
+        let itemToTransferId = null;
+
+        window.openTransferModal = async (id) => {
+            itemToTransferId = id;
+            transferObs.value = '';
+
+            // Load Users
+            const users = await window.SAS.base44.entities.SystemUser.list();
+            const activeUsers = users.filter(u => u.id !== user.id && u.situacao === 'ativo');
+
+            transferUserSelect.innerHTML = '<option value="">Selecione um atendente...</option>';
+            activeUsers.forEach(u => {
+                const option = document.createElement('option');
+                option.value = u.id;
+                option.textContent = `${u.nome_completo} (Guichê ${u.guiche_atual || '?'})`;
+                transferUserSelect.appendChild(option);
+            });
+
+            transferModal.classList.remove('hidden');
+        };
+
+        window.closeTransferModal = () => {
+            transferModal.classList.add('hidden');
+            itemToTransferId = null;
+        };
+
+        window.confirmTransfer = async () => {
+            if (!itemToTransferId) return;
+
+            const targetUserId = transferUserSelect.value;
+            const obs = transferObs.value;
+
+            if (!targetUserId) {
+                alert('Selecione um atendente para transferir.');
+                return;
+            }
+
+            if (!obs.trim()) {
+                alert('Por favor, informe o motivo da transferência.');
+                return;
+            }
+
+            if (confirm('Tem certeza que deseja transferir este atendimento?')) {
+                await window.SAS.base44.entities.Agendamento.update(itemToTransferId, {
+                    status: 'pendente', // Sends to their "Chamado" screen
+                    atendente_id: targetUserId,
+                    observacao_transferencia: obs
+                });
+
+                if (window.toast) window.toast.success('Atendimento transferido com sucesso!');
+                closeTransferModal();
+                loadData();
+            }
         };
 
         // Initial Load

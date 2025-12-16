@@ -15,9 +15,12 @@
             : 'text-gray-600 hover:text-blue-700 font-medium hover:bg-slate-50';
 
         return `
-            <a href="${href}" class="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${activeClass}">
-                <i data-lucide="${iconName.toLowerCase()}" class="w-4 h-4"></i>
-                <span>${label}</span>
+            <a href="${href}" class="relative group flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${activeClass} overflow-hidden">
+                <i data-lucide="${iconName.toLowerCase()}" class="w-4 h-4 relative z-10"></i>
+                <span class="relative z-10">${label}</span>
+                
+                <!-- Hover Effect: Pernambuco Line Animated Width -->
+                <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-600 via-yellow-400 to-red-500 w-0 group-hover:w-full transition-all duration-500 ease-in-out"></div>
             </a>
         `;
     };
