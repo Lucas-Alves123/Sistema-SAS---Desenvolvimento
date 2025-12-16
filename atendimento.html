@@ -389,7 +389,8 @@
             await window.SAS.base44.entities.Agendamento.update(next.id, {
                 status: 'pendente', // Chamado
                 guiche: currentGuiche,
-                atendente_id: user.id
+                atendente_id: user.id,
+                atendente_nome: user.usuario
             });
 
             loadData();
@@ -444,7 +445,7 @@
             activeUsers.forEach(u => {
                 const option = document.createElement('option');
                 option.value = u.id;
-                option.textContent = `${u.nome_completo} (Guichê ${u.guiche_atual || '?'})`;
+                option.textContent = `${u.usuario} (Guichê ${u.guiche_atual || '?'})`;
                 transferUserSelect.appendChild(option);
             });
 
@@ -460,6 +461,9 @@
             if (!itemToTransferId) return;
 
             const targetUserId = transferUserSelect.value;
+            // Find target user name for history
+            const targetUser = Array.from(transferUserSelect.options).find(o => o.value === targetUserId);
+            const targetUserName = targetUser ? targetUser.text.split(' (')[0] : 'Desconhecido';
             const obs = transferObs.value;
 
             if (!targetUserId) {
@@ -476,6 +480,7 @@
                 await window.SAS.base44.entities.Agendamento.update(itemToTransferId, {
                     status: 'pendente', // Sends to their "Chamado" screen
                     atendente_id: targetUserId,
+                    atendente_nome: targetUserName,
                     observacao_transferencia: obs
                 });
 
