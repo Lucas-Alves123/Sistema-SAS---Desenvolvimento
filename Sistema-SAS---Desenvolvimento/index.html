@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Custom Scrollbar for aesthetic */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body
+    class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-900 p-4 font-sans">
+
+    <!-- Main Card Container -->
+    <div
+        class="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+
+        <!-- LEFT SIDE: Login Form -->
+        <div class="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-between relative z-20 shadow-xl">
+
+            <!-- Spacer to push content to center/bottom -->
+            <div></div>
+
+            <div class="max-w-sm mx-auto w-full">
+                <h1 class="text-3xl font-bold text-blue-900 mb-8 text-center">Seja bem-vindo</h1>
+
+                <form id="loginForm" class="space-y-5">
+                    <div class="space-y-2">
+                        <label for="usuario" class="text-gray-600 font-medium text-sm ml-1">Login</label>
+                        <input type="text" id="usuario" placeholder="Digite seu login"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="senha" class="text-gray-600 font-medium text-sm ml-1">Senha</label>
+                        <div class="relative">
+                            <input type="password" id="senha" placeholder="Digite sua senha"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 transition-all" />
+                            <button type="button" id="togglePassword"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                                <i data-lucide="eye" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center pt-1">
+                        <input type="checkbox" id="remember"
+                            class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                        <label for="remember"
+                            class="text-sm text-gray-500 ml-2 cursor-pointer select-none">Lembrar-me</label>
+                    </div>
+
+                    <div id="errorMsg"
+                        class="hidden text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-100 flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                        <span id="errorText">Erro ao entrar</span>
+                    </div>
+
+                    <button type="submit" id="submitBtn"
+                        class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-blue-200 transform hover:-translate-y-0.5 mt-4">
+                        Efetuar Login
+                    </button>
+                </form>
+
+                <div class="mt-6 text-center">
+                    <button
+                        class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline transition-colors">
+                        Esqueci a senha
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-12 pt-6 border-t border-gray-100 text-center">
+                <p class="text-xs text-gray-400">
+                    © 2025 SAS — Sistema de Atendimento ao Servidor<br>Governo de Pernambuco
+                </p>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: Branding (Light Background for Contrast) -->
+        <div class="hidden md:flex w-1/2 bg-slate-100 relative items-center justify-center overflow-hidden">
+            <!-- Background Effects (Subtle) -->
+            <div
+                class="absolute -top-24 -right-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob">
+            </div>
+            <div
+                class="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000">
+            </div>
+
+            <!-- Content -->
+            <div class="relative z-10 flex flex-col items-center text-center p-12 pt-24"> <!-- Reverted to pt-24 -->
+
+                <!-- Main Logo Construction -->
+                <div class="flex items-center gap-4 mb-6 transform scale-125">
+                    <div class="relative">
+                        <!-- Monitor Icon Base -->
+                        <div
+                            class="w-24 h-20 border-4 border-blue-900 rounded-xl bg-white flex items-center justify-center shadow-lg relative z-10">
+                            <!-- Screen Content -->
+                            <div class="flex gap-1">
+                                <i data-lucide="users" class="w-10 h-10 text-blue-900"></i>
+                            </div>
+                        </div>
+                        <!-- Stand -->
+                        <div class="w-8 h-4 bg-blue-900 mx-auto mt-[-2px]"></div>
+                        <div class="w-16 h-1.5 bg-blue-900 mx-auto rounded-full"></div>
+
+                        <!-- Chat Bubbles Decoration -->
+                        <div
+                            class="absolute -top-4 -right-4 bg-yellow-400 p-2 rounded-lg shadow-lg transform rotate-12 z-20 border-2 border-white">
+                            <i data-lucide="message-square" class="w-5 h-5 text-blue-900"></i>
+                        </div>
+                    </div>
+
+                    <div class="text-left">
+                        <h1 class="text-6xl font-black text-blue-900 tracking-tighter leading-none drop-shadow-sm"
+                            style="font-family: 'Arial Black', sans-serif;">SAS</h1>
+                    </div>
+                </div>
+
+                <div class="text-center mb-16">
+                    <h2 class="text-2xl font-bold text-red-500 tracking-widest uppercase mb-1 drop-shadow-sm">Sistema de
+                    </h2>
+                    <h2 class="text-2xl font-bold text-red-500 tracking-widest uppercase drop-shadow-sm">Atendimento
+                    </h2>
+                    <h2 class="text-2xl font-bold text-red-500 tracking-widest uppercase drop-shadow-sm">Ao Servidor
+                    </h2>
+                </div>
+
+                <!-- Government Footer Image -->
+                <div class="mt-auto flex flex-col items-center gap-2 opacity-90 pt-12">
+                    <img src="images/govpe.png" alt="Governo de Pernambuco" class="h-64 object-contain">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+
+    <script>
+        lucide.createIcons();
+
+        const form = document.getElementById('loginForm');
+        const errorMsg = document.getElementById('errorMsg');
+        const errorText = document.getElementById('errorText');
+        const submitBtn = document.getElementById('submitBtn');
+        const togglePassword = document.getElementById('togglePassword');
+        const senhaInput = document.getElementById('senha');
+
+        // Check if already logged in
+        if (localStorage.getItem('sas_user')) {
+            window.location.href = window.SAS.utils.createPageUrl('Home');
+        }
+
+        togglePassword.addEventListener('click', () => {
+            const type = senhaInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            senhaInput.setAttribute('type', type);
+            // Update icon
+            const iconName = type === 'password' ? 'eye' : 'eye-off';
+            togglePassword.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5"></i>`;
+            lucide.createIcons();
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMsg.classList.add('hidden');
+
+            const usuario = document.getElementById('usuario').value.trim();
+            const senha = document.getElementById('senha').value.trim();
+
+            if (!usuario || !senha) {
+                errorText.textContent = 'Preencha todos os campos para continuar.';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Entrando...';
+            lucide.createIcons();
+
+            try {
+                // Simulate network delay for better UX feel
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                const users = await window.SAS.base44.entities.SystemUser.filter({ usuario });
+
+                if (users.length === 0 || users[0].senha !== senha) {
+                    throw new Error('Usuário ou senha incorretos.');
+                }
+
+                if (users[0].situacao === 'inativo') {
+                    throw new Error('Usuário inativo. Contate o administrador.');
+                }
+
+                localStorage.setItem('sas_user', JSON.stringify(users[0]));
+                window.location.href = window.SAS.utils.createPageUrl('Home');
+
+            } catch (err) {
+                errorText.textContent = err.message || 'Erro ao fazer login.';
+                errorMsg.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Efetuar Login';
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - SAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/layout.js"></script>
+
+    <script>
+        window.SAS.utils.checkAuth();
+        window.SAS.layout.renderLayout('Configurações');
+
+        const content = document.getElementById('page-content');
+
+        content.innerHTML = `
+            <div class="flex flex-col items-center gap-2 mb-8 animate-fade-in">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="settings" class="w-8 h-8 text-blue-700"></i>
+                    <h1 class="text-3xl font-bold text-blue-700">Configurações</h1>
+                </div>
+                <!-- Decorative Line (Pernambuco Colors) -->
+                <div class="flex justify-center items-center">
+                    <div class="h-1.5 w-32 bg-gradient-to-r from-blue-600 via-yellow-400 to-red-500 rounded-full"></div>
+                </div>
+            </div>
+
+            <div class="max-w-4xl mx-auto text-center py-20">
+                <div class="bg-slate-50 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="construction" class="w-12 h-12 text-slate-400"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-700 mb-2">Página em Desenvolvimento</h2>
+                <p class="text-slate-500">As configurações do sistema estarão disponíveis em breve.</p>
+            </div>
+        `;
+
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

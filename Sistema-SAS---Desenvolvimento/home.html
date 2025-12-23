@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - SAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/layout.js"></script>
+
+    <script>
+        const user = window.SAS.utils.checkAuth();
+        // Pass 'Início' to match the label in layout.js for active state
+        window.SAS.layout.renderLayout('Início');
+
+        const content = document.getElementById('page-content');
+
+        const userName = (user?.nome_completo || 'Usuário').split(' ')[0];
+
+        content.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-12 animate-fade-in">
+                <!-- Welcome Title -->
+                <div class="text-center mb-10">
+                    <h1 class="text-5xl font-bold text-blue-700 mb-4 tracking-tight">
+                        Bem-vindo, ${userName}
+                    </h1>
+                    <!-- Decorative Line (Pernambuco Colors) -->
+                    <div class="flex justify-center items-center">
+                        <div class="h-1.5 w-32 bg-gradient-to-r from-blue-600 via-yellow-400 to-red-500 rounded-full"></div>
+                    </div>
+                </div>
+
+                <!-- Description Card -->
+                <div class="max-w-3xl w-full mb-10">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 border-l-4 border-l-blue-600 p-8 text-center">
+                        <p class="text-gray-600 text-lg leading-relaxed">
+                            Seja bem-vindo ao novo <strong class="text-blue-700">SAS - Sistema de Atendimento ao Servidor</strong>. 
+                            Desenvolvido para modernizar, integrar e facilitar o acesso aos serviços, o SAS garante mais agilidade, 
+                            transparência e eficiência no atendimento aos servidores e cidadãos.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Access Button -->
+                <div class="mb-16 transform hover:scale-105 transition-transform duration-200">
+                    <a href="${window.SAS.utils.createPageUrl('Agendamento')}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 text-lg font-bold rounded-full shadow-lg hover:shadow-blue-200 transition-all">
+                        <i data-lucide="zap" class="w-5 h-5"></i>
+                        Acessar Sistema
+                    </a>
+                </div>
+
+                <!-- Features Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl w-full">
+                    ${renderFeatureCard('Agilidade', 'Processos mais rápidos e eficientes para melhor atendimento', 'zap')}
+                    ${renderFeatureCard('Segurança', 'Dados protegidos com as melhores práticas de segurança', 'shield')}
+                    ${renderFeatureCard('Transparência', 'Controle total sobre processos e relatórios detalhados', 'trending-up')}
+                </div>
+            </div>
+        `;
+
+        function renderFeatureCard(title, description, icon) {
+            return `
+                <div class="flex flex-col items-center group h-full">
+                    <div class="w-full bg-white border border-slate-200 border-t-4 border-t-blue-600 hover:border-blue-300 hover:shadow-xl transition-all duration-300 cursor-pointer rounded-xl p-8 text-center h-full flex flex-col items-center relative overflow-hidden">
+                        <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                            <i data-lucide="${icon}" class="w-8 h-8 text-blue-600"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-3">${title}</h3>
+                        <p class="text-gray-500 leading-relaxed">${description}</p>
+                        
+                        <!-- Hover Effect: Pernambuco Line Animated Width -->
+                        <div class="absolute bottom-0 left-0 h-1.5 bg-gradient-to-r from-blue-600 via-yellow-400 to-red-500 w-0 group-hover:w-full transition-all duration-500 ease-in-out"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

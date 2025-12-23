@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - SAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/layout.js"></script>
+
+    <script>
+        const user = window.SAS.utils.checkAuth();
+        window.SAS.layout.renderLayout('Relatórios');
+
+        const content = document.getElementById('page-content');
+
+        content.innerHTML = `
+            <div class="flex flex-col items-center gap-2 mb-8 animate-fade-in">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="file-text" class="w-8 h-8 text-blue-700"></i>
+                    <h1 class="text-3xl font-bold text-blue-700">Relatórios e Gráficos</h1>
+                </div>
+                <!-- Decorative Line (Pernambuco Colors) -->
+                <div class="flex justify-center items-center">
+                    <div class="h-1.5 w-32 bg-gradient-to-r from-blue-600 via-yellow-400 to-red-500 rounded-full"></div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg border border-slate-100 p-6 max-w-6xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Controls -->
+                    <div class="space-y-4">
+                        <div class="space-y-2">
+                            <label class="text-blue-700 font-medium">Tipo de Visualização</label>
+                            <select id="chartType" class="w-full border p-2 rounded">
+                                <option value="bar">Barras</option>
+                                <option value="pie">Pizza</option>
+                                <option value="doughnut">Rosca</option>
+                                <option value="line">Linha</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-blue-700 font-medium">Métrica</label>
+                            <select id="metricType" class="w-full border p-2 rounded">
+                                <option value="status">Por Status</option>
+                                <option value="service">Por Serviço</option>
+                                <option value="attendant">Por Atendente</option>
+                            </select>
+                        </div>
+
+                        <button id="generateBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-bold transition-colors">
+                            Gerar Gráfico
+                        </button>
+                    </div>
+
+                    <!-- Chart Area -->
+                    <div class="flex items-center justify-center bg-slate-50 rounded-lg p-4 border border-slate-200 min-h-[300px]">
+                        <canvas id="myChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        lucide.createIcons();
+
+        // Logic
+        const generateBtn = document.getElementById('generateBtn');
+        const chartTypeSelect = document.getElementById('chartType');
+        const metricTypeSelect = document.getElementById('metricType');
+        let myChart = null;
+
+        generateBtn.addEventListener('click', async () => {
+            const chartType = chartTypeSelect.value;
+            const metric = metricTypeSelect.value;
+
+            const data = await window.SAS.base44.entities.Agendamento.list();
+
+            let labels = [];
+            let values = [];
+            let backgroundColors = [
+                '#3b82f6', '#ef4444', '#eab308', '#22c55e', '#a855f7', '#ec4899', '#6366f1'
+            ];
+
+            if (metric === 'status') {
+                const counts = {};
+                data.forEach(d => {
+                    const s = d.status.replace('_', ' ').toUpperCase();
+                    counts[s] = (counts[s] || 0) + 1;
+                });
+                labels = Object.keys(counts);
+                values = Object.values(counts);
+            } else if (metric === 'service') {
+                const counts = {};
+                data.forEach(d => {
+                    const s = d.tipo_servico;
+                    counts[s] = (counts[s] || 0) + 1;
+                });
+                labels = Object.keys(counts);
+                values = Object.values(counts);
+            } else if (metric === 'attendant') {
+                const counts = {};
+                data.forEach(d => {
+                    const s = d.atendente_nome || 'Não Atribuído';
+                    counts[s] = (counts[s] || 0) + 1;
+                });
+                labels = Object.keys(counts);
+                values = Object.values(counts);
+            }
+
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            const ctx = document.getElementById('myChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: chartType,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Quantidade',
+                        data: values,
+                        backgroundColor: backgroundColors.slice(0, labels.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        });
+
+        // Generate initial chart
+        generateBtn.click();
+    </script>
+</body>
+
+</html>

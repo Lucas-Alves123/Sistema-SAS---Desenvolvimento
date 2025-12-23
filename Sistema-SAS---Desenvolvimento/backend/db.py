@@ -1,0 +1,44 @@
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from .config import Config
+
+def get_db_connection():
+    try:
+        conn = psycopg2.connect(
+            host=Config.DB_HOST,
+            database=Config.DB_NAME,
+            user=Config.DB_USER,
+            password=Config.DB_PASS,
+            port=Config.DB_PORT
+        )
+        return conn
+    except Exception as e:
+        print(f"Error connecting to database: {e}")
+        return None
+
+def query_db(query, args=(), one=False):
+    conn = get_db_connection()
+    if conn is None:
+        return None
+    
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(query, args)
+        
+        if query.strip().upper().startswith("SELECT") or query.strip().upper().startswith("RETURNING"):
+            rv = cur.fetchall()
+            conn.commit()
+            cur.close()
+            conn.close()
+            return (rv[0] if rv else None) if one else rv
+        else:
+            conn.commit()
+            cur.close()
+            conn.close()
+            return None
+    except Exception as e:
+        print(f"Database query error: {e}")
+        if conn:
+            conn.rollback()
+            conn.close()
+        raise e
