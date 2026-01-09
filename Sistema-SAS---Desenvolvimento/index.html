@@ -171,10 +171,10 @@
         const togglePassword = document.getElementById('togglePassword');
         const senhaInput = document.getElementById('senha');
 
-        // Check if already logged in
-        if (localStorage.getItem('sas_user')) {
-            window.location.href = window.SAS.utils.createPageUrl('Home');
-        }
+        // Check if already logged in - DISABLED
+        // if (localStorage.getItem('sas_user')) {
+        //     window.location.href = window.SAS.utils.createPageUrl('Home');
+        // }
 
         togglePassword.addEventListener('click', () => {
             const type = senhaInput.getAttribute('type') === 'password' ? 'text' : 'password';

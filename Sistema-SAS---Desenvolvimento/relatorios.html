@@ -37,37 +37,96 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-lg border border-slate-100 p-6 max-w-6xl mx-auto">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <!-- Controls -->
-                    <div class="space-y-4">
-                        <div class="space-y-2">
-                            <label class="text-blue-700 font-medium">Tipo de Visualização</label>
-                            <select id="chartType" class="w-full border p-2 rounded">
-                                <option value="bar">Barras</option>
-                                <option value="pie">Pizza</option>
-                                <option value="doughnut">Rosca</option>
-                                <option value="line">Linha</option>
-                            </select>
+            <div class="max-w-6xl mx-auto">
+                <!-- Tabs -->
+                <div class="flex gap-4 mb-6 border-b border-gray-200">
+                    <button id="tabCharts" class="px-6 py-3 font-bold text-blue-600 border-b-2 border-blue-600 transition-colors">
+                        Gráficos
+                    </button>
+                    <button id="tabDetailed" class="px-6 py-3 font-medium text-gray-500 hover:text-blue-600 transition-colors">
+                        Relatório Detalhado
+                    </button>
+                </div>
+
+                <!-- Charts View -->
+                <div id="viewCharts" class="bg-white rounded-xl shadow-lg border border-slate-100 p-6 animate-fade-in">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <!-- Controls -->
+                        <div class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-blue-700 font-medium">Tipo de Visualização</label>
+                                <select id="chartType" class="w-full border p-2 rounded">
+                                    <option value="bar">Barras</option>
+                                    <option value="pie">Pizza</option>
+                                    <option value="doughnut">Rosca</option>
+                                    <option value="line">Linha</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-blue-700 font-medium">Métrica</label>
+                                <select id="metricType" class="w-full border p-2 rounded">
+                                    <option value="status">Por Status</option>
+                                    <option value="service">Por Serviço</option>
+                                    <option value="attendant">Por Atendente</option>
+                                </select>
+                            </div>
+
+                            <button id="generateBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-bold transition-colors">
+                                Gerar Gráfico
+                            </button>
                         </div>
 
-                        <div class="space-y-2">
-                            <label class="text-blue-700 font-medium">Métrica</label>
-                            <select id="metricType" class="w-full border p-2 rounded">
-                                <option value="status">Por Status</option>
-                                <option value="service">Por Serviço</option>
-                                <option value="attendant">Por Atendente</option>
+                        <!-- Chart Area -->
+                        <div class="flex items-center justify-center bg-slate-50 rounded-lg p-4 border border-slate-200 min-h-[300px]">
+                            <canvas id="myChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Report View -->
+                <div id="viewDetailed" class="bg-white rounded-xl shadow-lg border border-slate-100 p-6 hidden animate-fade-in">
+                    <!-- Filters -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-600 mb-1">Data Início</label>
+                            <input type="date" id="filterStartDate" class="w-full border rounded p-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-600 mb-1">Data Fim</label>
+                            <input type="date" id="filterEndDate" class="w-full border rounded p-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-600 mb-1">Atendente</label>
+                            <select id="filterAttendant" class="w-full border rounded p-2 text-sm">
+                                <option value="">Todos</option>
                             </select>
                         </div>
-
-                        <button id="generateBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-bold transition-colors">
-                            Gerar Gráfico
-                        </button>
+                        <div class="flex items-end">
+                            <button id="filterBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-bold transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="filter" class="w-4 h-4"></i> Filtrar
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Chart Area -->
-                    <div class="flex items-center justify-center bg-slate-50 rounded-lg p-4 border border-slate-200 min-h-[300px]">
-                        <canvas id="myChart"></canvas>
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left border-collapse">
+                            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
+                                <tr>
+                                    <th class="px-4 py-3 border-r border-slate-200">Data</th>
+                                    <th class="px-4 py-3 border-r border-slate-200">Cliente</th>
+                                    <th class="px-4 py-3 border-r border-slate-200">Serviço</th>
+                                    <th class="px-4 py-3 border-r border-slate-200">Atendente</th>
+                                    <th class="px-4 py-3 border-r border-slate-200">Status</th>
+                                    <th class="px-4 py-3 border-r border-slate-200 w-1/4">Obs. Cliente</th>
+                                    <th class="px-4 py-3 w-1/4">Obs. Solução</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody" class="divide-y divide-slate-200">
+                                <!-- Rows -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -81,6 +140,28 @@
         const metricTypeSelect = document.getElementById('metricType');
         let myChart = null;
 
+        // Tabs Logic
+        const tabCharts = document.getElementById('tabCharts');
+        const tabDetailed = document.getElementById('tabDetailed');
+        const viewCharts = document.getElementById('viewCharts');
+        const viewDetailed = document.getElementById('viewDetailed');
+
+        tabCharts.addEventListener('click', () => {
+            tabCharts.className = 'px-6 py-3 font-bold text-blue-600 border-b-2 border-blue-600 transition-colors';
+            tabDetailed.className = 'px-6 py-3 font-medium text-gray-500 hover:text-blue-600 transition-colors';
+            viewCharts.classList.remove('hidden');
+            viewDetailed.classList.add('hidden');
+        });
+
+        tabDetailed.addEventListener('click', () => {
+            tabDetailed.className = 'px-6 py-3 font-bold text-blue-600 border-b-2 border-blue-600 transition-colors';
+            tabCharts.className = 'px-6 py-3 font-medium text-gray-500 hover:text-blue-600 transition-colors';
+            viewDetailed.classList.remove('hidden');
+            viewCharts.classList.add('hidden');
+            loadReportTable(); // Load data when tab is opened
+        });
+
+        // Chart Logic
         generateBtn.addEventListener('click', async () => {
             const chartType = chartTypeSelect.value;
             const metric = metricTypeSelect.value;
@@ -145,6 +226,75 @@
                 }
             });
         });
+
+        // Report Logic
+        const filterStartDate = document.getElementById('filterStartDate');
+        const filterEndDate = document.getElementById('filterEndDate');
+        const filterAttendant = document.getElementById('filterAttendant');
+        const filterBtn = document.getElementById('filterBtn');
+        const reportTableBody = document.getElementById('reportTableBody');
+
+        // Populate Attendant Filter
+        (async () => {
+            const users = await window.SAS.base44.entities.SystemUser.list();
+            users.forEach(u => {
+                const option = document.createElement('option');
+                option.value = u.id;
+                option.textContent = u.usuario;
+                filterAttendant.appendChild(option);
+            });
+        })();
+
+        const loadReportTable = async () => {
+            let data = await window.SAS.base44.entities.Agendamento.list('-created_date');
+
+            // Filter only Completed or Cancelled
+            data = data.filter(d => d.status === 'concluido' || d.status === 'cancelado' || d.status === 'nao_compareceu');
+
+            // Apply Filters
+            const start = filterStartDate.value;
+            const end = filterEndDate.value;
+            const attendant = filterAttendant.value;
+
+            if (start) {
+                data = data.filter(d => d.data_agendamento >= start);
+            }
+            if (end) {
+                data = data.filter(d => d.data_agendamento <= end);
+            }
+            if (attendant) {
+                data = data.filter(d => d.atendente_id == attendant);
+            }
+
+            reportTableBody.innerHTML = '';
+
+            if (data.length === 0) {
+                reportTableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Nenhum registro encontrado para os filtros selecionados.</td></tr>';
+                return;
+            }
+
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors';
+
+                let statusColor = 'text-gray-600';
+                if (item.status === 'concluido') statusColor = 'text-green-600 font-bold';
+                else if (item.status === 'cancelado' || item.status === 'nao_compareceu') statusColor = 'text-red-600 font-bold';
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 border-r border-slate-100 text-gray-600 whitespace-nowrap">${window.SAS.utils.formatDate(item.data_agendamento)}</td>
+                    <td class="px-4 py-3 border-r border-slate-100 font-medium text-gray-800">${item.nome_completo}</td>
+                    <td class="px-4 py-3 border-r border-slate-100 text-gray-600">${item.tipo_servico}</td>
+                    <td class="px-4 py-3 border-r border-slate-100 text-gray-600">${item.atendente_nome || '-'}</td>
+                    <td class="px-4 py-3 border-r border-slate-100 ${statusColor} capitalize">${item.status.replace('_', ' ')}</td>
+                    <td class="px-4 py-3 border-r border-slate-100 text-gray-500 text-xs italic">${item.observacao_problema || '-'}</td>
+                    <td class="px-4 py-3 text-gray-500 text-xs italic">${item.observacao_solucao || '-'}</td>
+                `;
+                reportTableBody.appendChild(tr);
+            });
+        };
+
+        filterBtn.addEventListener('click', loadReportTable);
 
         // Generate initial chart
         generateBtn.click();

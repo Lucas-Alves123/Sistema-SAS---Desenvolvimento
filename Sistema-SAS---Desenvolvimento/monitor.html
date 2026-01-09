@@ -82,6 +82,7 @@
                                         <th class="px-4 py-3">Atendente</th>
                                         <th class="px-4 py-3">Guichê</th>
                                         <th class="px-4 py-3">Status</th>
+                                        <th class="px-4 py-3">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableBody" class="divide-y divide-slate-100">
@@ -89,6 +90,58 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details Modal -->
+            <div id="detailsModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+                <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl animate-fade-in">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4">
+                        <h3 class="text-2xl font-bold text-blue-800 flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-6 h-6"></i>
+                            Detalhes do Atendimento
+                        </h3>
+                        <button onclick="closeDetailsModal()" class="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-full transition-colors">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-500 uppercase mb-1">Cliente</label>
+                            <div id="modalCliente" class="text-lg text-gray-800 font-medium"></div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-500 uppercase mb-1">Serviço</label>
+                            <div id="modalServico" class="text-lg text-gray-800 font-medium"></div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-500 uppercase mb-1">Atendente</label>
+                            <div id="modalAtendente" class="text-lg text-gray-800 font-medium"></div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-500 uppercase mb-1">Data/Hora</label>
+                            <div id="modalData" class="text-lg text-gray-800 font-medium"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 bg-slate-50 p-6 rounded-lg border border-slate-200">
+                        <div>
+                            <label class="block text-sm font-bold text-blue-700 uppercase mb-2">Observação 1 - Problema</label>
+                            <p id="modalObs1" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></p>
+                        </div>
+                        <div class="border-t border-slate-200 my-4"></div>
+                        <div>
+                            <label class="block text-sm font-bold text-green-700 uppercase mb-2">Observação 2 - Solução</label>
+                            <p id="modalObs2" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button onclick="closeDetailsModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors">
+                            Fechar
+                        </button>
                     </div>
                 </div>
             </div>
@@ -115,6 +168,15 @@
         const attendantFilter = document.getElementById('attendantFilter');
         const refreshBtn = document.getElementById('refreshBtn');
         const tableBody = document.getElementById('tableBody');
+
+        // Modal Elements
+        const detailsModal = document.getElementById('detailsModal');
+        const modalCliente = document.getElementById('modalCliente');
+        const modalServico = document.getElementById('modalServico');
+        const modalAtendente = document.getElementById('modalAtendente');
+        const modalData = document.getElementById('modalData');
+        const modalObs1 = document.getElementById('modalObs1');
+        const modalObs2 = document.getElementById('modalObs2');
 
         // Set initial status
         statusSelect.value = user.status_atendimento || 'offline';
@@ -167,7 +229,7 @@
             // Update Table
             tableBody.innerHTML = '';
             if (atendimentos.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Nenhum registro encontrado.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Nenhum registro encontrado.</td></tr>';
             } else {
                 atendimentos.forEach(item => {
                     const tr = document.createElement('tr');
@@ -179,9 +241,19 @@
                     else if (item.status === 'pendente') statusColor = 'bg-orange-100 text-orange-800';
                     else if (item.status === 'cancelado' || item.status === 'nao_compareceu') statusColor = 'bg-red-100 text-red-800';
 
+                    // Action Button Logic
+                    let actionBtn = '';
+                    if (item.status === 'concluido' || item.status === 'cancelado' || item.status === 'nao_compareceu') {
+                        actionBtn = `
+                            <button onclick="openDetailsModal('${item.id}')" class="text-blue-600 hover:bg-blue-100 p-1.5 rounded-lg transition-colors" title="Ver Detalhes">
+                                <i data-lucide="eye" class="w-5 h-5"></i>
+                            </button>
+                        `;
+                    }
+
                     tr.innerHTML = `
                         <td class="px-4 py-3 font-medium text-gray-900">${item.nome_completo}</td>
-                        <td class="px-4 py-3 text-gray-600">${item.data_agendamento} ${item.hora_inicio}</td>
+                        <td class="px-4 py-3 text-gray-600">${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio}</td>
                         <td class="px-4 py-3 text-gray-600">${item.tipo_servico}</td>
                         <td class="px-4 py-3 text-gray-600">${item.atendente_nome || '-'}</td>
                         <td class="px-4 py-3 text-gray-600">${item.guiche || '-'}</td>
@@ -190,10 +262,40 @@
                                 ${item.status.replace('_', ' ')}
                             </span>
                         </td>
+                        <td class="px-4 py-3">
+                            ${actionBtn}
+                        </td>
                     `;
                     tableBody.appendChild(tr);
                 });
+                lucide.createIcons();
             }
+        };
+
+        window.openDetailsModal = async (id) => {
+            try {
+                const all = await window.SAS.base44.entities.Agendamento.list();
+                const item = all.find(a => a.id == id);
+
+                if (!item) return;
+
+                modalCliente.textContent = item.nome_completo;
+                modalServico.textContent = item.tipo_servico;
+                modalAtendente.textContent = item.atendente_nome || '-';
+                modalData.textContent = `${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio}`;
+
+                modalObs1.textContent = item.observacao_problema || 'Nenhuma observação registrada.';
+                modalObs2.textContent = item.observacao_solucao || 'Nenhuma solução registrada.';
+
+                detailsModal.classList.remove('hidden');
+            } catch (e) {
+                console.error('Error opening modal:', e);
+                alert('Erro ao carregar detalhes.');
+            }
+        };
+
+        window.closeDetailsModal = () => {
+            detailsModal.classList.add('hidden');
         };
 
         window.deleteItem = async (id) => {
