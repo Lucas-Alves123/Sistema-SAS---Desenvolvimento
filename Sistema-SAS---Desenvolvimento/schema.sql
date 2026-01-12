@@ -79,3 +79,39 @@ VALUES
 -- Exemplo de Agendamento (opcional, apenas para teste)
 -- INSERT INTO agendamentos (nome_completo, tipo_servico, data_agendamento, hora_inicio, status)
 -- VALUES ('João da Silva', 'Aposentadoria', CURRENT_DATE, '09:00', 'agendado');
+
+-- 3. Tabela de Trabalhadores (Servidores)
+CREATE TABLE IF NOT EXISTS trabalhadores (
+    id SERIAL PRIMARY KEY,
+    nome_completo VARCHAR(255) NOT NULL,
+    cpf VARCHAR(14) UNIQUE NOT NULL,
+    data_nascimento DATE,
+    nome_mae VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4. Tabela de Vínculos dos Trabalhadores
+CREATE TABLE IF NOT EXISTS vinculos_trabalhadores (
+    id SERIAL PRIMARY KEY,
+    trabalhador_id INTEGER REFERENCES trabalhadores(id),
+    matricula VARCHAR(50),
+    numero_vinculo VARCHAR(50),
+    cargo VARCHAR(100),
+    orgao VARCHAR(100),
+    situacao VARCHAR(50) DEFAULT 'ativo', -- ativo, aposentado, etc.
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Índices para busca rápida
+CREATE INDEX idx_trabalhadores_cpf ON trabalhadores(cpf);
+CREATE INDEX idx_vinculos_matricula ON vinculos_trabalhadores(matricula);
+
+-- SEED TRABALHADORES (Exemplo)
+INSERT INTO trabalhadores (nome_completo, cpf) VALUES 
+('Maria Silva Santos', '123.456.789-00'),
+('José Oliveira Souza', '987.654.321-99');
+
+INSERT INTO vinculos_trabalhadores (trabalhador_id, matricula, cargo, orgao) VALUES 
+(1, '123456', 'Enfermeira', 'Secretaria de Saúde'),
+(2, '654321', 'Médico', 'Hospital Agamenon Magalhães');
+

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identificação do Servidor - SAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center bg-blue-600 p-4">
+
+    <!-- Main Card Container -->
+    <div
+        class="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[700px]">
+
+        <!-- LEFT SIDE: Identification Form -->
+        <div class="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center relative z-20">
+
+            <div class="max-w-sm mx-auto w-full">
+
+                <!-- Main Title -->
+                <h1 class="text-2xl md:text-3xl font-bold text-blue-900 text-center mb-8 leading-tight">
+                    Agende seu atendimento de forma simples
+                </h1>
+
+                <!-- Step Indicator -->
+                <div class="flex items-center justify-center mb-10 w-full">
+                    <!-- Step 1 -->
+                    <div class="flex flex-col items-center relative z-10">
+                        <div
+                            class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-lg ring-4 ring-white">
+                            1</div>
+                        <span class="text-sm font-bold text-blue-900 mt-2">Servidor</span>
+                    </div>
+
+                    <!-- Line 1-2 -->
+                    <div class="h-1 flex-1 bg-gray-200 -mt-6 mx-[-4px] relative z-0"></div>
+
+                    <!-- Step 2 -->
+                    <div class="flex flex-col items-center relative z-10 opacity-50">
+                        <div
+                            class="w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-lg ring-4 ring-white">
+                            2</div>
+                        <span class="text-sm font-medium text-gray-400 mt-2">XXX</span>
+                    </div>
+
+                    <!-- Line 2-3 -->
+                    <div class="h-1 flex-1 bg-gray-200 -mt-6 mx-[-4px] relative z-0"></div>
+
+                    <!-- Step 3 -->
+                    <div class="flex flex-col items-center relative z-10 opacity-50">
+                        <div
+                            class="w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-lg ring-4 ring-white">
+                            3</div>
+                        <span class="text-sm font-medium text-gray-400 mt-2">XXX</span>
+                    </div>
+                </div>
+
+                <!-- Form Section Title -->
+                <div class="text-center mb-6">
+                    <h2 class="text-xl font-bold text-blue-900 mb-1">Identificação</h2>
+                    <p class="text-gray-400 text-sm">Informe seus dados para iniciar</p>
+                </div>
+
+                <form id="identificacaoForm" class="space-y-6">
+                    <div class="space-y-2">
+                        <label for="identificacao" class="text-gray-700 font-bold text-sm ml-1">CPF ou Matrícula</label>
+                        <input type="text" id="identificacao"
+                            class="w-full px-4 py-3.5 border border-gray-100 rounded-xl bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                            placeholder="Digite aqui..." required />
+                    </div>
+
+                    <!-- Feedback Area -->
+                    <div id="feedbackArea" class="hidden transition-all duration-300">
+                        <!-- Success State -->
+                        <div id="successState"
+                            class="hidden bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
+                            <div class="bg-blue-100 p-2 rounded-full shrink-0">
+                                <i data-lucide="check" class="w-5 h-5 text-blue-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-blue-600 font-bold uppercase tracking-wide">Servidor Identificado
+                                </p>
+                                <p id="nomeServidor" class="text-lg font-bold text-gray-900 mt-1">Nome do Servidor</p>
+                                <p id="dadosServidor" class="text-sm text-gray-500">Identificação confirmada</p>
+                            </div>
+                        </div>
+
+                        <!-- Error State -->
+                        <div id="errorState"
+                            class="hidden bg-red-50 border border-red-100 rounded-xl p-4 flex items-center gap-3">
+                            <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
+                            <p id="errorMessage" class="text-sm text-red-700 font-medium">Servidor não encontrado.</p>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btnBuscar"
+                        class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-blue-900/20 transform hover:-translate-y-0.5 mt-2 flex items-center justify-center gap-2">
+                        <span>Buscar Servidor</span>
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                    </button>
+
+                    <button type="button" id="btnContinuar" disabled
+                        class="hidden w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-green-600/20 transform hover:-translate-y-0.5 mt-2 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span>Continuar</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-12">
+                <p class="text-xs text-gray-400">
+                    © 2025 SAS — Sistema de Atendimento ao Servidor
+                </p>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: Branding -->
+        <div class="hidden md:flex w-1/2 bg-blue-50 relative items-center justify-center overflow-hidden">
+
+            <!-- Content -->
+            <div class="relative z-10 flex flex-col items-center text-center p-12 h-full justify-center">
+
+                <!-- Logo Construction -->
+                <div class="flex items-center gap-4 mb-12 transform scale-110">
+                    <div class="relative">
+                        <div
+                            class="w-24 h-20 border-4 border-blue-900 rounded-xl bg-white flex items-center justify-center shadow-lg relative z-10">
+                            <div class="flex gap-1">
+                                <i data-lucide="users" class="w-10 h-10 text-blue-900"></i>
+                            </div>
+                        </div>
+                        <div class="w-8 h-4 bg-blue-900 mx-auto mt-[-2px]"></div>
+                        <div class="w-16 h-1.5 bg-blue-900 mx-auto rounded-full"></div>
+                        <div
+                            class="absolute -top-4 -right-4 bg-yellow-400 p-2 rounded-lg shadow-lg transform rotate-12 z-20 border-2 border-white">
+                            <i data-lucide="message-square" class="w-5 h-5 text-blue-900"></i>
+                        </div>
+                    </div>
+
+                    <div class="text-left">
+                        <h1 class="text-6xl font-black text-blue-900 tracking-tighter leading-none"
+                            style="font-family: 'Arial Black', sans-serif;">SAS</h1>
+                    </div>
+                </div>
+
+                <div class="text-center mb-16 space-y-1">
+                    <h2 class="text-xl font-bold text-red-500 tracking-[0.2em] uppercase">Sistema de</h2>
+                    <h2 class="text-xl font-bold text-red-500 tracking-[0.2em] uppercase">Atendimento</h2>
+                    <h2 class="text-xl font-bold text-red-500 tracking-[0.2em] uppercase">Ao Servidor</h2>
+                </div>
+
+                <!-- Government Image (Larger and Centered) -->
+                <div class="mt-8">
+                    <img src="images/govpe.png" alt="Governo de Pernambuco" class="h-40 object-contain drop-shadow-md">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const form = document.getElementById('identificacaoForm');
+        const input = document.getElementById('identificacao');
+        const btnBuscar = document.getElementById('btnBuscar');
+        const btnContinuar = document.getElementById('btnContinuar');
+        const feedbackArea = document.getElementById('feedbackArea');
+        const successState = document.getElementById('successState');
+        const errorState = document.getElementById('errorState');
+        const nomeServidor = document.getElementById('nomeServidor');
+        const dadosServidor = document.getElementById('dadosServidor');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Check if running via file protocol
+        if (window.location.protocol === 'file:') {
+            alert('Atenção: Esta página deve ser acessada através do servidor (http://localhost:5000/identificacao) para funcionar corretamente.');
+        }
+
+        let isIdentified = false;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const valor = input.value.trim();
+            if (!valor) return;
+
+            // Reset UI
+            feedbackArea.classList.remove('hidden');
+            successState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            btnBuscar.disabled = true;
+            btnBuscar.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Buscando...';
+            lucide.createIcons();
+
+            try {
+                // Determine API URL
+                const baseUrl = window.location.protocol === 'file:' ? 'http://localhost:5000' : '';
+                const apiUrl = `${baseUrl}/api/identificacao/validar?valor=${encodeURIComponent(valor)}`;
+
+                const response = await fetch(apiUrl);
+
+                if (response.status !== 200 && response.status !== 404 && response.status !== 400) {
+                    throw new Error(`Network response was not ok: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Success
+                    isIdentified = true;
+                    nomeServidor.textContent = data.nome_completo;
+                    dadosServidor.textContent = 'Identificação confirmada';
+
+                    successState.classList.remove('hidden');
+
+                    // Switch buttons
+                    btnBuscar.classList.add('hidden');
+                    btnContinuar.classList.remove('hidden');
+                    btnContinuar.disabled = false;
+                } else {
+                    // Error controlled by backend
+                    throw new Error(data.message || 'Servidor não encontrado');
+                }
+            } catch (err) {
+                console.error('Erro na validação:', err);
+                isIdentified = false;
+
+                // Mensagem amigável para erro de conexão/fetch
+                if (err.message.includes('Network response') || err.message === 'Failed to fetch') {
+                    errorMessage.textContent = 'Não foi possível validar os dados no momento. Verifique se o servidor está rodando.';
+                } else {
+                    errorMessage.textContent = err.message;
+                }
+
+                errorState.classList.remove('hidden');
+
+                // Reset buttons
+                btnBuscar.classList.remove('hidden');
+                btnContinuar.classList.add('hidden');
+            } finally {
+                btnBuscar.disabled = false;
+                if (!isIdentified) {
+                    btnBuscar.innerHTML = '<span>Buscar Servidor</span><i data-lucide="search" class="w-4 h-4"></i>';
+                    lucide.createIcons();
+                }
+            }
+        });
+
+        btnContinuar.addEventListener('click', () => {
+            alert('Identificação confirmada! Redirecionando para o próximo passo...');
+        });
+
+        // Limpar feedback ao digitar
+        input.addEventListener('input', () => {
+            if (isIdentified) {
+                isIdentified = false;
+                feedbackArea.classList.add('hidden');
+                btnBuscar.classList.remove('hidden');
+                btnContinuar.classList.add('hidden');
+                btnBuscar.innerHTML = '<span>Buscar Servidor</span><i data-lucide="search" class="w-4 h-4"></i>';
+                lucide.createIcons();
+            }
+        });
+    </script>
+</body>
+
+</html>

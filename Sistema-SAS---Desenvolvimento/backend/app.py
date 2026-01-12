@@ -10,6 +10,7 @@ from flask_cors import CORS
 from backend.config import Config
 from backend.routes.usuarios import usuarios_bp
 from backend.routes.agendamentos import agendamentos_bp
+from backend.routes.identificacao import identificacao_bp
 
 def create_app():
     # Configure Flask to serve static files from the project root (one level up)
@@ -24,10 +25,15 @@ def create_app():
     # Register Blueprints
     app.register_blueprint(usuarios_bp, url_prefix='/usuarios')
     app.register_blueprint(agendamentos_bp, url_prefix='/agendamentos')
+    app.register_blueprint(identificacao_bp, url_prefix='/api/identificacao')
     
     @app.route('/')
     def index():
         return app.send_static_file('index.html')
+
+    @app.route('/identificacao')
+    def identificacao_page():
+        return app.send_static_file('identificacao.html')
         
     @app.route('/health')
     def health_check():
