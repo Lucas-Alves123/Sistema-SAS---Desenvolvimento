@@ -256,6 +256,14 @@
                             </div>
                         </div>
 
+                        <!-- Time Slots Grid (Injected) -->
+                        <div id="timeSlotsContainer" class="hidden space-y-2 animate-fade-in">
+                            <label class="text-slate-700 font-semibold text-sm ml-1">Horários Disponíveis</label>
+                            <div id="slotsGrid" class="grid grid-cols-4 gap-2 max-h-60 overflow-y-auto p-1">
+                                <!-- Slots populated by JS -->
+                            </div>
+                        </div>
+
                         <!-- Time Display Card -->
                         <div class="hidden transform transition-all duration-500 ease-out" id="timeDisplayContainer">
                             <div
@@ -483,17 +491,17 @@
                 let baseUrl = '';
                 const hostname = window.location.hostname;
                 const port = window.location.port;
-                
+
                 // If running on file:// or not on port 5000 (e.g. Live Server on 5500), point to backend
                 if (window.location.protocol === 'file:' || (hostname === 'localhost' && port !== '5000') || (hostname === '127.0.0.1' && port !== '5000')) {
                     baseUrl = 'http://localhost:5000';
                 }
-                
+
                 const apiUrl = `${baseUrl}/api/identificacao/validar?valor=${encodeURIComponent(valor)}`;
                 console.log(`[Identificacao] Fetching: ${apiUrl}`);
 
                 const response = await fetch(apiUrl);
-                
+
                 if (!response.ok) {
                     if (response.status === 404) {
                         throw new Error('Servidor não encontrado');
@@ -586,8 +594,8 @@
             updateStepper(2);
         });
 
-        
-        
+
+
 
         // Fetch Attendants
         (async function loadAttendants() {
@@ -612,7 +620,7 @@
         })();
 
         // Handle Attendant Selection
-        
+
         let selectedTimeSlot = null;
 
         atendenteSelect.addEventListener('change', async (e) => {
@@ -620,11 +628,11 @@
             const slotsContainer = document.getElementById('timeSlotsContainer');
             const slotsGrid = document.getElementById('slotsGrid');
             const btnConfirmar = document.getElementById('btnConfirmar');
-            
+
             // Reset
             selectedTimeSlot = null;
             btnConfirmar.disabled = true;
-            
+
             if (!selectedId) {
                 slotsContainer.classList.add('hidden');
                 return;
@@ -637,14 +645,14 @@
             // Fetch Availability
             const dateStr = dataInput.value || new Date().toISOString().split('T')[0];
             const data = await fetchAvailability(selectedId, dateStr);
-            
+
             slotsGrid.innerHTML = '';
 
             if (!data.available) {
-                slotsGrid.innerHTML = `<div class="col-span-full text-center text-red-500 bg-red-50 p-3 rounded-lg border border-red-100" > ${ data.message || 'Indisponível' }</div> `;
+                slotsGrid.innerHTML = `<div class="col-span-full text-center text-red-500 bg-red-50 p-3 rounded-lg border border-red-100" > ${data.message || 'Indisponível'}</div> `;
                 return;
             }
-            
+
             if (data.slots.length === 0) {
                 slotsGrid.innerHTML = `<div class="col-span-full text-center text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100" > Sem horários livres.</div> `;
                 return;
@@ -664,7 +672,7 @@
                     });
                     btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-blue-50');
                     btn.classList.add('bg-blue-600', 'text-white', 'border-blue-600', 'hover:bg-blue-700');
-                    
+
                     selectedTimeSlot = time;
                     btnConfirmar.disabled = false;
                 };
@@ -722,14 +730,14 @@
 
         // --- Online Attendants Logic ---
         const onlineWidget = document.getElementById('onlineAttendantsWidget');
-        
+
         async function updateOnlineAttendants() {
             if (!onlineWidget) return;
-            
+
             try {
                 const response = await fetch('/usuarios/online');
                 const users = await response.json();
-                
+
                 if (!users || users.length === 0) {
                     onlineWidget.innerHTML = '<span class="text-xs text-slate-400">Nenhum atendente online</span>';
                     return;
@@ -740,19 +748,19 @@
                     const isPause = u.status_atendimento === 'pausa';
                     const colorClass = isPause ? 'bg-red-100 text-red-700 border-red-200' : 'bg-green-100 text-green-700 border-green-200';
                     const dotClass = isPause ? 'bg-red-500' : 'bg-green-500 animate-pulse';
-                    
+
                     let statusText = isPause ? 'Pausa' : 'Online';
                     if (isPause && u.motivo_pausa) {
-                        statusText += `: ${ u.motivo_pausa } `;
+                        statusText += `: ${u.motivo_pausa} `;
                     }
-                    
+
                     const badge = document.createElement('div');
-                    badge.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${ colorClass } text-xs font-bold shadow-sm transition-all cursor-help`;
+                    badge.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${colorClass} text-xs font-bold shadow-sm transition-all cursor-help`;
                     badge.innerHTML = `
             <div class="w-2 h-2 rounded-full ${dotClass}" ></div>
                 <span>${u.nome_completo.split(' ')[0]}</span>
         `;
-                    badge.title = `${ u.nome_completo } (${ statusText })`;
+                    badge.title = `${u.nome_completo} (${statusText})`;
                     onlineWidget.appendChild(badge);
                 });
             } catch (e) {
@@ -767,12 +775,84 @@
 
         async function fetchAvailability(attendantId, dateStr) {
             try {
-                const response = await fetch(`/agendamentos/disponibilidade?atendente_id=${attendantId}&data=${dateStr}`);
+                const response = await fetch(`/api/agendamentos/disponibilidade?atendente_id=${attendantId}&data=${dateStr}`);
                 const data = await response.json();
                 return data;
             } catch (e) {
                 console.error("Error fetching availability:", e);
                 return { available: false, message: "Erro ao verificar disponibilidade." };
+            }
+        }
+        async function submitAgendamento() {
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="lucide-loader-2 animate-spin"></i> Processando...';
+
+            try {
+                // Prepare payload
+                const payload = {
+                    ...formData,
+                    created_by: 'auto_atendimento'
+                };
+
+                // Using direct fetch to handle 409 specifically
+                const response = await fetch('/api/agendamentos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    if (response.status === 409) {
+                        if (data.code === 'DUPLICATE_APPOINTMENT') {
+                            alert(`Você já possui um agendamento para o dia ${data.details.data}, às ${data.details.hora}, com ${data.details.atendente}.`);
+                        } else if (data.code === 'SLOT_CONFLICT') {
+                            alert(data.message);
+                        } else {
+                            alert(data.error || "Erro ao realizar agendamento.");
+                        }
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                        return;
+                    }
+                    throw new Error(data.error || "Erro ao realizar agendamento.");
+                }
+
+                // Success
+                // Show Step 4 (Success)
+                document.getElementById('step3').classList.add('hidden');
+                document.getElementById('step4').classList.remove('hidden');
+
+                // Update Step 4 UI
+                const step4Content = document.getElementById('step4');
+                step4Content.innerHTML = `
+                    <div class="text-center space-y-6 animate-fade-in">
+                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="check" class="w-10 h-10 text-green-600"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-800">Agendamento Confirmado!</h2>
+                        <p class="text-slate-600">Seu atendimento foi agendado com sucesso.</p>
+                        
+                        <div class="flex flex-col gap-3 mt-8 max-w-xs mx-auto">
+                            <button onclick="location.reload()" class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all shadow-lg hover:shadow-blue-200">
+                                Realizar Novo Agendamento
+                            </button>
+                            <button onclick="window.location.href='/'" class="w-full py-3 px-4 bg-white border border-slate-200 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition-all">
+                                Voltar ao Início
+                            </button>
+                        </div>
+                    </div>
+                `;
+                lucide.createIcons();
+
+            } catch (e) {
+                console.error("Error creating appointment:", e);
+                alert("Erro ao realizar agendamento: " + e.message);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
             }
         }
     </script>
