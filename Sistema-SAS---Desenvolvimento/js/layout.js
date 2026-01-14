@@ -54,7 +54,6 @@
                                 ${renderMenuItem('Início', 'home.html', 'Home', activePage === 'Home' ? 'Início' : activePage)}
                                 ${renderMenuItem('Agendamento', 'agendamento.html', 'Calendar', activePage)}
                                 ${renderMenuItem('Atendimento', 'atendimento.html', 'Headphones', activePage)}
-                                ${renderMenuItem('Configurações', 'configuracoes.html', 'Settings', activePage)}
                                 ${renderMenuItem('Monitor', 'monitor.html', 'Monitor', activePage)}
                                 ${renderMenuItem('Relatórios', 'relatorios.html', 'FileText', activePage)}
                                 ${renderMenuItem('Usuários', 'usuarios.html', 'Users', activePage)}

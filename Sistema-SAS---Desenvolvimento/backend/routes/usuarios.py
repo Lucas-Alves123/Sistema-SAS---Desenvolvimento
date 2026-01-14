@@ -85,3 +85,44 @@ def delete_user(id):
         return jsonify({'message': 'User deleted successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+@usuarios_bp.route('/online', strict_slashes=False, methods=['GET'])
+def get_online_users():
+    try:
+        # Fetch users who are 'ativo' and have type 'usuario' (attendants)
+        # We also fetch their status_atendimento and motivo_pausa
+        query = """
+            SELECT id, nome_completo, usuario, status_atendimento, motivo_pausa, guiche_atual
+            FROM usuarios 
+            WHERE tipo = 'usuario' AND situacao = 'ativo'
+            ORDER BY nome_completo
+        """
+        users = query_db(query)
+        return jsonify(users)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@usuarios_bp.route('/<int:id>/status', methods=['PUT'])
+def update_user_status(id):
+    data = request.json
+    new_status = data.get('status')
+    motivo = data.get('motivo') # Optional reason
+    
+    if not new_status:
+        return jsonify({'error': 'Status is required'}), 400
+        
+    try:
+        # Verify user exists first
+        user = query_db("SELECT id FROM usuarios WHERE id = %s", (id,), one=True)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # If status is 'disponivel', clear the reason. If 'pausa', set the reason.
+        if new_status == 'disponivel':
+            motivo = None
+
+        query = "UPDATE usuarios SET status_atendimento = %s, motivo_pausa = %s WHERE id = %s RETURNING id, nome_completo, status_atendimento, motivo_pausa"
+        updated_user = query_db(query, (new_status, motivo, id), one=True)
+        
+        return jsonify(updated_user)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

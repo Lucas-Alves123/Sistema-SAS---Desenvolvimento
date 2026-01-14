@@ -16,7 +16,8 @@
             'Relatorios': 'relatorios.html',
             'Usuarios': 'usuarios.html',
             'Configuracoes': 'configuracoes.html',
-            'Login': 'index.html'
+            'Login': 'index.html',
+            'Identificacao': 'identificacao.html'
         };
         return map[pageName] || '#';
     };

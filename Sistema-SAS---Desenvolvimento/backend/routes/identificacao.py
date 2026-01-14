@@ -13,39 +13,48 @@ def validar_servidor():
     # Remove non-numeric characters for CPF search
     valor_limpo = ''.join(filter(str.isdigit, valor))
     
-    nome_servidor = None
+    server_data = None
     
     # 1. Tentar buscar por CPF (se tiver 11 dígitos ou for numérico)
-    # Busca direta na tabela trabalhadores
     if valor_limpo and len(valor_limpo) == 11:
         query_cpf = """
-            SELECT nome_completo
-            FROM trabalhadores
-            WHERE cpf = %s OR cpf = %s
+            SELECT 
+                t.nome_completo, 
+                t.cpf, 
+                NULL as email, 
+                v.numero_funcional as matricula, 
+                NULL as cargo, 
+                NULL as vinculo, 
+                NULL as local_trabalho
+            FROM trabalhadores t
+            LEFT JOIN vinculos_trabalhadores v ON t.id = v.trabalhador_id
+            WHERE t.cpf = %s OR t.cpf = %s
             LIMIT 1
         """
-        result = query_db(query_cpf, (valor_limpo, valor), one=True)
-        if result:
-            nome_servidor = result['nome_completo']
+        server_data = query_db(query_cpf, (valor_limpo, valor), one=True)
 
     # 2. Se não achou por CPF, tenta por Matrícula (numero_funcional)
-    # Busca na tabela vinculos_trabalhadores e relaciona com trabalhadores
-    if not nome_servidor:
+    if not server_data:
         query_matricula = """
-            SELECT t.nome_completo
+            SELECT 
+                t.nome_completo, 
+                t.cpf, 
+                NULL as email, 
+                v.numero_funcional as matricula, 
+                NULL as cargo, 
+                NULL as vinculo, 
+                NULL as local_trabalho
             FROM vinculos_trabalhadores v
             JOIN trabalhadores t ON v.trabalhador_id = t.id
             WHERE v.numero_funcional = %s
             LIMIT 1
         """
-        result = query_db(query_matricula, (valor,), one=True)
-        if result:
-            nome_servidor = result['nome_completo']
+        server_data = query_db(query_matricula, (valor,), one=True)
 
-    if nome_servidor:
+    if server_data:
         return jsonify({
             'success': True,
-            'nome_completo': nome_servidor
+            'data': server_data
         })
     else:
         return jsonify({'success': False, 'message': 'Servidor não encontrado'}), 404

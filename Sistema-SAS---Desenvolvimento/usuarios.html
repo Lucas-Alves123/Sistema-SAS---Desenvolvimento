@@ -160,19 +160,19 @@
 
                 // Only Admins can see actions
                 if (user.tipo === 'adm') {
-                    // Admins can only edit/delete 'usuario' type, NOT other 'adm'
-                    // Exception: Admin can edit themselves (optional, but usually safer to block or allow limited edit)
-                    // User request: "adm podem controlar as ações de quem é usuario não de outros adm"
+                    const isSelf = String(u.id) === String(user.id);
 
-                    if (u.tipo === 'usuario') {
+                    if (u.tipo === 'usuario' || isSelf) {
                         actionsHTML = `
                             <div class="flex justify-end gap-2">
-                                <button class="text-yellow-600 hover:bg-yellow-50 p-1 rounded edit-btn" data-id="${u.id}">
+                                <button class="text-yellow-600 hover:bg-yellow-50 p-1 rounded edit-btn" data-id="${u.id}" title="Editar">
                                     <i data-lucide="pencil" class="w-4 h-4"></i>
                                 </button>
-                                <button class="text-red-600 hover:bg-red-50 p-1 rounded delete-btn" data-id="${u.id}">
+                                ${u.tipo === 'usuario' ? `
+                                <button class="text-red-600 hover:bg-red-50 p-1 rounded delete-btn" data-id="${u.id}" title="Excluir">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
+                                ` : ''}
                             </div>
                         `;
                     } else {
@@ -263,39 +263,47 @@
                 return;
             }
 
-            const usuarioGerado = nome.toLowerCase().split(' ')[0] + '.' + (nome.toLowerCase().split(' ').pop() || '');
-
             const payload = {
                 nome_completo: nome,
-                cpf,
-                email,
-                tipo,
-                usuario: usuarioGerado
+                cpf: cpf || null,
+                email: email || null,
+                tipo
             };
+
+            // Only generate/update username for NEW users
+            if (!id) {
+                const usuarioGerado = nome.toLowerCase().split(' ')[0] + '.' + (nome.toLowerCase().split(' ').pop() || '');
+                payload.usuario = usuarioGerado;
+                payload.situacao = 'ativo';
+            }
 
             if (senha) payload.senha = senha;
 
             try {
                 if (id) {
                     await window.SAS.base44.entities.SystemUser.update(id, payload);
+                    alert('Usuário atualizado com sucesso!');
                 } else {
                     if (!senha) {
                         alert('Senha é obrigatória para novos usuários.');
                         return;
                     }
-                    payload.situacao = 'ativo';
                     await window.SAS.base44.entities.SystemUser.create(payload);
+                    alert('Usuário criado com sucesso!');
                 }
                 modalUsuario.classList.add('hidden');
                 loadUsers();
             } catch (err) {
-                alert('Erro ao salvar usuário.');
+                console.error(err);
+                const msg = err.message || err.error || 'Erro desconhecido ao salvar.';
+                alert('Erro ao salvar: ' + msg);
             }
         });
 
         // Actions
         const openEditModal = (id) => {
-            const u = usersList.find(user => user.id === id);
+            // FIX: Convert IDs to String for comparison
+            const u = usersList.find(user => String(user.id) === String(id));
             if (!u) return;
 
             document.getElementById('userId').value = u.id;
@@ -311,7 +319,8 @@
         };
 
         const deleteUser = async (id) => {
-            if (id === user.id) {
+            // FIX: Convert IDs to String for comparison
+            if (String(id) === String(user.id)) {
                 alert('Você não pode excluir seu próprio usuário.');
                 return;
             }
@@ -322,7 +331,8 @@
         };
 
         const toggleStatus = async (id) => {
-            const u = usersList.find(user => user.id === id);
+            // FIX: Convert IDs to String for comparison
+            const u = usersList.find(user => String(user.id) === String(id));
             const novoStatus = u.situacao === 'ativo' ? 'inativo' : 'ativo';
             await window.SAS.base44.entities.SystemUser.update(id, { situacao: novoStatus });
             loadUsers();

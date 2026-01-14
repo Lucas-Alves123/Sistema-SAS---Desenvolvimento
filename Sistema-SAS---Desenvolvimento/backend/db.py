@@ -25,7 +25,7 @@ def query_db(query, args=(), one=False):
         cur = conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(query, args)
         
-        if query.strip().upper().startswith("SELECT") or query.strip().upper().startswith("RETURNING"):
+        if cur.description:
             rv = cur.fetchall()
             conn.commit()
             cur.close()
