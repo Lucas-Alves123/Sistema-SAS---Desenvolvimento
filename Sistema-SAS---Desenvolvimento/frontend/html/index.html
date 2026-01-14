@@ -26,6 +26,12 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
+        /* Hide native password reveal button in Edge/IE */
+        ::-ms-reveal,
+        ::-ms-clear {
+            display: none;
+        }
     </style>
 </head>
 

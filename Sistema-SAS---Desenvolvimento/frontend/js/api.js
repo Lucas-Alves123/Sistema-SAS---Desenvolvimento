@@ -6,7 +6,7 @@
 (function () {
     window.SAS = window.SAS || {};
 
-    const API_URL = 'http://localhost:5000';
+    const API_URL = 'http://localhost:5000/api';
 
     // Generic CRUD Helper for Fetch API
     const createCRUD = (endpoint) => ({
@@ -20,15 +20,18 @@
             return await res.json();
         },
         filter: async (criteria) => {
-            // Client-side filtering for now, as backend implements simple list
-            // In a larger app, this should be server-side
-            const res = await fetch(`${API_URL}/${endpoint}`);
+            // Server-side filtering
+            const params = new URLSearchParams(criteria).toString();
+            const res = await fetch(`${API_URL}/${endpoint}?${params}`);
+
             if (!res.ok) throw new Error('Failed to fetch data');
             const data = await res.json();
 
-            return data.filter(item => {
-                return Object.keys(criteria).every(k => item[k] == criteria[k]);
-            });
+            if (!Array.isArray(data)) {
+                throw new Error('Invalid response from server');
+            }
+
+            return data;
         },
         create: async (item) => {
             const res = await fetch(`${API_URL}/${endpoint}`, {

@@ -51,12 +51,12 @@
 
                             <!-- Navigation Menu (Desktop) -->
                             <nav class="hidden md:flex items-center gap-1">
-                                ${renderMenuItem('Início', 'home.html', 'Home', activePage === 'Home' ? 'Início' : activePage)}
-                                ${renderMenuItem('Agendamento', 'agendamento.html', 'Calendar', activePage)}
-                                ${renderMenuItem('Atendimento', 'atendimento.html', 'Headphones', activePage)}
-                                ${renderMenuItem('Monitor', 'monitor.html', 'Monitor', activePage)}
-                                ${renderMenuItem('Relatórios', 'relatorios.html', 'FileText', activePage)}
-                                ${renderMenuItem('Usuários', 'usuarios.html', 'Users', activePage)}
+                                ${renderMenuItem('Início', 'home', 'Home', activePage === 'Home' ? 'Início' : activePage)}
+                                ${renderMenuItem('Agendamento', 'agendamento', 'Calendar', activePage)}
+                                ${renderMenuItem('Atendimento', 'atendimento', 'Headphones', activePage)}
+                                ${renderMenuItem('Monitor', 'monitor', 'Monitor', activePage)}
+                                ${renderMenuItem('Relatórios', 'relatorios', 'FileText', activePage)}
+                                ${renderMenuItem('Usuários', 'usuarios', 'Users', activePage)}
                             </nav>
 
                             <!-- User Profile & Dropdown -->

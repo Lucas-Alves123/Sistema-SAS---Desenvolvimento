@@ -6,8 +6,25 @@ usuarios_bp = Blueprint('usuarios', __name__)
 @usuarios_bp.route('/', strict_slashes=False, methods=['GET'])
 def list_users():
     try:
-        users = query_db("SELECT * FROM usuarios ORDER BY nome_completo")
-        # Convert dates to string if necessary, though jsonify usually handles basic types
+        usuario_filter = request.args.get('usuario')
+        if usuario_filter:
+            users = query_db("SELECT * FROM usuarios WHERE usuario = %s", (usuario_filter,))
+        else:
+            users = query_db("SELECT * FROM usuarios ORDER BY nome_completo")
+        
+        if users is None:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        # Convert time objects to string
+        if users:
+            for u in users:
+                if u.get('horario_almoco_inicio'):
+                    u['horario_almoco_inicio'] = str(u['horario_almoco_inicio'])
+                if u.get('horario_almoco_fim'):
+                    u['horario_almoco_fim'] = str(u['horario_almoco_fim'])
+                if u.get('created_at'):
+                    u['created_at'] = str(u['created_at'])
+                    
         return jsonify(users)
     except Exception as e:
         return jsonify({'error': str(e)}), 500

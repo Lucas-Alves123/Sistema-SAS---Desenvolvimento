@@ -9,15 +9,15 @@
 
     window.SAS.utils.createPageUrl = (pageName) => {
         const map = {
-            'Home': 'home.html',
-            'Agendamento': 'agendamento.html',
-            'Atendimento': 'atendimento.html',
-            'Monitor': 'monitor.html',
-            'Relatorios': 'relatorios.html',
-            'Usuarios': 'usuarios.html',
-            'Configuracoes': 'configuracoes.html',
-            'Login': 'index.html',
-            'Identificacao': 'identificacao.html'
+            'Home': 'home',
+            'Agendamento': 'agendamento',
+            'Atendimento': 'atendimento',
+            'Monitor': 'monitor',
+            'Relatorios': 'relatorios',
+            'Usuarios': 'usuarios',
+            'Configuracoes': 'configuracoes', // No route for this yet?
+            'Login': '/',
+            'Identificacao': 'identificacao'
         };
         return map[pageName] || '#';
     };
@@ -46,7 +46,7 @@
     window.SAS.utils.checkAuth = () => {
         const user = localStorage.getItem('sas_user');
         if (!user) {
-            window.location.href = 'index.html';
+            window.location.href = '/';
             return null;
         }
         return JSON.parse(user);
@@ -54,6 +54,6 @@
 
     window.SAS.utils.logout = () => {
         localStorage.removeItem('sas_user');
-        window.location.href = 'index.html';
+        window.location.href = '/';
     };
 })();
