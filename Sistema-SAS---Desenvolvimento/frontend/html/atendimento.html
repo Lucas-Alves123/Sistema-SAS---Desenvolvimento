@@ -194,7 +194,7 @@
                 const response = await fetch('/usuarios/online');
                 const onlineUsers = await response.json();
                 const me = onlineUsers.find(u => u.id === user.id);
-                
+
                 if (me && me.status_atendimento) {
                     updateStatusUI(me.status_atendimento);
                 }
@@ -204,7 +204,7 @@
         };
 
         statusToggleBtn.addEventListener('click', async () => {
-            const newStatus = currentStatus === 'disponivel' ? 'pausa' : 'disponivel';
+            const newStatus = currentStatus === 'pausa' ? 'disponivel' : 'pausa';
             let motivo = null;
 
             if (newStatus === 'pausa') {
@@ -212,7 +212,7 @@
                 if (motivo === null) return; // Cancelled
                 if (!motivo.trim()) motivo = 'Pausa'; // Default
             }
-            
+
             // Optimistic UI update
             updateStatusUI(newStatus);
 
@@ -222,9 +222,9 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status: newStatus, motivo: motivo })
                 });
-                
+
                 if (!response.ok) throw new Error('Failed to update status');
-                
+
                 if (window.toast) {
                     window.toast.success(newStatus === 'pausa' ? 'Status definido como Pausa' : 'Status definido como Online');
                 }
