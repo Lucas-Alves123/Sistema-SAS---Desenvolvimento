@@ -52,285 +52,236 @@
     <div
         class="w-full max-w-6xl bg-white md:rounded-3xl shadow-none md:shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-screen md:min-h-[700px] md:h-auto">
 
-        <!-- LEFT SIDE: Content Area -->
-        <div class="w-full md:w-3/5 p-6 md:p-12 flex flex-col relative z-20 overflow-y-auto">
+        <!-- LEFT SIDE: Content -->
+        <div class="w-full md:w-3/5 p-8 md:p-12 flex flex-col relative">
 
-            <div class="w-full max-w-lg mx-auto">
-                <!-- Header -->
-                <div class="text-center mb-8 md:mb-10 relative">
-                    <h1 class="text-2xl md:text-3xl font-bold text-slate-800 leading-tight">
-                        Agendamento
-                    </h1>
-                    <p class="text-slate-500 mt-2 text-sm md:text-base">Siga os passos para marcar seu atendimento</p>
+            <!-- Header / Stepper -->
+            <div class="mb-12">
+                <div class="flex items-center justify-between max-w-md mx-auto relative">
 
-                    <!-- Online Attendants Widget -->
-                    <div id="onlineAttendantsWidget"
-                        class="mt-4 flex flex-wrap justify-center gap-2 animate-fade-in min-h-[30px]">
-                        <!-- Populated by JS -->
-                        <span class="text-xs text-slate-400 flex items-center gap-1"><i data-lucide="loader-2"
-                                class="w-3 h-3 animate-spin"></i> Carregando...</span>
-                    </div>
-                </div>
-
-                <!-- Step Indicator -->
-                <div class="flex items-center justify-between mb-10 w-full px-2 md:px-0">
                     <!-- Step 1 -->
-                    <div class="flex flex-col items-center relative z-10 step-active" id="step1-indicator">
+                    <div id="step1-indicator" class="relative flex flex-col items-center justify-center z-10">
                         <div
-                            class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm md:text-lg transition-all duration-300">
+                            class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold shadow-lg transition-all">
                             1</div>
                         <span
-                            class="text-[10px] md:text-sm font-bold text-blue-900 mt-2 transition-all duration-300">Servidor</span>
+                            class="absolute top-full mt-2 text-xs font-bold text-blue-900 uppercase tracking-wider w-max">Identificação</span>
                     </div>
 
                     <!-- Line 1-2 -->
-                    <div class="h-0.5 md:h-1 flex-1 bg-slate-200 mx-2 relative z-0 transition-all duration-300"
-                        id="line-1-2"></div>
+                    <div id="line-1-2" class="flex-1 h-1 bg-slate-200 rounded transition-colors duration-300"></div>
 
                     <!-- Step 2 -->
-                    <div class="flex flex-col items-center relative z-10 opacity-40" id="step2-indicator">
+                    <div id="step2-indicator" class="relative flex flex-col items-center justify-center z-10">
                         <div
-                            class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm md:text-lg transition-all duration-300">
+                            class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold transition-all">
                             2</div>
                         <span
-                            class="text-[10px] md:text-sm font-medium text-slate-400 mt-2 transition-all duration-300">Dados</span>
+                            class="absolute top-full mt-2 text-xs font-medium text-slate-400 uppercase tracking-wider w-max">Serviço</span>
                     </div>
 
                     <!-- Line 2-3 -->
-                    <div class="h-0.5 md:h-1 flex-1 bg-slate-200 mx-2 relative z-0 transition-all duration-300"
-                        id="line-2-3"></div>
+                    <div id="line-2-3" class="flex-1 h-1 bg-slate-200 rounded transition-colors duration-300"></div>
 
                     <!-- Step 3 -->
-                    <div class="flex flex-col items-center relative z-10 opacity-40" id="step3-indicator">
+                    <div id="step3-indicator" class="relative flex flex-col items-center justify-center z-10">
                         <div
-                            class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm md:text-lg transition-all duration-300">
+                            class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold transition-all">
                             3</div>
                         <span
-                            class="text-[10px] md:text-sm font-medium text-slate-400 mt-2 transition-all duration-300">Horário</span>
+                            class="absolute top-full mt-2 text-xs font-medium text-slate-400 uppercase tracking-wider w-max">Agendamento</span>
                     </div>
 
                     <!-- Line 3-4 -->
-                    <div class="h-0.5 md:h-1 flex-1 bg-slate-200 mx-2 relative z-0 transition-all duration-300"
-                        id="line-3-4"></div>
+                    <div id="line-3-4" class="flex-1 h-1 bg-slate-200 rounded transition-colors duration-300"></div>
 
                     <!-- Step 4 -->
-                    <div class="flex flex-col items-center relative z-10 opacity-40" id="step4-indicator">
+                    <div id="step4-indicator" class="relative flex flex-col items-center justify-center z-10">
                         <div
-                            class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm md:text-lg transition-all duration-300">
+                            class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold transition-all">
                             4</div>
                         <span
-                            class="text-[10px] md:text-sm font-medium text-slate-400 mt-2 transition-all duration-300">Fim</span>
+                            class="absolute top-full mt-2 text-xs font-medium text-slate-400 uppercase tracking-wider w-max">Confirmação</span>
                     </div>
                 </div>
+            </div>
 
-                <!-- STEP 1: Identification -->
-                <div id="step1-content" class="animate-fade-in">
-                    <div class="bg-white p-1 rounded-xl">
-                        <form id="identificacaoForm" class="space-y-6">
-                            <div class="space-y-2">
-                                <label for="identificacao" class="text-slate-700 font-semibold text-sm ml-1">CPF ou
-                                    Matrícula</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <i data-lucide="user" class="h-5 w-5 text-slate-400"></i>
-                                    </div>
-                                    <input type="text" id="identificacao"
-                                        class="w-full pl-11 pr-4 py-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-transparent text-base shadow-sm"
-                                        placeholder="Digite seus dados..." required />
-                                </div>
+            <!-- Online Attendants Widget -->
+            <div id="onlineAttendantsWidget" class="mt-0 mb-6 flex flex-wrap justify-center gap-2 min-h-[30px]">
+                <!-- Populated by JS -->
+            </div>
+
+            <!-- STEP 1: Identification -->
+            <div id="step1-content" class="flex-1 flex flex-col max-w-md mx-auto w-full animate-fade-in">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Bem-vindo ao SAS</h2>
+                    <p class="text-slate-500">Identifique-se para iniciar o atendimento</p>
+                </div>
+
+                <form id="identificacaoForm" class="space-y-6">
+                    <div class="space-y-2">
+                        <label for="identificacao" class="block text-sm font-bold text-slate-700 ml-1">CPF ou
+                            Matrícula</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i data-lucide="user"
+                                    class="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
                             </div>
-
-                            <!-- Feedback Area -->
-                            <div id="feedbackArea" class="hidden transition-all duration-300">
-                                <!-- Success State -->
-                                <div id="successState"
-                                    class="hidden bg-blue-50 border border-blue-100 rounded-xl p-5 flex items-start gap-4 shadow-sm">
-                                    <div class="bg-blue-100 p-2.5 rounded-full shrink-0">
-                                        <i data-lucide="check" class="w-5 h-5 text-blue-600"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs text-blue-600 font-bold uppercase tracking-wide mb-1">Servidor
-                                            Identificado</p>
-                                        <p id="nomeServidor" class="text-lg font-bold text-slate-900 leading-tight">Nome
-                                            do Servidor</p>
-                                        <p id="dadosServidor" class="text-sm text-slate-500 mt-1">Identificação
-                                            confirmada</p>
-                                    </div>
-                                </div>
-
-                                <!-- Error State -->
-                                <div id="errorState"
-                                    class="hidden bg-red-50 border border-red-100 rounded-xl p-4 flex items-center gap-3 animate-shake">
-                                    <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
-                                    <p id="errorMessage" class="text-sm text-red-700 font-medium">Servidor não
-                                        encontrado.</p>
-                                </div>
-                            </div>
-
-                            <button type="submit" id="btnBuscar"
-                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-blue-600/30 active:scale-[0.98] flex items-center justify-center gap-2 text-base">
-                                <span>Buscar Servidor</span>
-                                <i data-lucide="search" class="w-5 h-5"></i>
-                            </button>
-
-                            <button type="button" id="btnContinuar" disabled
-                                class="hidden w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-green-600/30 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-base">
-                                <span>Continuar</span>
-                                <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                            </button>
-                        </form>
+                            <input type="text" id="identificacao"
+                                class="block w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-lg"
+                                placeholder="Digite apenas números" required autofocus>
+                        </div>
                     </div>
-                </div>
 
-                <!-- STEP 2: Service & Date -->
-                <div id="step2-content" class="hidden animate-fade-in">
-                    <form id="step2Form" class="space-y-6">
-                        <!-- User Info Card Compact -->
-                        <div class="bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 flex items-center gap-3">
-                            <div class="bg-white p-2 rounded-full shadow-sm border border-slate-100"><i
-                                    data-lucide="user" class="w-4 h-4 text-blue-600"></i></div>
-                            <div class="overflow-hidden">
-                                <p id="display_nome" class="text-sm font-bold text-slate-800 truncate">Nome do Servidor
-                                </p>
+                    <!-- Feedback Area -->
+                    <div id="feedbackArea" class="hidden transition-all duration-300">
+                        <!-- Success State -->
+                        <div id="successState"
+                            class="hidden bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
+                            <div class="bg-blue-100 p-2 rounded-full shrink-0">
+                                <i data-lucide="check" class="w-5 h-5 text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-blue-900" id="nomeServidor">Nome do Servidor</h3>
+                                <p class="text-sm text-blue-700 mt-0.5" id="dadosServidor">CPF: ... | Matrícula: ...</p>
                             </div>
                         </div>
 
-                        <div class="space-y-2">
-                            <label class="text-slate-700 font-semibold text-sm ml-1">Tipo de Serviço</label>
-                            <div class="relative">
-                                <select id="servico"
-                                    class="w-full pl-4 pr-10 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white appearance-none text-slate-700 shadow-sm"
-                                    required>
-                                    <option value="">Selecione o serviço...</option>
-                                    <option value="Aposentadoria">Aposentadoria</option>
-                                    <option value="Atendimento Geral">Atendimento Geral</option>
-                                    <option value="Seleção Pública Simplificada">Seleção Pública Simplificada</option>
-                                    <option value="Certidão">Certidão</option>
-                                    <option value="Licença">Licença</option>
-                                    <option value="Pagamento">Pagamento</option>
-                                    <option value="Plantão Extraordinário">Plantão Extraordinário</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                                    <i data-lucide="chevron-down" class="h-5 w-5 text-slate-400"></i>
-                                </div>
+                        <!-- Error State -->
+                        <div id="errorState"
+                            class="hidden bg-red-50 border border-red-100 rounded-xl p-4 flex items-start gap-3">
+                            <div class="bg-red-100 p-2 rounded-full shrink-0">
+                                <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-red-900">Não encontrado</h3>
+                                <p class="text-sm text-red-700 mt-0.5" id="errorMessage">Verifique os dados e tente
+                                    novamente.</p>
                             </div>
                         </div>
-
-                        <div class="space-y-2">
-                            <label class="text-slate-700 font-semibold text-sm ml-1">Data Desejada</label>
-                            <div class="relative">
-                                <input type="date" id="data"
-                                    class="w-full pl-4 pr-4 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700 shadow-sm"
-                                    required>
-                            </div>
-                        </div>
-
-                        <div class="pt-6 flex gap-3">
-                            <button type="button" id="btnVoltarStep1"
-                                class="w-1/3 bg-white border border-slate-200 text-slate-600 font-bold py-4 rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
-                                <i data-lucide="arrow-left" class="w-5 h-5"></i> <span
-                                    class="hidden md:inline">Voltar</span>
-                            </button>
-                            <button type="submit" id="btnContinuarStep2"
-                                class="w-2/3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-blue-600/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                                <span>Próximo Passo</span> <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- STEP 3: Attendant & Time (Read-only) -->
-                <div id="step3-content" class="hidden animate-fade-in">
-                    <form id="step3Form" class="space-y-6">
-                        <div class="space-y-2">
-                            <label class="text-slate-700 font-semibold text-sm ml-1">Atendente Disponível</label>
-                            <div class="relative">
-                                <select id="atendente"
-                                    class="w-full pl-4 pr-10 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white appearance-none text-slate-700 shadow-sm"
-                                    required>
-                                    <option value="">Selecione um atendente...</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                                    <i data-lucide="chevron-down" class="h-5 w-5 text-slate-400"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Time Slots Grid (Injected) -->
-                        <div id="timeSlotsContainer" class="hidden space-y-2 animate-fade-in">
-                            <label class="text-slate-700 font-semibold text-sm ml-1">Horários Disponíveis</label>
-                            <div id="slotsGrid" class="grid grid-cols-4 gap-2 max-h-60 overflow-y-auto p-1">
-                                <!-- Slots populated by JS -->
-                            </div>
-                        </div>
-
-                        <!-- Time Display Card -->
-                        <div class="hidden transform transition-all duration-500 ease-out" id="timeDisplayContainer">
-                            <div
-                                class="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-100 shadow-sm relative overflow-hidden group">
-                                <div
-                                    class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-green-100 rounded-full opacity-50 blur-xl group-hover:scale-150 transition-transform duration-700">
-                                </div>
-
-                                <div class="flex flex-col items-center text-center relative z-10">
-                                    <span
-                                        class="text-xs font-bold text-green-600 uppercase tracking-widest mb-2">Horário
-                                        Reservado</span>
-                                    <div class="flex items-center justify-center gap-3 mb-1">
-                                        <i data-lucide="clock" class="w-6 h-6 text-green-600"></i>
-                                        <span id="displayHora"
-                                            class="text-4xl font-black text-slate-800 tracking-tight">--:--</span>
-                                    </div>
-                                    <p class="text-sm text-slate-500">Este horário foi selecionado para você</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="pt-6 flex gap-3">
-                            <button type="button" id="btnVoltarStep2"
-                                class="w-1/3 bg-white border border-slate-200 text-slate-600 font-bold py-4 rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
-                                <i data-lucide="arrow-left" class="w-5 h-5"></i> <span
-                                    class="hidden md:inline">Voltar</span>
-                            </button>
-                            <button type="submit" id="btnConfirmar" disabled
-                                class="w-2/3 bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-green-600/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
-                                <span>Confirmar Agendamento</span> <i data-lucide="check" class="w-5 h-5"></i>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- STEP 4: Success -->
-                <div id="step4-content"
-                    class="hidden animate-fade-in flex flex-col items-center justify-center h-full py-12">
-                    <div
-                        class="w-28 h-28 bg-green-100 rounded-full flex items-center justify-center mb-8 animate-[bounce_1s_infinite]">
-                        <i data-lucide="check" class="w-14 h-14 text-green-600"></i>
                     </div>
-                    <h2 class="text-3xl font-bold text-slate-800 mb-3 text-center">Tudo Certo!</h2>
-                    <p class="text-slate-500 text-center max-w-xs mb-12 text-lg">
-                        Seu agendamento foi confirmado com sucesso.
-                    </p>
 
-                    <div class="w-full max-w-sm space-y-4">
-                        <button onclick="window.location.href='home.html'"
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-blue-600/30 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
-                            <i data-lucide="home" class="w-5 h-5"></i>
-                            <span>Voltar ao Início</span>
-                        </button>
+                    <button type="submit" id="btnBuscar"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-blue-500/30 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg">
+                        <span>Buscar Servidor</span>
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                    </button>
 
-                        <button onclick="window.location.reload()"
-                            class="w-full bg-white border border-slate-200 text-slate-600 font-bold py-4 rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
-                            <i data-lucide="plus" class="w-5 h-5"></i>
-                            <span>Novo Agendamento</span>
-                        </button>
-                    </div>
+                    <button type="button" id="btnContinuar" disabled
+                        class="hidden w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-green-500/30 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg">
+                        <span>Continuar</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- STEP 2: Service Selection -->
+            <div id="step2-content" class="hidden flex-1 flex flex-col max-w-md mx-auto w-full animate-fade-in">
+
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">O que você precisa?</h2>
+                    <p class="text-slate-500">Olá, <span id="display_nome"
+                            class="font-bold text-blue-600">Servidor</span>. Selecione o serviço desejado.</p>
                 </div>
 
+                <form id="step2Form" class="space-y-6">
+                    <div class="space-y-2">
+                        <label for="servico" class="block text-sm font-bold text-slate-700 ml-1">Tipo de Serviço</label>
+                        <div class="relative">
+                            <select id="servico" required
+                                class="block w-full pl-4 pr-10 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none font-medium text-lg cursor-pointer">
+                                <option value="">Selecione...</option>
+                                <option value="Aposentadoria">Aposentadoria</option>
+                                <option value="Atendimento Geral">Atendimento Geral</option>
+                                <option value="Seleção Pública Simplificada">Seleção Pública Simplificada</option>
+                                <option value="Certidão">Certidão</option>
+                                <option value="Licença">Licença</option>
+                                <option value="Pagamento">Pagamento</option>
+                                <option value="Plantão Extraordinário">Plantão Extraordinário</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <i data-lucide="chevron-down" class="h-5 w-5 text-slate-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="data" class="block text-sm font-bold text-slate-700 ml-1">Data do
+                            Agendamento</label>
+                        <div class="relative">
+                            <input type="date" id="data" required
+                                class="block w-full pl-4 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium text-lg cursor-pointer">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btnContinuarStep2"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-blue-500/30 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg mt-8">
+                        <span>Ver Disponibilidade</span>
+                        <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+                    </button>
+
+                    <button type="button" id="btnVoltarStep1"
+                        class="w-full bg-white border border-slate-200 text-slate-600 font-bold py-4 rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2 text-lg mt-4">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        <span>Voltar</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- STEP 3: Attendant & Time -->
+            <div id="step3-content" class="hidden flex-1 flex-col max-w-md mx-auto w-full animate-fade-in">
+
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Escolha o Horário</h2>
+                    <p class="text-slate-500">Selecione um atendente e o melhor horário.</p>
+                </div>
+
+                <form id="step3Form" class="space-y-6">
+                    <div class="space-y-2">
+                        <label for="atendente" class="block text-sm font-bold text-slate-700 ml-1">Atendente
+                            Disponível</label>
+                        <div class="relative">
+                            <select id="atendente" required
+                                class="block w-full pl-4 pr-10 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none font-medium text-lg cursor-pointer">
+                                <option value="">Carregando...</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <i data-lucide="chevron-down" class="h-5 w-5 text-slate-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time Slots Container -->
+                    <div id="timeSlotsContainer" class="hidden space-y-2">
+                        <label class="block text-sm font-bold text-slate-700 ml-1">Horários Disponíveis</label>
+                        <div id="slotsGrid"
+                            class="grid grid-cols-4 gap-2 max-h-[220px] overflow-y-auto p-1 custom-scrollbar content-start">
+                            <!-- Slots populated by JS -->
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btnConfirmar" disabled
+                        class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-blue-500/30 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg mt-8">
+                        <span>Confirmar Agendamento</span>
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    </button>
+
+                    <button type="button" id="btnVoltarStep2"
+                        class="w-full bg-white border border-slate-200 text-slate-600 font-bold py-4 rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2 text-lg mt-4">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        <span>Voltar</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- STEP 4: Success -->
+            <div id="step4-content"
+                class="hidden flex-1 flex flex-col items-center justify-center max-w-md mx-auto w-full animate-fade-in text-center">
+                <!-- Content injected by JS -->
             </div>
 
             <!-- Footer -->
-            <div class="text-center mt-auto pt-8 md:pt-12 pb-4">
+            <div class="text-center mt-auto pt-8 pb-4">
                 <p class="text-xs text-slate-400 font-medium">© 2025 SAS — Sistema de Atendimento ao Servidor</p>
             </div>
         </div>
@@ -437,13 +388,19 @@
                 el.querySelector('span').classList.remove('text-blue-900', 'font-bold');
                 el.querySelector('span').classList.add('text-slate-400', 'font-medium');
             });
-            lines.forEach(el => el.classList.remove('bg-green-500'));
+            lines.forEach(el => {
+                el.classList.remove('bg-green-500');
+                el.classList.add('bg-slate-200');
+            });
 
             // Activate current and previous
             for (let i = 0; i < step; i++) {
                 if (i < step - 1) {
                     markCompleted(steps[i]);
-                    if (i < lines.length) lines[i].classList.add('bg-green-500');
+                    if (i < lines.length) {
+                        lines[i].classList.remove('bg-slate-200');
+                        lines[i].classList.add('bg-green-500');
+                    }
                 } else {
                     activateStep(steps[i]);
                 }
@@ -717,6 +674,26 @@
                 step3Content.classList.add('hidden');
                 step4Content.classList.remove('hidden');
                 updateStepper(4);
+
+                // Inject Success Content
+                step4Content.innerHTML = `
+                    <div class="text-center space-y-6 animate-fade-in">
+                        <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                            <i data-lucide="check" class="w-12 h-12 text-green-600"></i>
+                        </div>
+                        <div class="space-y-2">
+                            <h2 class="text-3xl font-bold text-slate-800">Agendamento Confirmado!</h2>
+                            <p class="text-slate-500 text-lg">O atendimento foi agendado com sucesso.</p>
+                        </div>
+                        
+                        <div class="flex flex-col gap-3 mt-12 max-w-sm mx-auto">
+                            <button onclick="location.reload()" class="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-200 flex items-center justify-center gap-2 text-lg">
+                                <span>Realizar Novo Agendamento</span>
+                                <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
                 lucide.createIcons();
 
             } catch (err) {
@@ -781,78 +758,6 @@
             } catch (e) {
                 console.error("Error fetching availability:", e);
                 return { available: false, message: "Erro ao verificar disponibilidade." };
-            }
-        }
-        async function submitAgendamento() {
-            const submitBtn = document.getElementById('submitBtn');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="lucide-loader-2 animate-spin"></i> Processando...';
-
-            try {
-                // Prepare payload
-                const payload = {
-                    ...formData,
-                    created_by: 'auto_atendimento'
-                };
-
-                // Using direct fetch to handle 409 specifically
-                const response = await fetch('/api/agendamentos', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    if (response.status === 409) {
-                        if (data.code === 'DUPLICATE_APPOINTMENT') {
-                            alert(`Você já possui um agendamento para o dia ${data.details.data}, às ${data.details.hora}, com ${data.details.atendente}.`);
-                        } else if (data.code === 'SLOT_CONFLICT') {
-                            alert(data.message);
-                        } else {
-                            alert(data.error || "Erro ao realizar agendamento.");
-                        }
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalText;
-                        return;
-                    }
-                    throw new Error(data.error || "Erro ao realizar agendamento.");
-                }
-
-                // Success
-                // Show Step 4 (Success)
-                document.getElementById('step3').classList.add('hidden');
-                document.getElementById('step4').classList.remove('hidden');
-
-                // Update Step 4 UI
-                const step4Content = document.getElementById('step4');
-                step4Content.innerHTML = `
-                    <div class="text-center space-y-6 animate-fade-in">
-                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i data-lucide="check" class="w-10 h-10 text-green-600"></i>
-                        </div>
-                        <h2 class="text-2xl font-bold text-slate-800">Agendamento Confirmado!</h2>
-                        <p class="text-slate-600">Seu atendimento foi agendado com sucesso.</p>
-                        
-                        <div class="flex flex-col gap-3 mt-8 max-w-xs mx-auto">
-                            <button onclick="location.reload()" class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all shadow-lg hover:shadow-blue-200">
-                                Realizar Novo Agendamento
-                            </button>
-                            <button onclick="window.location.href='/'" class="w-full py-3 px-4 bg-white border border-slate-200 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition-all">
-                                Voltar ao Início
-                            </button>
-                        </div>
-                    </div>
-                `;
-                lucide.createIcons();
-
-            } catch (e) {
-                console.error("Error creating appointment:", e);
-                alert("Erro ao realizar agendamento: " + e.message);
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
             }
         }
     </script>

@@ -53,14 +53,15 @@ def create_agendamento():
         duplicate_query = """
             SELECT * FROM agendamentos 
             WHERE data_agendamento = %s 
-            AND status != 'cancelado'
+            AND status IN ('agendado', 'chegou', 'pendente', 'em_andamento')
             AND (
                 (cpf IS NOT NULL AND cpf = %s) OR 
                 (matricula IS NOT NULL AND matricula = %s) OR
                 (nome_completo = %s)
             )
+            AND hora_inicio = %s
         """
-        existing_appt = query_db(duplicate_query, (data_agendamento, cpf, matricula, nome), one=True)
+        existing_appt = query_db(duplicate_query, (data_agendamento, cpf, matricula, nome, data.get('hora_inicio')), one=True)
         
         if existing_appt:
             attendant = query_db("SELECT nome_completo FROM usuarios WHERE id = %s", (existing_appt['atendente_id'],), one=True)
@@ -160,6 +161,14 @@ def update_agendamento(id):
     values.append(id)
     
     try:
+        # Race Condition Check: If calling a server (status -> pendente), ensure they are still 'chegou'
+        if data.get('status') == 'pendente':
+            current_status = query_db("SELECT status FROM agendamentos WHERE id = %s", (id,), one=True)
+            if not current_status:
+                return jsonify({'error': 'Agendamento not found'}), 404
+            if current_status['status'] != 'chegou':
+                return jsonify({'error': 'Este agendamento já foi chamado ou não está mais na fila.'}), 409
+
         query = f"UPDATE agendamentos SET {', '.join(fields)} WHERE id = %s RETURNING *"
         updated = query_db(query, tuple(values), one=True)
         

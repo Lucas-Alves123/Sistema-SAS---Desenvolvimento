@@ -13,19 +13,14 @@
 
 <body>
     <div id="app"></div>
-
     <!-- Scripts -->
     <script src="js/utils.js"></script>
     <script src="js/api.js"></script>
     <script src="js/layout.js"></script>
-
     <script>
         const user = window.SAS.utils.checkAuth();
         window.SAS.layout.renderLayout('Atendimento');
-
         const content = document.getElementById('page-content');
-
-        // Load Guichê from LocalStorage or default to 1
         let currentGuiche = localStorage.getItem('sas_guiche') || '1';
 
         content.innerHTML = `
@@ -34,13 +29,11 @@
                     <i data-lucide="headset" class="w-8 h-8 text-blue-700"></i>
                     <h1 class="text-3xl font-bold text-blue-700">Atendimentos</h1>
                 </div>
-                <!-- Decorative Line (Pernambuco Colors) -->
                 <div class="flex justify-center items-center">
                     <div class="h-1.5 w-32 bg-gradient-to-r from-blue-600 via-yellow-400 to-red-500 rounded-full"></div>
                 </div>
             </div>
 
-            <!-- Guichê Selector -->
             <div class="flex justify-center items-center gap-4 mb-6">
                 <div class="bg-blue-800 text-white px-8 py-2 rounded-lg font-bold text-xl shadow-lg">
                     Guichê <span id="guicheDisplay">${currentGuiche}</span>
@@ -49,59 +42,47 @@
                     <i data-lucide="settings" class="w-5 h-5"></i>
                     Alterar
                 </button>
-                
-                <!-- Status Toggle -->
                 <button id="statusToggleBtn" class="bg-green-100 text-green-700 border border-green-200 px-4 py-2 rounded-lg font-bold hover:bg-green-200 transition-all flex items-center gap-2 shadow-sm">
                     <div class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
                     <span>Online</span>
                 </button>
             </div>
 
-            <!-- Stats Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-8">
-                <!-- Agendados Card -->
                 <div class="bg-blue-50 border-2 border-blue-400 rounded-xl p-6 text-center shadow-sm">
                     <div class="text-4xl font-bold text-blue-800 mb-1" id="totalAgendados">0</div>
                     <div class="text-blue-600 font-medium">Agendados para hoje</div>
                 </div>
-                
-                <!-- Aguardando Card -->
                 <div class="bg-yellow-50 border-2 border-yellow-400 rounded-xl p-6 text-center shadow-sm">
                     <div class="text-4xl font-bold text-yellow-800 mb-1" id="totalAguardando">0</div>
                     <div class="text-yellow-600 font-medium">Pessoas aguardando</div>
                 </div>
             </div>
 
-            <!-- Main Content Area (Dynamic) -->
             <div id="mainArea" class="max-w-5xl mx-auto space-y-8">
-                
-                <!-- 1. Active Call (Chamado / Em Atendimento) -->
-                <div id="activeCallSection" class="hidden">
-                    <!-- Injected via JS -->
-                </div>
+                <div id="activeCallSection" class="hidden"></div>
 
-                <!-- 2. Services Available (Queue) -->
                 <div id="queueSection" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hidden">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold text-gray-800">Serviços Disponíveis</h2>
+                        <div class="flex items-center gap-4">
+                            <h2 class="text-xl font-bold text-gray-800">Fila de Espera</h2>
+                            <div class="flex bg-slate-100 p-1 rounded-lg">
+                                <button onclick="setQueueTab('Presencial')" id="tabPresencial" class="px-4 py-1.5 rounded-md text-sm font-bold transition-all bg-white text-blue-700 shadow-sm">Presencial</button>
+                                <button onclick="setQueueTab('WhatsApp')" id="tabWhatsApp" class="px-4 py-1.5 rounded-md text-sm font-bold transition-all text-slate-500 hover:text-slate-700">WhatsApp</button>
+                            </div>
+                        </div>
                         <button id="chamarProximoBtn" class="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition-all flex items-center gap-2">
                             <i data-lucide="megaphone" class="w-5 h-5"></i>
                             Chamar Próximo
                         </button>
                     </div>
-                    <div id="queueList" class="space-y-2">
-                        <!-- Queue Items -->
-                    </div>
+                    <div id="queueList" class="space-y-2"></div>
                 </div>
 
-                <!-- 3. Arrivals (Agendados Today) -->
                 <div id="arrivalsSection" class="bg-white rounded-xl shadow-sm border border-blue-200 p-6">
                     <h2 class="text-xl font-bold text-blue-700 mb-4">Agendamentos de Hoje - Confirmar Chegada</h2>
-                    <div id="arrivalsList" class="space-y-2">
-                        <!-- Arrival Items -->
-                    </div>
+                    <div id="arrivalsList" class="space-y-2"></div>
                 </div>
-
             </div>
 
             <!-- Transfer Modal -->
@@ -111,7 +92,6 @@
                         <i data-lucide="arrow-right-left" class="w-5 h-5 text-blue-600"></i>
                         Transferir Atendimento
                     </h3>
-                    
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Selecione o Atendente</label>
@@ -119,19 +99,13 @@
                                 <option value="">Carregando usuários...</option>
                             </select>
                         </div>
-
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Motivo da Transferência</label>
                             <textarea id="transferObs" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Explique o motivo da transferência..."></textarea>
                         </div>
-
                         <div class="flex gap-3 mt-6">
-                            <button onclick="closeTransferModal()" class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors">
-                                Cancelar
-                            </button>
-                            <button onclick="confirmTransfer()" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors">
-                                Confirmar
-                            </button>
+                            <button onclick="closeTransferModal()" class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors">Cancelar</button>
+                            <button onclick="confirmTransfer()" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors">Confirmar</button>
                         </div>
                     </div>
                 </div>
@@ -140,25 +114,51 @@
 
         lucide.createIcons();
 
-        // Logic
         const guicheDisplay = document.getElementById('guicheDisplay');
         const alterarGuicheBtn = document.getElementById('alterarGuicheBtn');
         const statusToggleBtn = document.getElementById('statusToggleBtn');
-
         const activeCallSection = document.getElementById('activeCallSection');
         const queueSection = document.getElementById('queueSection');
         const arrivalsSection = document.getElementById('arrivalsSection');
-
         const queueList = document.getElementById('queueList');
         const arrivalsList = document.getElementById('arrivalsList');
         const chamarBtn = document.getElementById('chamarProximoBtn');
-
         const totalAgendadosEl = document.getElementById('totalAgendados');
         const totalAguardandoEl = document.getElementById('totalAguardando');
 
         let currentActiveItem = null;
+        let currentQueueTab = 'Presencial';
 
-        // Guichê Logic
+        window.setQueueTab = (tab) => {
+            currentQueueTab = tab;
+            const tabP = document.getElementById('tabPresencial');
+            const tabW = document.getElementById('tabWhatsApp');
+            if (tab === 'Presencial') {
+                tabP.className = 'px-4 py-1.5 rounded-md text-sm font-bold transition-all bg-white text-blue-700 shadow-sm';
+                tabW.className = 'px-4 py-1.5 rounded-md text-sm font-bold transition-all text-slate-500 hover:text-slate-700';
+            } else {
+                tabP.className = 'px-4 py-1.5 rounded-md text-sm font-bold transition-all text-slate-500 hover:text-slate-700';
+                tabW.className = 'px-4 py-1.5 rounded-md text-sm font-bold transition-all bg-green-100 text-green-700 shadow-sm';
+            }
+            loadData();
+        };
+
+        window.manualCall = async (id) => {
+            if (currentActiveItem) {
+                alert('Você já tem um atendimento ativo. Encerre-o antes de chamar outro.');
+                return;
+            }
+            if (confirm('Deseja chamar este servidor agora?')) {
+                await window.SAS.base44.entities.Agendamento.update(id, {
+                    status: 'pendente',
+                    guiche: currentGuiche,
+                    atendente_id: user.id,
+                    atendente_nome: user.usuario
+                });
+                loadData();
+            }
+        };
+
         alterarGuicheBtn.addEventListener('click', () => {
             const newGuiche = prompt('Informe o número do Guichê:', currentGuiche);
             if (newGuiche && newGuiche.trim() !== '') {
@@ -169,34 +169,27 @@
             }
         });
 
-        // Status Logic
-        let currentStatus = 'disponivel'; // Default
-
-        const updateStatusUI = (status) => {
+        let currentStatus = 'disponivel';
+        const updateStatusUI = (status, motivo = null) => {
             currentStatus = status;
             if (status === 'pausa') {
                 statusToggleBtn.className = 'bg-red-100 text-red-700 border border-red-200 px-4 py-2 rounded-lg font-bold hover:bg-red-200 transition-all flex items-center gap-2 shadow-sm';
-                statusToggleBtn.innerHTML = `
-                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                    <span>Em Pausa</span>
-                `;
+                statusToggleBtn.innerHTML = `<div class="w-3 h-3 rounded-full bg-red-500"></div><span>Pausa</span>`;
+                statusToggleBtn.title = motivo || 'Em Pausa';
             } else {
                 statusToggleBtn.className = 'bg-green-100 text-green-700 border border-green-200 px-4 py-2 rounded-lg font-bold hover:bg-green-200 transition-all flex items-center gap-2 shadow-sm';
-                statusToggleBtn.innerHTML = `
-                    <div class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
-                    <span>Online</span>
-                `;
+                statusToggleBtn.innerHTML = `<div class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div><span>Online</span>`;
+                statusToggleBtn.title = 'Online e disponível';
             }
         };
 
         const fetchStatus = async () => {
             try {
-                const response = await fetch('/usuarios/online');
+                const response = await fetch('/api/usuarios/online');
                 const onlineUsers = await response.json();
                 const me = onlineUsers.find(u => u.id === user.id);
-
                 if (me && me.status_atendimento) {
-                    updateStatusUI(me.status_atendimento);
+                    updateStatusUI(me.status_atendimento, me.motivo_pausa);
                 }
             } catch (e) {
                 console.error('Error fetching status:', e);
@@ -206,67 +199,52 @@
         statusToggleBtn.addEventListener('click', async () => {
             const newStatus = currentStatus === 'pausa' ? 'disponivel' : 'pausa';
             let motivo = null;
-
             if (newStatus === 'pausa') {
                 motivo = prompt('Qual o motivo da pausa? (Ex: Almoço, Banheiro)');
-                if (motivo === null) return; // Cancelled
-                if (!motivo.trim()) motivo = 'Pausa'; // Default
+                if (motivo === null) return;
+                if (!motivo.trim()) motivo = 'Pausa';
             }
-
-            // Optimistic UI update
-            updateStatusUI(newStatus);
-
+            updateStatusUI(newStatus, motivo);
             try {
-                const response = await fetch(`/usuarios/${user.id}/status`, {
+                const response = await fetch(`/api/usuarios/${user.id}/status`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status: newStatus, motivo: motivo })
                 });
-
                 if (!response.ok) throw new Error('Failed to update status');
-
-                if (window.toast) {
-                    window.toast.success(newStatus === 'pausa' ? 'Status definido como Pausa' : 'Status definido como Online');
-                }
+                if (window.toast) window.toast.success(newStatus === 'pausa' ? 'Status definido como Pausa' : 'Status definido como Online');
             } catch (e) {
                 console.error(e);
-                // Revert on error
                 updateStatusUI(currentStatus === 'disponivel' ? 'pausa' : 'disponivel');
                 if (window.toast) window.toast.error('Erro ao atualizar status');
             }
         });
 
-        // Initialize status
         fetchStatus();
 
         const loadData = async () => {
             const all = await window.SAS.base44.entities.Agendamento.list();
             const today = new Date().toISOString().split('T')[0];
-
-            // Filter for today
             const todayAppointments = all.filter(a => a.data_agendamento === today);
-
-            // Stats
             totalAgendadosEl.textContent = todayAppointments.length;
 
-            // Filter by Status
             const arrivals = todayAppointments.filter(a => a.status === 'agendado').sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio));
-            const queue = todayAppointments.filter(a => a.status === 'chegou').sort((a, b) => {
-                // Priority logic: Urgente first
+
+            const queue = todayAppointments.filter(a =>
+                a.status === 'chegou' &&
+                (a.tipo_atendimento === currentQueueTab || (!a.tipo_atendimento && currentQueueTab === 'Presencial'))
+            ).sort((a, b) => {
                 if (a.prioridade === 'Urgente' && b.prioridade !== 'Urgente') return -1;
                 if (a.prioridade !== 'Urgente' && b.prioridade === 'Urgente') return 1;
                 return a.hora_inicio.localeCompare(b.hora_inicio);
             });
 
-            // Check if there is an active call for this user/guiche
-            // We look for 'pendente' (Chamado) or 'em_andamento' assigned to this attendant
             const active = todayAppointments.find(a =>
                 (a.status === 'pendente' || a.status === 'em_andamento') &&
                 a.atendente_id === user.id
             );
 
             totalAguardandoEl.textContent = queue.length;
-
             renderArrivals(arrivals);
             renderQueue(queue);
             renderActiveCall(active);
@@ -278,7 +256,6 @@
                 arrivalsList.innerHTML = '<p class="text-gray-400 italic">Nenhum agendamento pendente de chegada.</p>';
                 return;
             }
-
             items.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'flex justify-between items-center p-4 border border-gray-100 rounded-lg hover:bg-gray-50';
@@ -304,7 +281,6 @@
         const renderQueue = (items) => {
             queueSection.classList.remove('hidden');
             queueList.innerHTML = '';
-
             if (items.length === 0) {
                 queueList.innerHTML = `
                     <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-yellow-800 flex justify-between items-center">
@@ -313,7 +289,6 @@
                 `;
                 return;
             }
-
             items.forEach(item => {
                 const isUrgent = item.prioridade === 'Urgente';
                 const bgClass = isUrgent ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200';
@@ -323,40 +298,37 @@
                 const div = document.createElement('div');
                 div.className = `${bgClass} border p-4 rounded-lg flex justify-between items-center`;
                 div.innerHTML = `
-                    <div>
+                    <div class="flex-1">
                         <div class="font-bold ${textClass} text-lg">${item.nome_completo} ${badge}</div>
                         <div class="text-sm ${textClass} opacity-80">${item.tipo_servico}</div>
                     </div>
-                    <div class="text-right">
-                        <div class="font-bold ${textClass}">Aguardando</div>
-                        <div class="text-xs ${textClass} opacity-80">Prioridade: ${item.prioridade}</div>
+                    <div class="flex items-center gap-4">
+                        <div class="text-right hidden md:block">
+                            <div class="font-bold ${textClass}">Aguardando</div>
+                            <div class="text-xs ${textClass} opacity-80">Prioridade: ${item.prioridade}</div>
+                        </div>
+                        <button onclick="manualCall('${item.id}')" class="bg-white border border-slate-200 hover:bg-blue-50 text-blue-700 p-2 rounded-lg shadow-sm transition-all" title="Chamar Agora">
+                            <i data-lucide="megaphone" class="w-5 h-5"></i>
+                        </button>
                     </div>
                 `;
                 queueList.appendChild(div);
             });
+            lucide.createIcons();
         };
 
         const renderActiveCall = (item) => {
-            // Check for same item to prevent re-render (and input loss)
-            if (currentActiveItem && item && currentActiveItem.id === item.id && currentActiveItem.status === item.status) {
-                return;
-            }
-
+            if (currentActiveItem && item && currentActiveItem.id === item.id && currentActiveItem.status === item.status) return;
             currentActiveItem = item;
-
             if (!item) {
                 activeCallSection.classList.add('hidden');
-                // Show other sections if no active call
                 queueSection.classList.remove('hidden');
                 arrivalsSection.classList.remove('hidden');
                 return;
             }
-
             activeCallSection.classList.remove('hidden');
-            activeCallSection.innerHTML = ''; // Clear
-
+            activeCallSection.innerHTML = '';
             if (item.status === 'pendente') {
-                // STAGE: CHAMADO (Image 3)
                 activeCallSection.innerHTML = `
                     <div class="bg-white rounded-xl shadow-lg border-2 border-blue-500 p-8 animate-fade-in relative">
                         ${item.observacao_transferencia ? `
@@ -370,21 +342,17 @@
                             <div class="text-gray-500 text-lg">${item.tipo_servico}</div>
                             <span class="bg-gray-600 text-white px-3 py-1 rounded-full text-sm font-bold mt-2 inline-block">Prioridade: ${item.prioridade}</span>
                         </div>
-                        
                         <div class="flex gap-4">
                             <button onclick="startService('${item.id}')" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-bold text-lg flex items-center gap-2 transition-all">
-                                <i data-lucide="play" class="w-5 h-5"></i>
-                                Iniciar Atendimento
+                                <i data-lucide="play" class="w-5 h-5"></i> Iniciar Atendimento
                             </button>
                             <button onclick="cancelService('${item.id}')" class="bg-white border border-gray-300 text-gray-600 px-6 py-3 rounded-lg font-bold text-lg hover:bg-gray-50 flex items-center gap-2">
-                                <i data-lucide="x" class="w-5 h-5"></i>
-                                Cancelar
+                                <i data-lucide="x" class="w-5 h-5"></i> Cancelar
                             </button>
                         </div>
                     </div>
                 `;
             } else if (item.status === 'em_andamento') {
-                // STAGE: EM ATENDIMENTO (Image 4)
                 activeCallSection.innerHTML = `
                     <div class="bg-white rounded-xl shadow-lg border-2 border-blue-500 p-8 animate-fade-in relative">
                         ${item.observacao_transferencia ? `
@@ -398,26 +366,20 @@
                             <div class="text-gray-500 text-lg">${item.tipo_servico}</div>
                             <span class="bg-gray-600 text-white px-3 py-1 rounded-full text-sm font-bold mt-2 inline-block">Prioridade: ${item.prioridade}</span>
                         </div>
-
                         <div class="space-y-6">
                             <div>
                                 <label class="block text-blue-700 font-bold mb-2">Observação 1 - Problema relatado pelo cliente</label>
                                 <textarea id="obs1" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Descreva o problema relatado..."></textarea>
                             </div>
-                            
                             <div>
                                 <label class="block text-blue-700 font-bold mb-2">Observação 2 - Resposta/Solução dada pelo atendente</label>
                                 <textarea id="obs2" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Descreva a solução fornecida..."></textarea>
                             </div>
-
                             <button onclick="finishService('${item.id}')" class="w-full bg-gray-300 hover:bg-blue-600 hover:text-white text-gray-700 font-bold py-4 rounded-lg transition-all flex justify-center items-center gap-2 mt-4" id="finishBtn">
-                                <i data-lucide="check-circle" class="w-5 h-5"></i>
-                                Encerrar Atendimento
+                                <i data-lucide="check-circle" class="w-5 h-5"></i> Encerrar Atendimento
                             </button>
-
                             <button onclick="openTransferModal('${item.id}')" class="w-full bg-white border-2 border-blue-100 hover:bg-blue-50 text-blue-700 font-bold py-3 rounded-lg transition-all flex justify-center items-center gap-2">
-                                <i data-lucide="arrow-right-left" class="w-5 h-5"></i>
-                                Transferir Atendimento
+                                <i data-lucide="arrow-right-left" class="w-5 h-5"></i> Transferir Atendimento
                             </button>
                         </div>
                     </div>
@@ -426,7 +388,6 @@
             lucide.createIcons();
         };
 
-        // Actions
         window.confirmArrival = async (id) => {
             await window.SAS.base44.entities.Agendamento.update(id, { status: 'chegou' });
             loadData();
@@ -445,31 +406,24 @@
                 alert('Você já tem um atendimento ativo. Encerre-o antes de chamar o próximo.');
                 return;
             }
-
             const all = await window.SAS.base44.entities.Agendamento.list();
             const today = new Date().toISOString().split('T')[0];
-
-            // Get queue
             const queue = all.filter(a => a.data_agendamento === today && a.status === 'chegou').sort((a, b) => {
                 if (a.prioridade === 'Urgente' && b.prioridade !== 'Urgente') return -1;
                 if (a.prioridade !== 'Urgente' && b.prioridade === 'Urgente') return 1;
                 return a.hora_inicio.localeCompare(b.hora_inicio);
             });
-
             if (queue.length === 0) {
                 alert('Não há ninguém aguardando na fila.');
                 return;
             }
-
             const next = queue[0];
-
             await window.SAS.base44.entities.Agendamento.update(next.id, {
-                status: 'pendente', // Chamado
+                status: 'pendente',
                 guiche: currentGuiche,
                 atendente_id: user.id,
                 atendente_nome: user.usuario
             });
-
             loadData();
         });
 
@@ -488,23 +442,19 @@
         window.finishService = async (id) => {
             const obs1 = document.getElementById('obs1').value;
             const obs2 = document.getElementById('obs2').value;
-
             if (!obs1.trim() || !obs2.trim()) {
                 alert('É preciso preencher as duas observações para encerrar.');
                 return;
             }
-
             await window.SAS.base44.entities.Agendamento.update(id, {
                 status: 'concluido',
                 observacao_problema: obs1,
                 observacao_solucao: obs2
             });
-
             if (window.toast) window.toast.success('Atendimento encerrado com sucesso!');
             loadData();
         };
 
-        // Transfer Logic
         const transferModal = document.getElementById('transferModal');
         const transferUserSelect = document.getElementById('transferUserSelect');
         const transferObs = document.getElementById('transferObs');
@@ -513,11 +463,8 @@
         window.openTransferModal = async (id) => {
             itemToTransferId = id;
             transferObs.value = '';
-
-            // Load Users
             const users = await window.SAS.base44.entities.SystemUser.list();
             const activeUsers = users.filter(u => u.id !== user.id && u.situacao === 'ativo');
-
             transferUserSelect.innerHTML = '<option value="">Selecione um atendente...</option>';
             activeUsers.forEach(u => {
                 const option = document.createElement('option');
@@ -525,7 +472,6 @@
                 option.textContent = `${u.usuario} (Guichê ${u.guiche_atual || '?'})`;
                 transferUserSelect.appendChild(option);
             });
-
             transferModal.classList.remove('hidden');
         };
 
@@ -536,43 +482,33 @@
 
         window.confirmTransfer = async () => {
             if (!itemToTransferId) return;
-
             const targetUserId = transferUserSelect.value;
-            // Find target user name for history
             const targetUser = Array.from(transferUserSelect.options).find(o => o.value === targetUserId);
             const targetUserName = targetUser ? targetUser.text.split(' (')[0] : 'Desconhecido';
             const obs = transferObs.value;
-
             if (!targetUserId) {
                 alert('Selecione um atendente para transferir.');
                 return;
             }
-
             if (!obs.trim()) {
                 alert('Por favor, informe o motivo da transferência.');
                 return;
             }
-
             if (confirm('Tem certeza que deseja transferir este atendimento?')) {
                 await window.SAS.base44.entities.Agendamento.update(itemToTransferId, {
-                    status: 'pendente', // Sends to their "Chamado" screen
+                    status: 'pendente',
                     atendente_id: targetUserId,
                     atendente_nome: targetUserName,
                     observacao_transferencia: obs
                 });
-
                 if (window.toast) window.toast.success('Atendimento transferido com sucesso!');
                 closeTransferModal();
                 loadData();
             }
         };
 
-        // Initial Load
         loadData();
-
-        // Refresh every 10s
-        setInterval(loadData, 10000);
-
+        setInterval(loadData, 3000);
     </script>
 </body>
 
