@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from ..db import query_db
+from datetime import datetime
 
 usuarios_bp = Blueprint('usuarios', __name__)
 
@@ -102,22 +103,6 @@ def delete_user(id):
         return jsonify({'message': 'User deleted successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-@usuarios_bp.route('/online', strict_slashes=False, methods=['GET'])
-def get_online_users():
-    try:
-        # Fetch users who are 'ativo' and have type 'usuario' (attendants)
-        # We also fetch their status_atendimento and motivo_pausa
-        query = """
-            SELECT id, nome_completo, usuario, status_atendimento, motivo_pausa, guiche_atual
-            FROM usuarios 
-            WHERE tipo = 'usuario' AND situacao = 'ativo'
-            ORDER BY nome_completo
-        """
-        users = query_db(query)
-        return jsonify(users)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 @usuarios_bp.route('/<int:id>/status', methods=['PUT'])
 def update_user_status(id):
     data = request.json
@@ -141,5 +126,49 @@ def update_user_status(id):
         updated_user = query_db(query, (new_status, motivo, id), one=True)
         
         return jsonify(updated_user)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# In-memory store for last_seen timestamps
+ONLINE_USERS = {}
+
+@usuarios_bp.route('/heartbeat', methods=['POST'])
+def heartbeat():
+    data = request.json
+    user_id = data.get('user_id')
+    if user_id:
+        ONLINE_USERS[int(user_id)] = datetime.now()
+        return jsonify({'status': 'ok'})
+    return jsonify({'error': 'Missing user_id'}), 400
+
+@usuarios_bp.route('/online', strict_slashes=False, methods=['GET'])
+def get_online_users():
+    try:
+        # Fetch users who are 'ativo' and have type 'usuario' (attendants)
+        query = """
+            SELECT id, nome_completo, usuario, status_atendimento, motivo_pausa, guiche_atual
+            FROM usuarios 
+            WHERE tipo = 'usuario' AND situacao = 'ativo'
+            ORDER BY nome_completo
+        """
+        users = query_db(query)
+        
+        # Filter/Update status based on heartbeat
+        now = datetime.now()
+        final_users = []
+        
+        for u in users:
+            uid = u['id']
+            last_seen = ONLINE_USERS.get(uid)
+            
+            # If seen in last 60 seconds, they are online (or paused)
+            is_online = last_seen and (now - last_seen).total_seconds() < 60
+            
+            if not is_online:
+                u['status_atendimento'] = 'offline'
+            
+            final_users.append(u)
+            
+        return jsonify(final_users)
     except Exception as e:
         return jsonify({'error': str(e)}), 500

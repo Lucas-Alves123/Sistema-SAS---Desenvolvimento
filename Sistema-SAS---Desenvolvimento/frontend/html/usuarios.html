@@ -110,6 +110,7 @@
                                 <th class="p-3">Usuário</th>
                                 <th class="p-3">E-mail</th>
                                 <th class="p-3">Tipo</th>
+                                <th class="p-3">Status</th>
                                 <th class="p-3">Situação</th>
                                 <th class="p-3 rounded-tr-lg text-right">Ações</th>
                             </tr>
@@ -136,14 +137,48 @@
         let usersList = [];
 
         const loadUsers = async () => {
+            // Use the new /online endpoint to get real-time status for attendants
+            // But we also need ALL users. 
+            // Strategy: Get all users, then merge with online status if needed.
+            // Actually, the /online endpoint returns only active attendants.
+            // Let's just use the standard list and maybe fetch online status separately or update backend list to include it.
+            // For simplicity, let's fetch the standard list, and if we want real-time status, we might need to adjust.
+            // Wait, the requirement is "Status do usuário (Online / Pausa)".
+            // The /online endpoint now calculates "offline" based on heartbeat.
+            // So we should probably use that for the status column.
+
+            // Let's fetch ALL users first
             usersList = await window.SAS.base44.entities.SystemUser.list();
+
+            // Now fetch online status to overlay
+            try {
+                const response = await fetch('/api/usuarios/online');
+                if (response.ok) {
+                    const onlineUsers = await response.json();
+                    // Merge status
+                    usersList = usersList.map(u => {
+                        const onlineInfo = onlineUsers.find(ou => ou.id === u.id);
+                        if (onlineInfo) {
+                            return { ...u, status_atendimento: onlineInfo.status_atendimento, motivo_pausa: onlineInfo.motivo_pausa };
+                        }
+                        // If not in online list (e.g. admins or offline), default to offline if they are 'usuario' type
+                        if (u.tipo === 'usuario' && u.situacao === 'ativo') {
+                            return { ...u, status_atendimento: 'offline' };
+                        }
+                        return u;
+                    });
+                }
+            } catch (e) {
+                console.error('Error fetching online status:', e);
+            }
+
             renderTable(usersList);
         };
 
         const renderTable = (data) => {
             userTableBody.innerHTML = '';
             if (data.length === 0) {
-                userTableBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">Nenhum usuário encontrado.</td></tr>';
+                userTableBody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-gray-500">Nenhum usuário encontrado.</td></tr>';
                 return;
             }
 
@@ -198,11 +233,24 @@
                     `;
                 }
 
+                // Status Atendimento Column
+                let atendimentoStatus = '-';
+                if (u.tipo === 'usuario' && u.situacao === 'ativo') {
+                    if (u.status_atendimento === 'pausa') {
+                        atendimentoStatus = `<span class="text-red-600 font-bold" title="${u.motivo_pausa || 'Pausa'}">Pausa</span>`;
+                    } else if (u.status_atendimento === 'offline') {
+                        atendimentoStatus = `<span class="text-gray-400 font-bold">Offline</span>`;
+                    } else {
+                        atendimentoStatus = `<span class="text-green-600 font-bold">Online</span>`;
+                    }
+                }
+
                 tr.innerHTML = `
                     <td class="p-3 font-medium">${u.nome_completo}</td>
                     <td class="p-3 text-gray-600">${u.usuario}</td>
                     <td class="p-3 text-gray-600">${u.email || '-'}</td>
                     <td class="p-3"><span class="bg-slate-100 px-2 py-1 rounded text-xs uppercase font-bold text-slate-600">${u.tipo}</span></td>
+                    <td class="p-3">${atendimentoStatus}</td>
                     <td class="p-3">${statusHTML}</td>
                     <td class="p-3 text-right">${actionsHTML}</td>
                 `;
@@ -344,6 +392,8 @@
         });
 
         loadUsers();
+        // Refresh status every 10 seconds
+        setInterval(loadUsers, 10000);
     </script>
 </body>
 

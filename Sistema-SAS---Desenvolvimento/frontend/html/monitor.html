@@ -41,15 +41,6 @@
                         <option value="all">Todos os Atendentes</option>
                     </select>
                 </div>
-
-                <div class="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm border">
-                    <span class="text-sm text-gray-600">Meu status:</span>
-                    <select id="statusSelect" class="border-none bg-transparent font-medium text-blue-700 focus:ring-0 cursor-pointer">
-                        <option value="presencial">Presencial</option>
-                        <option value="home_office">Home Office</option>
-                        <option value="offline">Offline</option>
-                    </select>
-                </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -164,7 +155,6 @@
         lucide.createIcons();
 
         // Logic
-        const statusSelect = document.getElementById('statusSelect');
         const attendantFilter = document.getElementById('attendantFilter');
         const refreshBtn = document.getElementById('refreshBtn');
         const tableBody = document.getElementById('tableBody');
@@ -177,16 +167,6 @@
         const modalData = document.getElementById('modalData');
         const modalObs1 = document.getElementById('modalObs1');
         const modalObs2 = document.getElementById('modalObs2');
-
-        // Set initial status
-        statusSelect.value = user.status_atendimento || 'offline';
-
-        statusSelect.addEventListener('change', async (e) => {
-            const newStatus = e.target.value;
-            await window.SAS.base44.entities.SystemUser.update(user.id, { status_atendimento: newStatus });
-            user.status_atendimento = newStatus;
-            localStorage.setItem('sas_user', JSON.stringify(user));
-        });
 
         // Filter Logic
         if (attendantFilter) {
@@ -253,7 +233,7 @@
 
                     tr.innerHTML = `
                         <td class="px-4 py-3 font-medium text-gray-900">${item.nome_completo}</td>
-                        <td class="px-4 py-3 text-gray-600">${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio}</td>
+                        <td class="px-4 py-3 text-gray-600">${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio || '-'}</td>
                         <td class="px-4 py-3 text-gray-600">${item.tipo_servico}</td>
                         <td class="px-4 py-3 text-gray-600">${item.atendente_nome || '-'}</td>
                         <td class="px-4 py-3 text-gray-600">${item.guiche || '-'}</td>
@@ -282,7 +262,7 @@
                 modalCliente.textContent = item.nome_completo;
                 modalServico.textContent = item.tipo_servico;
                 modalAtendente.textContent = item.atendente_nome || '-';
-                modalData.textContent = `${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio}`;
+                modalData.textContent = `${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio || '-'}`;
 
                 modalObs1.textContent = item.observacao_problema || 'Nenhuma observação registrada.';
                 modalObs2.textContent = item.observacao_solucao || 'Nenhuma solução registrada.';

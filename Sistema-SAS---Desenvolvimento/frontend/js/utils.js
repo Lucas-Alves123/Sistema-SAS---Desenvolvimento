@@ -56,4 +56,18 @@
         localStorage.removeItem('sas_user');
         window.location.href = '/';
     };
+
+    // Global Notification Helper
+    window.SAS.utils.notify = (type, message) => {
+        if (window.toast) {
+            if (type === 'success') window.toast.success(message);
+            else if (type === 'error') window.toast.error(message);
+            else if (type === 'warning') window.toast.warning(message);
+            else window.toast(message);
+        } else {
+            // Fallback
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            if (type === 'error') alert(message);
+        }
+    };
 })();

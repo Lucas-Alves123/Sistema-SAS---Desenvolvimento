@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sonner@1.4.0/dist/sonner.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
 
@@ -320,9 +321,65 @@
         </div>
     </div>
 
+    <!-- Appointment List Modal (Step 1) -->
+    <div id="appointmentModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in">
+            <div class="bg-blue-600 p-4 flex justify-between items-center">
+                <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-5 h-5"></i>
+                    Agendamentos Encontrados
+                </h3>
+                <button id="closeModalBtn" class="text-white/80 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <p class="text-slate-600 mb-4">Encontramos os seguintes agendamentos para este servidor:</p>
+                <div id="appointmentList" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+            <div class="bg-slate-50 p-4 flex justify-end">
+                <button id="modalOkBtn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Duplicate Warning Modal (Step 2) -->
+    <div id="duplicateWarningModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in border-l-8 border-yellow-500">
+            <div class="p-6">
+                <div class="flex items-start gap-4">
+                    <div class="bg-yellow-100 p-3 rounded-full shrink-0">
+                        <i data-lucide="alert-triangle" class="w-6 h-6 text-yellow-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">Atenção!</h3>
+                        <p class="text-slate-600">Já existe um agendamento marcado para esta data.</p>
+                        <p class="text-slate-500 text-sm mt-2">Deseja continuar mesmo assim?</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-4 flex justify-end gap-3">
+                <button id="btnCancelDuplicate"
+                    class="bg-white border border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-lg hover:bg-slate-50 transition-colors">
+                    Cancelar
+                </button>
+                <button id="btnConfirmDuplicate"
+                    class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Continuar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
-    <script src="js/utils.js"></script>
-    <script src="js/api.js"></script>
+    <script src="js/utils.js?v=4"></script>
+    <script src="js/api.js?v=4"></script>
 
     <script>
         lucide.createIcons();
@@ -330,6 +387,7 @@
         // State
         let currentServidor = null;
         let attendantTimes = {}; // Stores simulated times for each attendant
+        let isDuplicateConfirmed = false; // Flag for duplicate override
 
         // Elements - Step 1
         const step1Content = document.getElementById('step1-content');
@@ -363,6 +421,17 @@
 
         // Elements - Step 4
         const step4Content = document.getElementById('step4-content');
+
+        // Modal Elements
+        const appointmentModal = document.getElementById('appointmentModal');
+        const appointmentList = document.getElementById('appointmentList');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalOkBtn = document.getElementById('modalOkBtn');
+
+        // Duplicate Warning Modal Elements
+        const duplicateWarningModal = document.getElementById('duplicateWarningModal');
+        const btnCancelDuplicate = document.getElementById('btnCancelDuplicate');
+        const btnConfirmDuplicate = document.getElementById('btnConfirmDuplicate');
 
         // Stepper Elements
         const steps = [
@@ -430,6 +499,67 @@
 
         // --- STEP 1 LOGIC ---
 
+        // Auto-Search Logic for Appointments
+        let debounceTimer;
+        inputIdentificacao.addEventListener('input', (e) => {
+            const val = e.target.value.trim();
+            clearTimeout(debounceTimer);
+
+            if (val.length >= 3) { // Minimum length to start searching
+                debounceTimer = setTimeout(() => checkAppointments(val), 800);
+            }
+        });
+
+        async function checkAppointments(valor) {
+            try {
+                // Determine query param based on format (simple heuristic)
+                const isCpf = valor.length > 10 || valor.includes('.') || valor.includes('-');
+                const queryParam = isCpf ? `cpf=${encodeURIComponent(valor)}` : `matricula=${encodeURIComponent(valor)}`;
+
+                // Fetch appointments
+                const response = await fetch(`/api/agendamentos?${queryParam}&sort=-created_date`);
+                if (!response.ok) return; // Silent fail if error
+
+                const appointments = await response.json();
+
+                // Filter for active appointments only? Or show all?
+                // Showing 'agendado', 'pendente', 'em_andamento'
+                const activeAppointments = appointments.filter(a =>
+                    ['agendado', 'pendente', 'em_andamento', 'chegou'].includes(a.status)
+                );
+
+                if (activeAppointments.length > 0) {
+                    showAppointmentModal(activeAppointments);
+                }
+            } catch (err) {
+                console.error('Error checking appointments:', err);
+            }
+        }
+
+        function showAppointmentModal(appointments) {
+            appointmentList.innerHTML = '';
+            appointments.forEach(appt => {
+                const date = new Date(appt.data_agendamento).toLocaleDateString('pt-BR');
+                const time = appt.hora_inicio ? appt.hora_inicio.substring(0, 5) : 'Sem horário';
+
+                const div = document.createElement('div');
+                div.className = 'bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center';
+                div.innerHTML = `
+                    <div>
+                        <p class="font-bold text-slate-800">${appt.tipo_servico}</p>
+                        <p class="text-sm text-slate-500">${date} às ${time}</p>
+                    </div>
+                    <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase">${appt.status}</span>
+                `;
+                appointmentList.appendChild(div);
+            });
+            appointmentModal.classList.remove('hidden');
+        }
+
+        const closeModal = () => appointmentModal.classList.add('hidden');
+        closeModalBtn.addEventListener('click', closeModal);
+        modalOkBtn.addEventListener('click', closeModal);
+
         formIdentificacao.addEventListener('submit', async (e) => {
             e.preventDefault();
             const valor = inputIdentificacao.value.trim();
@@ -477,6 +607,9 @@
                     btnBuscar.classList.add('hidden');
                     btnContinuar.classList.remove('hidden');
                     btnContinuar.disabled = false;
+
+                    // Notify success
+                    window.SAS.utils.notify('success', 'Servidor identificado com sucesso!');
                 } else {
                     throw new Error(data.message || 'Servidor não encontrado');
                 }
@@ -487,6 +620,9 @@
                 errorState.classList.remove('hidden');
                 btnBuscar.classList.remove('hidden');
                 btnContinuar.classList.add('hidden');
+
+                // Notify error
+                window.SAS.utils.notify('error', err.message);
             } finally {
                 btnBuscar.disabled = false;
                 if (!currentServidor) {
@@ -517,14 +653,74 @@
             updateStepper(1);
         });
 
-        formStep2.addEventListener('submit', (e) => {
+        // Duplicate Warning Logic
+        async function checkDuplicateForDate(date) {
+            if (!currentServidor) return false;
+
+            try {
+                // Fetch appointments for this user
+                const cpf = currentServidor.cpf || '';
+                const matricula = currentServidor.matricula || '';
+                const queryParam = cpf ? `cpf=${encodeURIComponent(cpf)}` : `matricula=${encodeURIComponent(matricula)}`;
+
+                const response = await fetch(`/api/agendamentos?${queryParam}`);
+                if (!response.ok) return false;
+
+                const appointments = await response.json();
+
+                // Check if any active appointment matches the date
+                const hasDuplicate = appointments.some(a =>
+                    a.data_agendamento === date &&
+                    ['agendado', 'pendente', 'em_andamento', 'chegou'].includes(a.status)
+                );
+
+                return hasDuplicate;
+            } catch (e) {
+                console.error('Error checking duplicate:', e);
+                return false;
+            }
+        }
+
+        formStep2.addEventListener('submit', async (e) => {
             e.preventDefault();
-            // Validation is handled by HTML5 'required' attribute
+
+            const selectedDate = dataInput.value;
+
+            // Check for duplicate on this date
+            const hasDuplicate = await checkDuplicateForDate(selectedDate);
+
+            if (hasDuplicate) {
+                duplicateWarningModal.classList.remove('hidden');
+                return; // Stop flow
+            }
+
+            // If no duplicate, proceed
+            proceedToStep3();
+        });
+
+        // Duplicate Modal Actions
+        btnCancelDuplicate.addEventListener('click', () => {
+            duplicateWarningModal.classList.add('hidden');
+            // User stays on Step 2 to change date or cancel
+        });
+
+        btnConfirmDuplicate.addEventListener('click', () => {
+            duplicateWarningModal.classList.add('hidden');
+            isDuplicateConfirmed = true; // Set flag
+            proceedToStep3();
+        });
+
+        function proceedToStep3() {
             step2Content.classList.add('hidden');
             step3Content.classList.remove('hidden');
             updateStepper(3);
             lucide.createIcons();
-        });
+
+            // Refresh slots to ensure date is respected
+            if (atendenteSelect.value) {
+                atendenteSelect.dispatchEvent(new Event('change'));
+            }
+        }
 
         // Date Logic
         const today = new Date().toISOString().split('T')[0];
@@ -537,10 +733,12 @@
             const date = new Date(year, month - 1, day);
             const dayOfWeek = date.getDay();
             if (dayOfWeek === 0 || dayOfWeek === 6) {
-                alert('Agendamentos não podem ser realizados aos finais de semana.');
+                window.SAS.utils.notify('warning', 'Agendamentos não podem ser realizados aos finais de semana.');
                 this.value = '';
                 return;
             }
+            // Reset duplicate flag when date changes
+            isDuplicateConfirmed = false;
         });
 
         // --- STEP 3 LOGIC ---
@@ -550,9 +748,6 @@
             step2Content.classList.remove('hidden');
             updateStepper(2);
         });
-
-
-
 
         // Fetch Attendants
         (async function loadAttendants() {
@@ -567,12 +762,10 @@
                     opt.value = att.id;
                     opt.textContent = att.nome_completo || att.usuario;
                     atendenteSelect.appendChild(opt);
-
-                    // Assign a random time for this session
-                    // Random time removed
                 });
             } catch (err) {
                 console.error('Erro ao carregar atendentes:', err);
+                window.SAS.utils.notify('error', 'Erro ao carregar atendentes.');
             }
         })();
 
@@ -631,6 +824,7 @@
                     btn.classList.add('bg-blue-600', 'text-white', 'border-blue-600', 'hover:bg-blue-700');
 
                     selectedTimeSlot = time;
+                    console.log('Selected time:', selectedTimeSlot); // Debug log
                     btnConfirmar.disabled = false;
                 };
                 slotsGrid.appendChild(btn);
@@ -641,6 +835,14 @@
         formStep3.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            console.log('Submitting form...');
+
+            // Robustly get selected time from DOM
+            const selectedBtn = document.querySelector('.slot-btn.bg-blue-600');
+            const selectedTime = selectedBtn ? selectedBtn.textContent : null;
+
+            console.log('Captured selectedTime from DOM:', selectedTime);
+
             const btn = document.getElementById('btnConfirmar');
             const originalContent = btn.innerHTML;
             btn.disabled = true;
@@ -648,7 +850,15 @@
             lucide.createIcons();
 
             const selectedAttendantId = atendenteSelect.value;
-            const selectedTime = selectedTimeSlot;
+
+            if (!selectedTime) {
+                console.warn('Validation failed: No time selected');
+                window.SAS.utils.notify('warning', 'Por favor, selecione um horário.');
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+                lucide.createIcons();
+                return;
+            }
 
             const payload = {
                 nome_completo: currentServidor.nome_completo,
@@ -664,11 +874,14 @@
                 hora_inicio: selectedTime, // Use the auto-assigned time
                 status: 'agendado',
                 atendente_id: selectedAttendantId,
-                created_by: null
+                created_by: null,
+                force_duplicate: isDuplicateConfirmed // Send flag
             };
 
             try {
                 await window.SAS.base44.entities.Agendamento.create(payload);
+
+                window.SAS.utils.notify('success', 'Agendamento realizado com sucesso!');
 
                 // Success
                 step3Content.classList.add('hidden');
@@ -697,7 +910,14 @@
                 lucide.createIcons();
 
             } catch (err) {
-                alert('Erro ao realizar agendamento: ' + err.message);
+                // Handle specific errors
+                const errorMsg = err.message || '';
+                if (errorMsg.includes('Same time conflict')) {
+                    window.SAS.utils.notify('error', 'Você já possui um agendamento neste mesmo horário. Escolha outro.');
+                } else {
+                    window.SAS.utils.notify('error', 'Erro ao realizar agendamento: ' + errorMsg);
+                }
+
                 btn.disabled = false;
                 btn.innerHTML = originalContent;
                 lucide.createIcons();
@@ -757,6 +977,7 @@
                 return data;
             } catch (e) {
                 console.error("Error fetching availability:", e);
+                window.SAS.utils.notify('error', 'Erro ao verificar disponibilidade.');
                 return { available: false, message: "Erro ao verificar disponibilidade." };
             }
         }

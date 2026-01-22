@@ -144,5 +144,61 @@
 
         switchUserBtn.addEventListener('click', handleLogout);
         logoutBtn.addEventListener('click', handleLogout);
+
+        // Inactivity Logic
+        const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
+        let inactivityTimer;
+
+        const resetInactivityTimer = () => {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(checkInactivity, INACTIVITY_LIMIT);
+        };
+
+        const checkInactivity = async () => {
+            const currentUser = JSON.parse(localStorage.getItem('sas_user'));
+            if (!currentUser) return;
+
+            try {
+                const response = await fetch('/api/usuarios/online');
+                if (response.ok) {
+                    const onlineUsers = await response.json();
+                    const me = onlineUsers.find(u => u.id === currentUser.id);
+
+                    if (me && me.status_atendimento === 'pausa') {
+                        console.log('User is paused, skipping auto-logout');
+                        resetInactivityTimer();
+                        return;
+                    }
+                }
+
+                alert('Sessão expirada por inatividade.');
+                window.SAS.utils.logout();
+            } catch (e) {
+                console.error('Error checking inactivity status:', e);
+                resetInactivityTimer();
+            }
+        };
+
+        ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetInactivityTimer);
+        });
+
+        resetInactivityTimer();
+
+        // Heartbeat Logic (Every 30 seconds)
+        setInterval(async () => {
+            const currentUser = JSON.parse(localStorage.getItem('sas_user'));
+            if (currentUser) {
+                try {
+                    await fetch('/api/usuarios/heartbeat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user_id: currentUser.id })
+                    });
+                } catch (e) {
+                    console.error('Heartbeat failed:', e);
+                }
+            }
+        }, 30000);
     };
 })();

@@ -22,6 +22,14 @@ def create_app():
     
     # Enable CORS for all routes
     CORS(app)
+
+    # Disable Caching
+    @app.after_request
+    def add_header(response):
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+        return response
     
     # Register Blueprints with /api prefix to avoid conflicts with static pages
     app.register_blueprint(usuarios_bp, url_prefix='/api/usuarios')
@@ -68,4 +76,5 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
+    # Trigger reload v6
     app.run(host='0.0.0.0', port=5000, debug=True)

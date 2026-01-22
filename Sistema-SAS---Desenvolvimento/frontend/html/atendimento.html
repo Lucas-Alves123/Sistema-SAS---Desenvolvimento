@@ -110,6 +110,72 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Status Modal -->
+            <div id="statusModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+                <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md animate-fade-in">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Alterar Status</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Novo Status</label>
+                            <select id="newStatusSelect" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                <option value="disponivel">Online (Disponível)</option>
+                                <option value="pausa">Pausa</option>
+                            </select>
+                        </div>
+                        <div id="statusReasonDiv" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Motivo da Pausa</label>
+                            <textarea id="statusReason" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Ex: Almoço, Banheiro..."></textarea>
+                        </div>
+                        <div class="flex gap-3 mt-6">
+                            <button onclick="closeStatusModal()" class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors">Cancelar</button>
+                            <button onclick="confirmStatusChange()" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors">Confirmar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guiche Modal -->
+            <div id="guicheModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+                <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm animate-fade-in">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Alterar Guichê</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Número do Guichê</label>
+                            <input type="text" id="newGuicheInput" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ex: 01">
+                        </div>
+                        <div class="flex gap-3 mt-6">
+                            <button onclick="closeGuicheModal()" class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors">Cancelar</button>
+                            <button onclick="confirmGuicheChange()" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors">Salvar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Generic Confirmation Modal -->
+            <!-- Styled Confirmation Modal -->
+            <div id="confirmationModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 p-4">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in">
+                    <div class="p-6">
+                        <div class="flex items-start gap-4">
+                            <div id="confirmIconContainer" class="bg-blue-100 p-3 rounded-full shrink-0">
+                                <i id="confirmIcon" data-lucide="alert-circle" class="w-6 h-6 text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 id="confirmTitle" class="text-lg font-bold text-slate-800 mb-2">Confirmar Ação</h3>
+                                <p id="confirmMessage" class="text-slate-600">Tem certeza que deseja prosseguir?</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-4 flex justify-end gap-3">
+                        <button onclick="closeConfirmationModal()" class="bg-white border border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-lg hover:bg-slate-50 transition-colors">
+                            Cancelar
+                        </button>
+                        <button id="confirmActionBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200">
+                            Confirmar
+                        </button>
+                    </div>
+                </div>
+            </div>
         `;
 
         lucide.createIcons();
@@ -126,8 +192,54 @@
         const totalAgendadosEl = document.getElementById('totalAgendados');
         const totalAguardandoEl = document.getElementById('totalAguardando');
 
-        let currentActiveItem = null;
-        let currentQueueTab = 'Presencial';
+        // Modals
+        const statusModal = document.getElementById('statusModal');
+        const newStatusSelect = document.getElementById('newStatusSelect');
+        const statusReasonDiv = document.getElementById('statusReasonDiv');
+        const statusReason = document.getElementById('statusReason');
+        const guicheModal = document.getElementById('guicheModal');
+        const newGuicheInput = document.getElementById('newGuicheInput');
+
+        // Confirmation Modal Elements
+        const confirmationModal = document.getElementById('confirmationModal');
+        const confirmTitle = document.getElementById('confirmTitle');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const confirmActionBtn = document.getElementById('confirmActionBtn');
+        const confirmIcon = document.getElementById('confirmIcon');
+        const confirmIconContainer = document.getElementById('confirmIconContainer');
+
+        let onConfirmCallback = null;
+
+        window.openConfirmationModal = (title, message, callback, type = 'info') => {
+            confirmTitle.textContent = title;
+            confirmMessage.textContent = message;
+            onConfirmCallback = callback;
+
+            // Style based on type
+            if (type === 'danger') {
+                confirmIconContainer.className = 'bg-red-100 p-3 rounded-full shrink-0';
+                confirmIcon.className = 'w-6 h-6 text-red-600';
+                confirmIcon.setAttribute('data-lucide', 'alert-triangle');
+                confirmActionBtn.className = 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-red-200';
+            } else {
+                confirmIconContainer.className = 'bg-blue-100 p-3 rounded-full shrink-0';
+                confirmIcon.className = 'w-6 h-6 text-blue-600';
+                confirmIcon.setAttribute('data-lucide', 'alert-circle');
+                confirmActionBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200';
+            }
+
+            lucide.createIcons();
+            confirmationModal.classList.remove('hidden');
+        };
+        window.closeConfirmationModal = () => {
+            confirmationModal.classList.add('hidden');
+            onConfirmCallback = null;
+        };
+
+        confirmActionBtn.addEventListener('click', () => {
+            if (onConfirmCallback) onConfirmCallback();
+            closeConfirmationModal();
+        });
 
         window.setQueueTab = (tab) => {
             currentQueueTab = tab;
@@ -145,30 +257,50 @@
 
         window.manualCall = async (id) => {
             if (currentActiveItem) {
-                alert('Você já tem um atendimento ativo. Encerre-o antes de chamar outro.');
+                window.SAS.utils.notify('warning', 'Você já tem um atendimento ativo. Encerre-o antes de chamar outro.');
                 return;
             }
-            if (confirm('Deseja chamar este servidor agora?')) {
-                await window.SAS.base44.entities.Agendamento.update(id, {
-                    status: 'pendente',
-                    guiche: currentGuiche,
-                    atendente_id: user.id,
-                    atendente_nome: user.usuario
-                });
-                loadData();
-            }
+            openConfirmationModal(
+                'Chamar Servidor',
+                'Deseja chamar este servidor agora?',
+                async () => {
+                    try {
+                        await window.SAS.base44.entities.Agendamento.update(id, {
+                            status: 'pendente',
+                            atendente_id: user.id
+                        });
+                        loadData();
+                        window.SAS.utils.notify('success', 'Chamando servidor...');
+                    } catch (e) {
+                        console.error(e);
+                        window.SAS.utils.notify('error', 'Erro ao chamar servidor.');
+                    }
+                }
+            );
         };
 
+        // Guiche Logic
         alterarGuicheBtn.addEventListener('click', () => {
-            const newGuiche = prompt('Informe o número do Guichê:', currentGuiche);
+            newGuicheInput.value = currentGuiche;
+            guicheModal.classList.remove('hidden');
+        });
+
+        window.closeGuicheModal = () => {
+            guicheModal.classList.add('hidden');
+        };
+
+        window.confirmGuicheChange = () => {
+            const newGuiche = newGuicheInput.value;
             if (newGuiche && newGuiche.trim() !== '') {
                 currentGuiche = newGuiche.trim();
                 localStorage.setItem('sas_guiche', currentGuiche);
                 guicheDisplay.textContent = currentGuiche;
-                if (window.toast) window.toast.success(`Guichê alterado para ${currentGuiche}`);
+                window.SAS.utils.notify('success', `Guichê alterado para ${currentGuiche}`);
+                closeGuicheModal();
             }
-        });
+        };
 
+        // Status Logic
         let currentStatus = 'disponivel';
         const updateStatusUI = (status, motivo = null) => {
             currentStatus = status;
@@ -196,14 +328,37 @@
             }
         };
 
-        statusToggleBtn.addEventListener('click', async () => {
-            const newStatus = currentStatus === 'pausa' ? 'disponivel' : 'pausa';
+        statusToggleBtn.addEventListener('click', () => {
+            // Open Modal
+            newStatusSelect.value = currentStatus === 'pausa' ? 'pausa' : 'disponivel';
+            toggleReasonField();
+            statusModal.classList.remove('hidden');
+        });
+
+        newStatusSelect.addEventListener('change', () => {
+            toggleReasonField();
+        });
+
+        function toggleReasonField() {
+            if (newStatusSelect.value === 'pausa') {
+                statusReasonDiv.classList.remove('hidden');
+            } else {
+                statusReasonDiv.classList.add('hidden');
+            }
+        }
+
+        window.closeStatusModal = () => {
+            statusModal.classList.add('hidden');
+        };
+
+        window.confirmStatusChange = async () => {
+            const newStatus = newStatusSelect.value;
             let motivo = null;
             if (newStatus === 'pausa') {
-                motivo = prompt('Qual o motivo da pausa? (Ex: Almoço, Banheiro)');
-                if (motivo === null) return;
+                motivo = statusReason.value;
                 if (!motivo.trim()) motivo = 'Pausa';
             }
+
             updateStatusUI(newStatus, motivo);
             try {
                 const response = await fetch(`/api/usuarios/${user.id}/status`, {
@@ -212,13 +367,14 @@
                     body: JSON.stringify({ status: newStatus, motivo: motivo })
                 });
                 if (!response.ok) throw new Error('Failed to update status');
-                if (window.toast) window.toast.success(newStatus === 'pausa' ? 'Status definido como Pausa' : 'Status definido como Online');
+                window.SAS.utils.notify('success', newStatus === 'pausa' ? 'Status definido como Pausa' : 'Status definido como Online');
+                closeStatusModal();
             } catch (e) {
                 console.error(e);
-                updateStatusUI(currentStatus === 'disponivel' ? 'pausa' : 'disponivel');
-                if (window.toast) window.toast.error('Erro ao atualizar status');
+                updateStatusUI(currentStatus === 'disponivel' ? 'pausa' : 'disponivel'); // Revert
+                window.SAS.utils.notify('error', 'Erro ao atualizar status');
             }
-        });
+        };
 
         fetchStatus();
 
@@ -262,7 +418,7 @@
                 div.innerHTML = `
                     <div>
                         <div class="font-bold text-gray-800">${item.nome_completo}</div>
-                        <div class="text-sm text-gray-500">${item.hora_inicio} - ${item.tipo_servico}</div>
+                        <div class="text-sm text-gray-500">${item.hora_inicio || 'Sem horário'} - ${item.tipo_servico}</div>
                     </div>
                     <div class="flex gap-2">
                          <button onclick="confirmArrival('${item.id}')" class="bg-green-600 text-white px-4 py-1.5 rounded font-bold text-sm hover:bg-green-700 flex items-center gap-1">
@@ -388,22 +544,44 @@
             lucide.createIcons();
         };
 
-        window.confirmArrival = async (id) => {
-            await window.SAS.base44.entities.Agendamento.update(id, { status: 'chegou' });
-            loadData();
-            if (window.toast) window.toast.success('Chegada confirmada!');
+        window.confirmArrival = (id) => {
+            openConfirmationModal(
+                'Confirmar Chegada',
+                'Deseja confirmar a chegada deste cidadão?',
+                async () => {
+                    try {
+                        await window.SAS.base44.entities.Agendamento.update(id, { status: 'chegou' });
+                        loadData();
+                        window.SAS.utils.notify('success', 'Chegada confirmada!');
+                    } catch (err) {
+                        console.error(err);
+                        window.SAS.utils.notify('error', 'Erro ao confirmar chegada.');
+                    }
+                }
+            );
         };
 
-        window.markNoShow = async (id) => {
-            if (confirm('Confirmar que o cidadão NÃO compareceu?')) {
-                await window.SAS.base44.entities.Agendamento.update(id, { status: 'nao_compareceu' });
-                loadData();
-            }
+        window.markNoShow = (id) => {
+            openConfirmationModal(
+                'Não Compareceu',
+                'Confirmar que o cidadão NÃO compareceu? Esta ação removerá o agendamento da lista de hoje.',
+                async () => {
+                    try {
+                        await window.SAS.base44.entities.Agendamento.update(id, { status: 'nao_compareceu' });
+                        loadData();
+                        window.SAS.utils.notify('warning', 'Marcado como não compareceu.');
+                    } catch (err) {
+                        console.error(err);
+                        window.SAS.utils.notify('error', 'Erro ao atualizar status.');
+                    }
+                },
+                'danger'
+            );
         };
 
         chamarBtn.addEventListener('click', async () => {
             if (currentActiveItem) {
-                alert('Você já tem um atendimento ativo. Encerre-o antes de chamar o próximo.');
+                window.SAS.utils.notify('warning', 'Você já tem um atendimento ativo. Encerre-o antes de chamar o próximo.');
                 return;
             }
             const all = await window.SAS.base44.entities.Agendamento.list();
@@ -414,17 +592,20 @@
                 return a.hora_inicio.localeCompare(b.hora_inicio);
             });
             if (queue.length === 0) {
-                alert('Não há ninguém aguardando na fila.');
+                window.SAS.utils.notify('info', 'Não há ninguém aguardando na fila.');
                 return;
             }
             const next = queue[0];
-            await window.SAS.base44.entities.Agendamento.update(next.id, {
-                status: 'pendente',
-                guiche: currentGuiche,
-                atendente_id: user.id,
-                atendente_nome: user.usuario
-            });
-            loadData();
+            try {
+                await window.SAS.base44.entities.Agendamento.update(next.id, {
+                    status: 'pendente',
+                    atendente_id: user.id
+                });
+                loadData();
+                window.SAS.utils.notify('success', 'Chamando próximo da fila...');
+            } catch (e) {
+                window.SAS.utils.notify('error', 'Erro ao chamar próximo.');
+            }
         });
 
         window.startService = async (id) => {
@@ -433,26 +614,35 @@
         };
 
         window.cancelService = async (id) => {
-            if (confirm('Deseja cancelar este chamado e devolver para a fila?')) {
-                await window.SAS.base44.entities.Agendamento.update(id, { status: 'chegou', atendente_id: null, guiche: null });
-                loadData();
-            }
+            openConfirmationModal(
+                'Cancelar Chamado',
+                'Deseja cancelar este chamado e devolver para a fila?',
+                async () => {
+                    await window.SAS.base44.entities.Agendamento.update(id, { status: 'chegou', atendente_id: null, guiche: null });
+                    loadData();
+                },
+                'danger'
+            );
         };
 
         window.finishService = async (id) => {
             const obs1 = document.getElementById('obs1').value;
             const obs2 = document.getElementById('obs2').value;
             if (!obs1.trim() || !obs2.trim()) {
-                alert('É preciso preencher as duas observações para encerrar.');
+                window.SAS.utils.notify('warning', 'É preciso preencher as duas observações para encerrar.');
                 return;
             }
-            await window.SAS.base44.entities.Agendamento.update(id, {
-                status: 'concluido',
-                observacao_problema: obs1,
-                observacao_solucao: obs2
-            });
-            if (window.toast) window.toast.success('Atendimento encerrado com sucesso!');
-            loadData();
+            try {
+                await window.SAS.base44.entities.Agendamento.update(id, {
+                    status: 'concluido',
+                    observacao_problema: obs1,
+                    observacao_solucao: obs2
+                });
+                window.SAS.utils.notify('success', 'Atendimento encerrado com sucesso!');
+                loadData();
+            } catch (e) {
+                window.SAS.utils.notify('error', 'Erro ao encerrar atendimento.');
+            }
         };
 
         const transferModal = document.getElementById('transferModal');
@@ -487,24 +677,31 @@
             const targetUserName = targetUser ? targetUser.text.split(' (')[0] : 'Desconhecido';
             const obs = transferObs.value;
             if (!targetUserId) {
-                alert('Selecione um atendente para transferir.');
+                window.SAS.utils.notify('warning', 'Selecione um atendente para transferir.');
                 return;
             }
             if (!obs.trim()) {
-                alert('Por favor, informe o motivo da transferência.');
+                window.SAS.utils.notify('warning', 'Por favor, informe o motivo da transferência.');
                 return;
             }
-            if (confirm('Tem certeza que deseja transferir este atendimento?')) {
-                await window.SAS.base44.entities.Agendamento.update(itemToTransferId, {
-                    status: 'pendente',
-                    atendente_id: targetUserId,
-                    atendente_nome: targetUserName,
-                    observacao_transferencia: obs
-                });
-                if (window.toast) window.toast.success('Atendimento transferido com sucesso!');
-                closeTransferModal();
-                loadData();
-            }
+            openConfirmationModal(
+                'Transferir Atendimento',
+                'Tem certeza que deseja transferir este atendimento?',
+                async () => {
+                    try {
+                        await window.SAS.base44.entities.Agendamento.update(itemToTransferId, {
+                            status: 'pendente',
+                            atendente_id: targetUserId,
+                            observacao_transferencia: obs
+                        });
+                        window.SAS.utils.notify('success', 'Atendimento transferido com sucesso!');
+                        closeTransferModal();
+                        loadData();
+                    } catch (e) {
+                        window.SAS.utils.notify('error', 'Erro ao transferir atendimento.');
+                    }
+                }
+            );
         };
 
         loadData();

@@ -41,7 +41,9 @@
             });
             if (!res.ok) {
                 const err = await res.json();
-                throw new Error(err.error || 'Failed to create item');
+                const errorObj = new Error(err.error || 'Failed to create item');
+                errorObj.data = err; // Attach full error data
+                throw errorObj;
             }
             return await res.json();
         },
@@ -53,7 +55,9 @@
             });
             if (!res.ok) {
                 const err = await res.json();
-                throw new Error(err.error || 'Failed to update item');
+                const errorObj = new Error(err.error || 'Failed to update item');
+                errorObj.data = err;
+                throw errorObj;
             }
             return await res.json();
         },

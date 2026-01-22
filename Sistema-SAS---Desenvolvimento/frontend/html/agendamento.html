@@ -16,9 +16,9 @@
     <div id="app"></div>
 
     <!-- Scripts -->
-    <script src="js/utils.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/layout.js"></script>
+    <script src="js/utils.js?v=5"></script>
+    <script src="js/api.js?v=5"></script>
+    <script src="js/layout.js?v=5"></script>
 
     <script>
         const user = window.SAS.utils.checkAuth();
@@ -124,8 +124,8 @@
                             <input type="date" id="data" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-600" required>
                         </div>
                         <div class="space-y-2">
-                            <label class="text-sm font-semibold text-gray-700">Hora de inicio <span class="text-red-500">*</span></label>
-                            <select id="hora" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600" required>
+                            <label class="text-sm font-semibold text-gray-700">Hora de inicio</label>
+                            <select id="hora" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600">
                                 <option value="">--:--</option>
                             </select>
                         </div>
@@ -150,6 +150,31 @@
                     </div>
                 </form>
             </div>
+            <!-- Generic Modal -->
+            <!-- Styled Modal -->
+            <div id="genericModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 p-4">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in">
+                    <div class="p-6">
+                        <div class="flex items-start gap-4">
+                            <div id="modalIconContainer" class="bg-blue-100 p-3 rounded-full shrink-0">
+                                <i id="modalIcon" data-lucide="info" class="w-6 h-6 text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 id="modalTitle" class="text-lg font-bold text-slate-800 mb-2">Atenção</h3>
+                                <p id="modalMessage" class="text-slate-600">Mensagem aqui...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-4 flex justify-end gap-3">
+                        <button id="modalCancelBtn" class="bg-white border border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-lg hover:bg-slate-50 transition-colors hidden">
+                            Cancelar
+                        </button>
+                        <button id="modalConfirmBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200">
+                            OK
+                        </button>
+                    </div>
+                </div>
+            </div>
         `;
 
         lucide.createIcons();
@@ -162,6 +187,65 @@
         const clearBtn = document.getElementById('clearBtn');
         const exportBtn = document.getElementById('exportBtn');
 
+        // Modal Elements
+        const genericModal = document.getElementById('genericModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalIcon = document.getElementById('modalIcon');
+        const modalIconContainer = document.getElementById('modalIconContainer');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+
+        let onModalConfirm = null;
+
+        window.openModal = (title, message, type = 'info', showCancel = false, onConfirm = null) => {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            onModalConfirm = onConfirm;
+
+            if (showCancel) {
+                modalCancelBtn.classList.remove('hidden');
+                modalConfirmBtn.textContent = 'Confirmar';
+            } else {
+                modalCancelBtn.classList.add('hidden');
+                modalConfirmBtn.textContent = 'OK';
+            }
+
+            // Style based on type
+            if (type === 'error') {
+                modalIconContainer.className = 'bg-red-100 p-3 rounded-full shrink-0';
+                modalIcon.className = 'w-6 h-6 text-red-600';
+                modalIcon.setAttribute('data-lucide', 'alert-circle');
+                modalConfirmBtn.className = 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-red-200';
+            } else if (type === 'success') {
+                modalIconContainer.className = 'bg-green-100 p-3 rounded-full shrink-0';
+                modalIcon.className = 'w-6 h-6 text-green-600';
+                modalIcon.setAttribute('data-lucide', 'check');
+                modalConfirmBtn.className = 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-green-200';
+            } else {
+                modalIconContainer.className = 'bg-blue-100 p-3 rounded-full shrink-0';
+                modalIcon.className = 'w-6 h-6 text-blue-600';
+                modalIcon.setAttribute('data-lucide', 'info');
+                modalConfirmBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200';
+            }
+            
+            lucide.createIcons();
+            genericModal.classList.remove('hidden');
+        };
+        window.closeModal = () => {
+            genericModal.classList.add('hidden');
+            onModalConfirm = null;
+        };
+
+        modalConfirmBtn.addEventListener('click', () => {
+            if (onModalConfirm) onModalConfirm();
+            closeModal();
+        });
+
+        modalCancelBtn.addEventListener('click', () => {
+            closeModal();
+        });
+
         // CPF Mask
         cpfInput.addEventListener('input', (e) => {
             e.target.value = window.SAS.utils.formatCPF(e.target.value);
@@ -171,43 +255,67 @@
         const today = new Date().toISOString().split('T')[0];
         dataInput.min = today;
 
-        dataInput.addEventListener('input', function (e) {
-            const dateValue = this.value;
-            if (!dateValue) return;
+        const updateTimeSlots = () => {
+            const dateValue = dataInput.value;
+
+            // Default: Populate slots
+            const populateSlots = () => {
+                // Save current selection if any
+                const currentSelection = horaSelect.value;
+
+                horaSelect.innerHTML = '<option value="">--:--</option>';
+                const startTime = 8 * 60; // 08:00
+                const endTime = 16 * 60 + 45; // 16:45
+
+                for (let time = startTime; time <= endTime; time += 15) {
+                    const hours = Math.floor(time / 60);
+                    const minutes = time % 60;
+                    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+
+                    const opt = document.createElement('option');
+                    opt.value = timeString;
+                    opt.textContent = timeString;
+                    horaSelect.appendChild(opt);
+                }
+
+                // Restore selection if valid
+                if (currentSelection) {
+                    horaSelect.value = currentSelection;
+                }
+            };
+
+            if (!dateValue) {
+                // If no date, still show slots (generic)
+                populateSlots();
+                return;
+            }
 
             const [year, month, day] = dateValue.split('-').map(Number);
             const date = new Date(year, month - 1, day);
             const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
 
             if (dayOfWeek === 0 || dayOfWeek === 6) {
-                alert('Agendamentos não podem ser realizados aos finais de semana.');
-                this.value = ''; // Silently clear the value
+                openModal('Fim de Semana', 'Agendamentos não podem ser realizados aos finais de semana.', 'info');
+                dataInput.value = ''; // Silently clear the value
+                horaSelect.innerHTML = '<option value="">--:--</option>';
                 return;
             }
 
-            // Existing logic for time slots
-            horaSelect.innerHTML = '<option value="">--:--</option>';
-            const startTime = 8 * 60;
-            const endTime = 16 * 60 + 45;
+            populateSlots();
+        };
 
-            for (let time = startTime; time <= endTime; time += 15) {
-                const hours = Math.floor(time / 60);
-                const minutes = time % 60;
-                const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        dataInput.addEventListener('input', updateTimeSlots);
+        dataInput.addEventListener('change', updateTimeSlots);
 
-                const opt = document.createElement('option');
-                opt.value = timeString;
-                opt.textContent = timeString;
-                horaSelect.appendChild(opt);
-            }
-        });
+        // Initialize on load
+        updateTimeSlots();
 
         // Clear Fields
         clearBtn.addEventListener('click', () => {
-            if (confirm('Deseja limpar todos os campos?')) {
+            openModal('Limpar Campos', 'Deseja limpar todos os campos?', 'info', true, () => {
                 form.reset();
-                horaSelect.innerHTML = '<option value="">--:--</option>';
-            }
+                updateTimeSlots(); // Reset slots
+            });
         });
 
         // Export XLS Logic
@@ -216,7 +324,7 @@
                 const agendamentos = await window.SAS.base44.entities.Agendamento.list();
 
                 if (agendamentos.length === 0) {
-                    alert('Não há agendamentos para exportar.');
+                    openModal('Exportar', 'Não há agendamentos para exportar.', 'info');
                     return;
                 }
 
@@ -264,10 +372,9 @@
 
             } catch (err) {
                 console.error(err);
-                alert('Erro ao exportar dados: ' + err.message);
+                openModal('Erro', 'Erro ao exportar dados: ' + err.message, 'error');
             }
         });
-
         // Submit
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -284,26 +391,60 @@
                 tipo_atendimento: document.getElementById('tipo_atendimento').value,
                 prioridade: document.getElementById('prioridade').value,
                 data_agendamento: document.getElementById('data').value,
-                hora_inicio: document.getElementById('hora').value,
+                hora_inicio: document.getElementById('hora').value || null,
                 status: 'agendado',
                 created_by: user.id
             };
 
-            try {
-                await window.SAS.base44.entities.Agendamento.create(payload);
-                // Using Sonner for toast if available, otherwise alert
-                if (window.toast) {
-                    window.toast.success('Agendamento realizado com sucesso!');
-                    form.reset();
-                    horaSelect.innerHTML = '<option value="">--:--</option>';
-                } else {
-                    alert('Agendamento realizado com sucesso!');
-                    form.reset();
-                    horaSelect.innerHTML = '<option value="">--:--</option>';
+
+            // Validation: Past Time
+            if (payload.hora_inicio) {
+                const now = new Date();
+                const [year, month, day] = payload.data_agendamento.split('-').map(Number);
+                const [hours, minutes] = payload.hora_inicio.split(':').map(Number);
+                const selectedDate = new Date(year, month - 1, day, hours, minutes);
+
+                if (selectedDate < now) {
+                    openModal('Horário Inválido', 'Não é possível realizar agendamentos para horários que já passaram.', 'error');
+                    return;
                 }
-            } catch (err) {
-                alert('Erro ao realizar agendamento: ' + err.message);
             }
+            const submitAppointment = async (data) => {
+                try {
+                    await window.SAS.base44.entities.Agendamento.create(data);
+                    if (window.toast) {
+                        window.toast.success('Agendamento realizado com sucesso!');
+                    } else {
+                        openModal('Sucesso', 'Agendamento realizado com sucesso!', 'success');
+                    }
+                    form.reset();
+                    updateTimeSlots(); // Reset slots
+                } catch (err) {
+                    console.error('Submit Error:', err);
+
+                    // Check for attached data from api.js
+                    const errorData = err.data || {};
+                    const errorMessage = err.message || '';
+
+                    // Handle Duplicate Appointment
+                    if (errorData.code === 'DUPLICATE_APPOINTMENT' || errorMessage.includes('Duplicate appointment')) {
+                        openModal('Agendamento Duplicado', 'Já existe um agendamento para este servidor nesta data. Deseja agendar mesmo assim?', 'info', true, async () => {
+                            data.force_duplicate = true;
+                            await submitAppointment(data);
+                        });
+                    }
+                    // Handle Slot Conflict
+                    else if (errorData.code === 'SLOT_CONFLICT' || errorMessage.includes('Slot conflict')) {
+                        openModal('Horário Ocupado', 'Este horário já está ocupado. Por favor, escolha outro horário.', 'error');
+                    }
+                    // Generic Error
+                    else {
+                        openModal('Erro', 'Erro ao realizar agendamento: ' + errorMessage, 'error');
+                    }
+                }
+            };
+
+            await submitAppointment(payload);
         });
     </script>
 </body>

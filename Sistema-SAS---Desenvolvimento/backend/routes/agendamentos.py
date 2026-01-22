@@ -11,14 +11,28 @@ def list_agendamentos():
     try:
         # Support simple sorting via query param ?sort=-created_date
         sort = request.args.get('sort')
-        query = "SELECT * FROM agendamentos"
+        cpf = request.args.get('cpf')
+        matricula = request.args.get('matricula')
+        
+        query = "SELECT * FROM agendamentos WHERE 1=1"
+        params = []
+        
+        if cpf:
+            query += " AND cpf = %s"
+            params.append(cpf)
+        if matricula:
+            query += " AND matricula = %s"
+            params.append(matricula)
+        
+        # Exclude cancelled if needed? Usually we want to see active ones.
+        # But for history, maybe all? Let's keep all for now, frontend can filter.
         
         if sort == '-created_date':
             query += " ORDER BY created_at DESC"
         else:
             query += " ORDER BY data_agendamento, hora_inicio"
             
-        agendamentos = query_db(query)
+        agendamentos = query_db(query, tuple(params))
         
         # Convert date/time objects to string for JSON serialization
         if agendamentos:
@@ -37,11 +51,23 @@ def list_agendamentos():
 @agendamentos_bp.route('/', strict_slashes=False, methods=['POST'])
 def create_agendamento():
     data = request.json
-    required_fields = ['nome_completo', 'tipo_servico', 'data_agendamento', 'hora_inicio']
+    # 'hora_inicio' is required by DB constraint
+    required_fields = ['nome_completo', 'tipo_servico', 'data_agendamento']
     
     for field in required_fields:
         if field not in data:
-            return jsonify({'error': f'Missing field: {field}'}), 400
+            return jsonify({'error': f'Campo obrigatório ausente: {field}'}), 400
+
+    # Check for Past Time (only if time is provided)
+    if data.get('hora_inicio'):
+        try:
+            # data_agendamento is YYYY-MM-DD, hora_inicio is HH:MM
+            appt_dt_str = f"{data['data_agendamento']} {data['hora_inicio'][:5]}"
+            appt_dt = datetime.strptime(appt_dt_str, "%Y-%m-%d %H:%M")
+            if appt_dt < datetime.now():
+                 return jsonify({'error': 'Não é possível agendar para um horário passado.'}), 400
+        except (ValueError, TypeError):
+            pass # Ignore format errors here
             
     try:
         # 1. Check for Duplicate Appointment (Same Server, Same Day)
@@ -49,54 +75,70 @@ def create_agendamento():
         matricula = data.get('matricula')
         nome = data.get('nome_completo')
         data_agendamento = data.get('data_agendamento')
-        
+        hora_inicio = data.get('hora_inicio') # New appointment time
+
         duplicate_query = """
             SELECT * FROM agendamentos 
             WHERE data_agendamento = %s 
             AND status IN ('agendado', 'chegou', 'pendente', 'em_andamento')
             AND (
-                (cpf IS NOT NULL AND cpf = %s) OR 
-                (matricula IS NOT NULL AND matricula = %s) OR
+                (cpf IS NOT NULL AND cpf != '' AND cpf = %s) OR 
+                (matricula IS NOT NULL AND matricula != '' AND matricula = %s) OR
                 (nome_completo = %s)
             )
-            AND hora_inicio = %s
         """
-        existing_appt = query_db(duplicate_query, (data_agendamento, cpf, matricula, nome, data.get('hora_inicio')), one=True)
+        
+        existing_appt = query_db(duplicate_query, (data_agendamento, cpf, matricula, nome), one=True)
         
         if existing_appt:
-            attendant = query_db("SELECT nome_completo FROM usuarios WHERE id = %s", (existing_appt['atendente_id'],), one=True)
-            attendant_name = attendant['nome_completo'] if attendant else "Desconhecido"
-            
-            return jsonify({
-                'error': 'Duplicate appointment',
-                'code': 'DUPLICATE_APPOINTMENT',
-                'details': {
-                    'data': str(existing_appt['data_agendamento']),
-                    'hora': str(existing_appt['hora_inicio']),
-                    'atendente': attendant_name,
-                    'tipo_servico': existing_appt['tipo_servico']
-                }
-            }), 409
+            # If forcing duplicate, we MUST ensure the time is different
+            if data.get('force_duplicate', False):
+                existing_time = str(existing_appt['hora_inicio']) if existing_appt['hora_inicio'] else None
+                # Compare times (assuming HH:MM:SS or HH:MM format)
+                # Simple string comparison might fail if formats differ (e.g. 08:00 vs 08:00:00)
+                # Let's try to be robust.
+                if existing_time and hora_inicio:
+                     if existing_time[:5] == hora_inicio[:5]:
+                        return jsonify({
+                            'error': 'Same time conflict',
+                            'message': 'Você já possui um agendamento neste mesmo horário. Escolha um horário diferente.'
+                        }), 409
+            else:
+                # Normal duplicate block
+                attendant = query_db("SELECT nome_completo FROM usuarios WHERE id = %s", (existing_appt['atendente_id'],), one=True)
+                attendant_name = attendant['nome_completo'] if attendant else "Desconhecido"
+                
+                return jsonify({
+                    'error': 'Duplicate appointment',
+                    'code': 'DUPLICATE_APPOINTMENT',
+                    'details': {
+                        'data': str(existing_appt['data_agendamento']),
+                        'hora': str(existing_appt['hora_inicio']) if existing_appt['hora_inicio'] else 'Sem horário',
+                        'atendente': attendant_name,
+                        'tipo_servico': existing_appt['tipo_servico']
+                    }
+                }), 409
 
-        # 2. Check for Slot Conflict (Same Attendant, Same Time)
+        # 2. Check for Slot Conflict (Same Attendant, Same Time) - Only if time and attendant are provided
         atendente_id = data.get('atendente_id')
         hora_inicio = data.get('hora_inicio')
         
-        conflict_query = """
-            SELECT id FROM agendamentos 
-            WHERE data_agendamento = %s 
-            AND atendente_id = %s 
-            AND hora_inicio = %s
-            AND status != 'cancelado'
-        """
-        conflict = query_db(conflict_query, (data_agendamento, atendente_id, hora_inicio), one=True)
-        
-        if conflict:
-            return jsonify({
-                'error': 'Slot conflict',
-                'code': 'SLOT_CONFLICT',
-                'message': 'Este horário já está ocupado. Por favor, escolha outro horário ou outro atendente.'
-            }), 409
+        if atendente_id and hora_inicio:
+            conflict_query = """
+                SELECT id FROM agendamentos 
+                WHERE data_agendamento = %s 
+                AND atendente_id = %s 
+                AND hora_inicio = %s
+                AND status != 'cancelado'
+            """
+            conflict = query_db(conflict_query, (data.get('data_agendamento'), atendente_id, hora_inicio), one=True)
+            
+            if conflict:
+                return jsonify({
+                    'error': 'Slot conflict',
+                    'code': 'SLOT_CONFLICT',
+                    'message': 'Este horário já está ocupado. Por favor, escolha outro horário ou outro atendente.'
+                }), 409
 
         # Explicitly listing fields to match schema
         fields = [
@@ -119,7 +161,7 @@ def create_agendamento():
             data.get('tipo_atendimento'),
             data.get('prioridade', 'Normal'),
             data.get('data_agendamento'),
-            data.get('hora_inicio'),
+            data.get('hora_inicio') or None, # Convert empty string to None
             data.get('status', 'agendado'),
             data.get('created_by'),
             data.get('atendente_id')
@@ -136,7 +178,7 @@ def create_agendamento():
         # Serialize dates
         if new_agendamento:
             new_agendamento['data_agendamento'] = str(new_agendamento['data_agendamento'])
-            new_agendamento['hora_inicio'] = str(new_agendamento['hora_inicio'])
+            new_agendamento['hora_inicio'] = str(new_agendamento['hora_inicio']) if new_agendamento['hora_inicio'] else None
             new_agendamento['created_at'] = str(new_agendamento['created_at'])
             
         return jsonify(new_agendamento), 201
