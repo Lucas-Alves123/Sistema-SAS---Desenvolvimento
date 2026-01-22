@@ -60,6 +60,11 @@ def create_app():
     def monitor_page():
         return app.send_static_file('html/monitor.html')
 
+    @app.route('/whatsapp')
+    def whatsapp_page():
+        return app.send_static_file('html/whatsapp.html')
+
+
     @app.route('/relatorios')
     def relatorios_page():
         return app.send_static_file('html/relatorios.html')

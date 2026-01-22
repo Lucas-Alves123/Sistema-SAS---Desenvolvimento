@@ -52,9 +52,9 @@
                 </div>
 
                 <!-- Quick Actions Section -->
-                <div class="mb-16 w-full max-w-4xl">
+                <div class="mb-16 w-full max-w-5xl">
                     <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Ações Rápidas</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <!-- Action: Novo Agendamento -->
                         <a href="${window.SAS.utils.createPageUrl('Identificacao')}" class="group bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all duration-300 flex items-center gap-4">
                             <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-600 transition-colors duration-300">
@@ -71,15 +71,29 @@
 
                         <!-- Action: Meus Agendamentos -->
                         <a href="${window.SAS.utils.createPageUrl('Identificacao')}" class="group bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all duration-300 flex items-center gap-4">
-                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-green-600 transition-colors duration-300">
-                                <i data-lucide="calendar-check" class="w-6 h-6 text-green-600 group-hover:text-white transition-colors duration-300"></i>
+                            <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center group-hover:bg-indigo-600 transition-colors duration-300">
+                                <i data-lucide="calendar-check" class="w-6 h-6 text-indigo-600 group-hover:text-white transition-colors duration-300"></i>
                             </div>
                             <div class="text-left">
-                                <h3 class="text-lg font-bold text-gray-800 group-hover:text-green-700 transition-colors">Meus Agendamentos</h3>
+                                <h3 class="text-lg font-bold text-gray-800 group-hover:text-indigo-700 transition-colors">Meus Agendamentos</h3>
                                 <p class="text-sm text-gray-500">Consulte seus agendamentos</p>
                             </div>
                             <div class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <i data-lucide="arrow-right" class="w-5 h-5 text-green-500"></i>
+                                <i data-lucide="arrow-right" class="w-5 h-5 text-indigo-500"></i>
+                            </div>
+                        </a>
+
+                        <!-- Action: Atendimento WhatsApp -->
+                        <a href="/whatsapp" target="_blank" class="group bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-green-500 hover:shadow-md transition-all duration-300 flex items-center gap-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-green-600 transition-colors duration-300">
+                                <i data-lucide="message-circle" class="w-6 h-6 text-green-600 group-hover:text-white transition-colors duration-300"></i>
+                            </div>
+                            <div class="text-left">
+                                <h3 class="text-lg font-bold text-gray-800 group-hover:text-green-700 transition-colors">WhatsApp</h3>
+                                <p class="text-sm text-gray-500">Atendimento online via chat</p>
+                            </div>
+                            <div class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <i data-lucide="external-link" class="w-5 h-5 text-green-500"></i>
                             </div>
                         </a>
                     </div>

@@ -48,6 +48,116 @@ def list_agendamentos():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@agendamentos_bp.route('/public', strict_slashes=False, methods=['POST'])
+def create_public_agendamento():
+    data = request.json
+    # Validation for public form
+    required_fields = ['nome_completo', 'cpf', 'tipo_servico']
+    
+    for field in required_fields:
+        if field not in data or not data[field]:
+            return jsonify({'error': f'Campo obrigatório ausente: {field}'}), 400
+
+    try:
+        # Check for Duplicate (Simple check for today)
+        today = datetime.now().strftime('%Y-%m-%d')
+        cpf = data.get('cpf')
+        
+        duplicate = query_db("""
+            SELECT id FROM agendamentos 
+            WHERE data_agendamento = %s AND cpf = %s AND status IN ('agendado', 'chegou', 'pendente', 'em_andamento')
+        """, (today, cpf), one=True)
+        
+        if duplicate:
+             return jsonify({'error': 'Você já possui um atendimento em aberto para hoje.', 'id': duplicate['id']}), 409
+
+        # Insert
+        fields = [
+            'nome_completo', 'cpf', 'matricula', 'cargo', 'vinculo', 'local_trabalho', 'email',
+            'tipo_servico', 'tipo_atendimento', 'data_agendamento', 'status', 'created_by'
+        ]
+        
+        placeholders = ["%s"] * len(fields)
+        
+        values = [
+            data.get('nome_completo'),
+            data.get('cpf'),
+            data.get('matricula'),
+            data.get('cargo'),
+            data.get('vinculo'),
+            data.get('local_trabalho'),
+            data.get('email'),
+            data.get('tipo_servico'),
+            'WhatsApp', # Force type
+            today,
+            'chegou', # Force status to 'chegou' so it appears in queue
+            None # created_by is null
+        ]
+        
+        query = f"""
+            INSERT INTO agendamentos ({', '.join(fields)})
+            VALUES ({', '.join(placeholders)})
+            RETURNING id
+        """
+        
+        new_id = query_db(query, tuple(values), one=True)
+        
+        return jsonify({'success': True, 'id': new_id['id']}), 201
+
+    except Exception as e:
+        print(f"Public Error: {e}")
+        return jsonify({'error': 'Erro interno ao processar solicitação.'}), 500
+
+@agendamentos_bp.route('/public/status/<int:id>', strict_slashes=False, methods=['GET'])
+def check_public_status(id):
+    try:
+        item = query_db("SELECT id, status, data_agendamento, created_at FROM agendamentos WHERE id = %s", (id,), one=True)
+        if not item:
+            return jsonify({'error': 'Not found'}), 404
+            
+        if item['status'] == 'chegou':
+            # Calculate position
+            # Count how many 'chegou' items for today are older than this one
+            today = item['data_agendamento']
+            created_at = item['created_at']
+            
+            # Assuming created_at is reliable for ordering. If not, use ID.
+            # Using ID is safer if created_at can be same.
+            
+            position_query = """
+                SELECT COUNT(*) as pos FROM agendamentos 
+                WHERE data_agendamento = %s 
+                AND status = 'chegou' 
+                AND id < %s
+            """
+            count = query_db(position_query, (today, id), one=True)
+            position = count['pos'] + 1 # 1-based index
+            
+            return jsonify({
+                'status': 'chegou',
+                'position': position,
+                'message': f"Sua posição na fila é: {position}"
+            })
+            
+        elif item['status'] == 'pendente' or item['status'] == 'em_andamento':
+             return jsonify({
+                'status': item['status'],
+                'position': 0,
+                'message': "Chegou a sua vez!"
+            })
+            
+        else:
+             return jsonify({
+                'status': item['status'],
+                'position': -1,
+                'message': "Atendimento encerrado ou cancelado."
+            })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+
 @agendamentos_bp.route('/', strict_slashes=False, methods=['POST'])
 def create_agendamento():
     data = request.json

@@ -22,6 +22,7 @@
         window.SAS.layout.renderLayout('Atendimento');
         const content = document.getElementById('page-content');
         let currentGuiche = localStorage.getItem('sas_guiche') || '1';
+        let currentQueueTab = 'Presencial';
 
         content.innerHTML = `
             <div class="flex flex-col items-center justify-center mb-6 animate-fade-in">
@@ -209,6 +210,7 @@
         const confirmIconContainer = document.getElementById('confirmIconContainer');
 
         let onConfirmCallback = null;
+        let currentActiveItem = null;
 
         window.openConfirmationModal = (title, message, callback, type = 'info') => {
             confirmTitle.textContent = title;
@@ -256,6 +258,10 @@
         };
 
         window.manualCall = async (id) => {
+            if (currentStatus === 'pausa') {
+                window.SAS.utils.notify('warning', 'Você está em pausa. Fique online para chamar o servidor.');
+                return;
+            }
             if (currentActiveItem) {
                 window.SAS.utils.notify('warning', 'Você já tem um atendimento ativo. Encerre-o antes de chamar outro.');
                 return;
@@ -267,7 +273,8 @@
                     try {
                         await window.SAS.base44.entities.Agendamento.update(id, {
                             status: 'pendente',
-                            atendente_id: user.id
+                            atendente_id: user.id,
+                            guiche: currentGuiche
                         });
                         loadData();
                         window.SAS.utils.notify('success', 'Chamando servidor...');
@@ -384,7 +391,11 @@
             const todayAppointments = all.filter(a => a.data_agendamento === today);
             totalAgendadosEl.textContent = todayAppointments.length;
 
-            const arrivals = todayAppointments.filter(a => a.status === 'agendado').sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio));
+            const arrivals = todayAppointments.filter(a => a.status === 'agendado').sort((a, b) => {
+                const timeA = a.hora_inicio || '23:59';
+                const timeB = b.hora_inicio || '23:59';
+                return timeA.localeCompare(timeB);
+            });
 
             const queue = todayAppointments.filter(a =>
                 a.status === 'chegou' &&
@@ -392,7 +403,9 @@
             ).sort((a, b) => {
                 if (a.prioridade === 'Urgente' && b.prioridade !== 'Urgente') return -1;
                 if (a.prioridade !== 'Urgente' && b.prioridade === 'Urgente') return 1;
-                return a.hora_inicio.localeCompare(b.hora_inicio);
+                const timeA = a.hora_inicio || '00:00';
+                const timeB = b.hora_inicio || '00:00';
+                return timeA.localeCompare(timeB);
             });
 
             const active = todayAppointments.find(a =>
@@ -579,35 +592,6 @@
             );
         };
 
-        chamarBtn.addEventListener('click', async () => {
-            if (currentActiveItem) {
-                window.SAS.utils.notify('warning', 'Você já tem um atendimento ativo. Encerre-o antes de chamar o próximo.');
-                return;
-            }
-            const all = await window.SAS.base44.entities.Agendamento.list();
-            const today = new Date().toISOString().split('T')[0];
-            const queue = all.filter(a => a.data_agendamento === today && a.status === 'chegou').sort((a, b) => {
-                if (a.prioridade === 'Urgente' && b.prioridade !== 'Urgente') return -1;
-                if (a.prioridade !== 'Urgente' && b.prioridade === 'Urgente') return 1;
-                return a.hora_inicio.localeCompare(b.hora_inicio);
-            });
-            if (queue.length === 0) {
-                window.SAS.utils.notify('info', 'Não há ninguém aguardando na fila.');
-                return;
-            }
-            const next = queue[0];
-            try {
-                await window.SAS.base44.entities.Agendamento.update(next.id, {
-                    status: 'pendente',
-                    atendente_id: user.id
-                });
-                loadData();
-                window.SAS.utils.notify('success', 'Chamando próximo da fila...');
-            } catch (e) {
-                window.SAS.utils.notify('error', 'Erro ao chamar próximo.');
-            }
-        });
-
         window.startService = async (id) => {
             await window.SAS.base44.entities.Agendamento.update(id, { status: 'em_andamento' });
             loadData();
@@ -703,6 +687,46 @@
                 }
             );
         };
+
+        chamarBtn.addEventListener('click', async () => {
+            if (currentStatus === 'pausa') {
+                window.SAS.utils.notify('warning', 'Você está em pausa. Fique online para chamar o próximo.');
+                return;
+            }
+            if (currentActiveItem) {
+                window.SAS.utils.notify('warning', 'Você já tem um atendimento ativo. Encerre-o antes de chamar o próximo.');
+                return;
+            }
+            const all = await window.SAS.base44.entities.Agendamento.list();
+            const today = new Date().toISOString().split('T')[0];
+            const queue = all.filter(a =>
+                a.data_agendamento === today &&
+                a.status === 'chegou' &&
+                (a.tipo_atendimento === currentQueueTab || (!a.tipo_atendimento && currentQueueTab === 'Presencial'))
+            ).sort((a, b) => {
+                if (a.prioridade === 'Urgente' && b.prioridade !== 'Urgente') return -1;
+                if (a.prioridade !== 'Urgente' && b.prioridade === 'Urgente') return 1;
+                const timeA = a.hora_inicio || '00:00';
+                const timeB = b.hora_inicio || '00:00';
+                return timeA.localeCompare(timeB);
+            });
+            if (queue.length === 0) {
+                window.SAS.utils.notify('info', 'Não há ninguém aguardando na fila.');
+                return;
+            }
+            const next = queue[0];
+            try {
+                await window.SAS.base44.entities.Agendamento.update(next.id, {
+                    status: 'pendente',
+                    atendente_id: user.id,
+                    guiche: currentGuiche
+                });
+                loadData();
+                window.SAS.utils.notify('success', 'Chamando próximo da fila...');
+            } catch (e) {
+                window.SAS.utils.notify('error', 'Erro ao chamar próximo.');
+            }
+        });
 
         loadData();
         setInterval(loadData, 3000);
