@@ -84,58 +84,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Details Modal -->
-            <div id="detailsModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
-                <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl animate-fade-in">
-                    <div class="flex justify-between items-center mb-6 border-b pb-4">
-                        <h3 class="text-2xl font-bold text-blue-800 flex items-center gap-2">
-                            <i data-lucide="file-text" class="w-6 h-6"></i>
-                            Detalhes do Atendimento
-                        </h3>
-                        <button onclick="closeDetailsModal()" class="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-full transition-colors">
-                            <i data-lucide="x" class="w-6 h-6"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div>
-                            <label class="block text-sm font-bold text-gray-500 uppercase mb-1">Cliente</label>
-                            <div id="modalCliente" class="text-lg text-gray-800 font-medium"></div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-500 uppercase mb-1">Serviço</label>
-                            <div id="modalServico" class="text-lg text-gray-800 font-medium"></div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-500 uppercase mb-1">Atendente</label>
-                            <div id="modalAtendente" class="text-lg text-gray-800 font-medium"></div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-500 uppercase mb-1">Data/Hora</label>
-                            <div id="modalData" class="text-lg text-gray-800 font-medium"></div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-4 bg-slate-50 p-6 rounded-lg border border-slate-200">
-                        <div>
-                            <label class="block text-sm font-bold text-blue-700 uppercase mb-2">Observação 1 - Problema</label>
-                            <p id="modalObs1" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></p>
-                        </div>
-                        <div class="border-t border-slate-200 my-4"></div>
-                        <div>
-                            <label class="block text-sm font-bold text-green-700 uppercase mb-2">Observação 2 - Solução</label>
-                            <p id="modalObs2" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></p>
-                        </div>
-                    </div>
-
-                    <div class="mt-6 flex justify-end">
-                        <button onclick="closeDetailsModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors">
-                            Fechar
-                        </button>
-                    </div>
-                </div>
-            </div>
         `;
 
         function renderStatusCard(label, icon, color, statusKey) {
@@ -159,22 +107,12 @@
         const refreshBtn = document.getElementById('refreshBtn');
         const tableBody = document.getElementById('tableBody');
 
-        // Modal Elements
-        const detailsModal = document.getElementById('detailsModal');
-        const modalCliente = document.getElementById('modalCliente');
-        const modalServico = document.getElementById('modalServico');
-        const modalAtendente = document.getElementById('modalAtendente');
-        const modalData = document.getElementById('modalData');
-        const modalObs1 = document.getElementById('modalObs1');
-        const modalObs2 = document.getElementById('modalObs2');
-
         // Filter Logic
         if (attendantFilter) {
             attendantFilter.addEventListener('change', () => loadData());
         }
 
         const loadData = async () => {
-            // Populate filter if needed
             if (attendantFilter && attendantFilter.options.length === 1) {
                 const users = await window.SAS.base44.entities.SystemUser.list();
                 users.forEach(u => {
@@ -186,12 +124,10 @@
             }
             let atendimentos = await window.SAS.base44.entities.Agendamento.list('-created_date');
 
-            // Filter by Attendant
             if (attendantFilter && attendantFilter.value !== 'all') {
                 atendimentos = atendimentos.filter(a => a.atendente_id === attendantFilter.value);
             }
 
-            // Update Counters
             const counts = {
                 agendado: 0, chegou: 0, pendente: 0, em_andamento: 0, concluido: 0, cancelado: 0
             };
@@ -206,7 +142,6 @@
                 if (el) el.textContent = counts[key];
             });
 
-            // Update Table
             tableBody.innerHTML = '';
             if (atendimentos.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Nenhum registro encontrado.</td></tr>';
@@ -221,7 +156,6 @@
                     else if (item.status === 'pendente') statusColor = 'bg-orange-100 text-orange-800';
                     else if (item.status === 'cancelado' || item.status === 'nao_compareceu') statusColor = 'bg-red-100 text-red-800';
 
-                    // Action Button Logic
                     let actionBtn = '';
                     if (item.status === 'concluido' || item.status === 'cancelado' || item.status === 'nao_compareceu') {
                         actionBtn = `
@@ -259,31 +193,52 @@
 
                 if (!item) return;
 
-                modalCliente.textContent = item.nome_completo;
-                modalServico.textContent = item.tipo_servico;
-                modalAtendente.textContent = item.atendente_nome || '-';
-                modalData.textContent = `${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio || '-'}`;
+                const html = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-500 uppercase mb-1">Cliente</label>
+                            <div class="text-lg text-gray-800 font-medium">${item.nome_completo}</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-500 uppercase mb-1">Serviço</label>
+                            <div class="text-lg text-gray-800 font-medium">${item.tipo_servico}</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-500 uppercase mb-1">Atendente</label>
+                            <div class="text-lg text-gray-800 font-medium">${item.atendente_nome || '-'}</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-500 uppercase mb-1">Data/Hora</label>
+                            <div class="text-lg text-gray-800 font-medium">${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio || '-'}</div>
+                        </div>
+                    </div>
 
-                modalObs1.textContent = item.observacao_problema || 'Nenhuma observação registrada.';
-                modalObs2.textContent = item.observacao_solucao || 'Nenhuma solução registrada.';
+                    <div class="space-y-4 bg-slate-50 p-6 rounded-lg border border-slate-200">
+                        <div>
+                            <label class="block text-sm font-bold text-blue-700 uppercase mb-2">Observação 1 - Problema</label>
+                            <p class="text-gray-700 whitespace-pre-wrap leading-relaxed">${item.observacao_problema || 'Nenhuma observação registrada.'}</p>
+                        </div>
+                        <div class="border-t border-slate-200 my-4"></div>
+                        <div>
+                            <label class="block text-sm font-bold text-green-700 uppercase mb-2">Observação 2 - Solução</label>
+                            <p class="text-gray-700 whitespace-pre-wrap leading-relaxed">${item.observacao_solucao || 'Nenhuma solução registrada.'}</p>
+                        </div>
+                    </div>
+                `;
 
-                detailsModal.classList.remove('hidden');
+                window.SAS.utils.modal.alert('Detalhes do Atendimento', html, 'info');
             } catch (e) {
                 console.error('Error opening modal:', e);
-                alert('Erro ao carregar detalhes.');
+                window.SAS.utils.modal.alert('Erro', 'Erro ao carregar detalhes.', 'danger');
             }
-        };
-
-        window.closeDetailsModal = () => {
-            detailsModal.classList.add('hidden');
         };
 
         window.deleteItem = async (id) => {
-            if (confirm('Tem certeza que deseja excluir este registro permanentemente?')) {
+            window.SAS.utils.modal.confirm('Excluir Registro', 'Tem certeza que deseja excluir este registro permanentemente?', async () => {
                 await window.SAS.base44.entities.Agendamento.delete(id);
                 loadData();
-                if (window.toast) window.toast.success('Registro excluído!');
-            }
+                window.SAS.utils.notify('success', 'Registro excluído!');
+            }, 'danger');
         };
 
         refreshBtn.addEventListener('click', () => {

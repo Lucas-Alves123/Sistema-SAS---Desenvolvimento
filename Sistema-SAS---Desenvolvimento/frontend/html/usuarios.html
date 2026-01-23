@@ -137,31 +137,17 @@
         let usersList = [];
 
         const loadUsers = async () => {
-            // Use the new /online endpoint to get real-time status for attendants
-            // But we also need ALL users. 
-            // Strategy: Get all users, then merge with online status if needed.
-            // Actually, the /online endpoint returns only active attendants.
-            // Let's just use the standard list and maybe fetch online status separately or update backend list to include it.
-            // For simplicity, let's fetch the standard list, and if we want real-time status, we might need to adjust.
-            // Wait, the requirement is "Status do usuário (Online / Pausa)".
-            // The /online endpoint now calculates "offline" based on heartbeat.
-            // So we should probably use that for the status column.
-
-            // Let's fetch ALL users first
             usersList = await window.SAS.base44.entities.SystemUser.list();
 
-            // Now fetch online status to overlay
             try {
                 const response = await fetch('/api/usuarios/online');
                 if (response.ok) {
                     const onlineUsers = await response.json();
-                    // Merge status
                     usersList = usersList.map(u => {
                         const onlineInfo = onlineUsers.find(ou => ou.id === u.id);
                         if (onlineInfo) {
                             return { ...u, status_atendimento: onlineInfo.status_atendimento, motivo_pausa: onlineInfo.motivo_pausa };
                         }
-                        // If not in online list (e.g. admins or offline), default to offline if they are 'usuario' type
                         if (u.tipo === 'usuario' && u.situacao === 'ativo') {
                             return { ...u, status_atendimento: 'offline' };
                         }
@@ -190,10 +176,8 @@
                     ? 'bg-green-100 text-green-800'
                     : 'bg-red-100 text-red-800';
 
-                // Permission Logic
                 let actionsHTML = '';
 
-                // Only Admins can see actions
                 if (user.tipo === 'adm') {
                     const isSelf = String(u.id) === String(user.id);
 
@@ -217,7 +201,6 @@
                     actionsHTML = '<span class="text-gray-400 text-xs italic">Sem permissão</span>';
                 }
 
-                // Toggle Status Logic (also restricted)
                 let statusHTML = '';
                 if (user.tipo === 'adm' && u.tipo === 'usuario') {
                     statusHTML = `
@@ -233,7 +216,6 @@
                     `;
                 }
 
-                // Status Atendimento Column
                 let atendimentoStatus = '-';
                 if (u.tipo === 'usuario' && u.situacao === 'ativo') {
                     if (u.status_atendimento === 'pausa') {
@@ -258,7 +240,6 @@
             });
             lucide.createIcons();
 
-            // Attach Events
             document.querySelectorAll('.edit-btn').forEach(btn => {
                 btn.addEventListener('click', () => openEditModal(btn.dataset.id));
             });
@@ -270,7 +251,6 @@
             });
         };
 
-        // Search
         searchInput.addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             const filtered = usersList.filter(u =>
@@ -280,7 +260,6 @@
             renderTable(filtered);
         });
 
-        // Modal Actions
         if (newUserBtn) {
             newUserBtn.addEventListener('click', () => {
                 userForm.reset();
@@ -294,7 +273,6 @@
             modalUsuario.classList.add('hidden');
         });
 
-        // Form Submit
         userForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('userId').value;
@@ -305,9 +283,8 @@
             const senha = document.getElementById('senha').value;
             const confirmSenha = document.getElementById('confirmSenha').value;
 
-            // Password Validation
             if (senha && senha !== confirmSenha) {
-                alert('As senhas não coincidem!');
+                window.SAS.utils.modal.alert('Atenção', 'As senhas não coincidem!', 'warning');
                 return;
             }
 
@@ -318,7 +295,6 @@
                 tipo
             };
 
-            // Only generate/update username for NEW users
             if (!id) {
                 const usuarioGerado = nome.toLowerCase().split(' ')[0] + '.' + (nome.toLowerCase().split(' ').pop() || '');
                 payload.usuario = usuarioGerado;
@@ -330,27 +306,25 @@
             try {
                 if (id) {
                     await window.SAS.base44.entities.SystemUser.update(id, payload);
-                    alert('Usuário atualizado com sucesso!');
+                    window.SAS.utils.notify('success', 'Usuário atualizado com sucesso!');
                 } else {
                     if (!senha) {
-                        alert('Senha é obrigatória para novos usuários.');
+                        window.SAS.utils.modal.alert('Atenção', 'Senha é obrigatória para novos usuários.', 'warning');
                         return;
                     }
                     await window.SAS.base44.entities.SystemUser.create(payload);
-                    alert('Usuário criado com sucesso!');
+                    window.SAS.utils.notify('success', 'Usuário criado com sucesso!');
                 }
                 modalUsuario.classList.add('hidden');
                 loadUsers();
             } catch (err) {
                 console.error(err);
                 const msg = err.message || err.error || 'Erro desconhecido ao salvar.';
-                alert('Erro ao salvar: ' + msg);
+                window.SAS.utils.modal.alert('Erro', 'Erro ao salvar: ' + msg, 'danger');
             }
         });
 
-        // Actions
         const openEditModal = (id) => {
-            // FIX: Convert IDs to String for comparison
             const u = usersList.find(user => String(user.id) === String(id));
             if (!u) return;
 
@@ -359,7 +333,7 @@
             document.getElementById('cpf').value = u.cpf || '';
             document.getElementById('email').value = u.email || '';
             document.getElementById('tipo').value = u.tipo;
-            document.getElementById('senha').value = ''; // Don't show password
+            document.getElementById('senha').value = '';
             document.getElementById('confirmSenha').value = '';
 
             modalTitle.textContent = 'Editar Usuário';
@@ -367,32 +341,34 @@
         };
 
         const deleteUser = async (id) => {
-            // FIX: Convert IDs to String for comparison
             if (String(id) === String(user.id)) {
-                alert('Você não pode excluir seu próprio usuário.');
+                window.SAS.utils.modal.alert('Atenção', 'Você não pode excluir seu próprio usuário.', 'warning');
                 return;
             }
-            if (confirm('Tem certeza que deseja excluir este usuário?')) {
-                await window.SAS.base44.entities.SystemUser.delete(id);
-                loadUsers();
-            }
+            window.SAS.utils.modal.confirm(
+                'Excluir Usuário',
+                'Tem certeza que deseja excluir este usuário?',
+                async () => {
+                    await window.SAS.base44.entities.SystemUser.delete(id);
+                    window.SAS.utils.notify('success', 'Usuário excluído com sucesso!');
+                    loadUsers();
+                },
+                'danger'
+            );
         };
 
         const toggleStatus = async (id) => {
-            // FIX: Convert IDs to String for comparison
             const u = usersList.find(user => String(user.id) === String(id));
             const novoStatus = u.situacao === 'ativo' ? 'inativo' : 'ativo';
             await window.SAS.base44.entities.SystemUser.update(id, { situacao: novoStatus });
             loadUsers();
         };
 
-        // CPF Mask
         document.getElementById('cpf').addEventListener('input', (e) => {
             e.target.value = window.SAS.utils.formatCPF(e.target.value);
         });
 
         loadUsers();
-        // Refresh status every 10 seconds
         setInterval(loadUsers, 10000);
     </script>
 </body>

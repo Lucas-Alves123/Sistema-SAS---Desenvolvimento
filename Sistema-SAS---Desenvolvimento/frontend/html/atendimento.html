@@ -152,31 +152,6 @@
                     </div>
                 </div>
             </div>
-            <!-- Generic Confirmation Modal -->
-            <!-- Styled Confirmation Modal -->
-            <div id="confirmationModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 p-4">
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in">
-                    <div class="p-6">
-                        <div class="flex items-start gap-4">
-                            <div id="confirmIconContainer" class="bg-blue-100 p-3 rounded-full shrink-0">
-                                <i id="confirmIcon" data-lucide="alert-circle" class="w-6 h-6 text-blue-600"></i>
-                            </div>
-                            <div>
-                                <h3 id="confirmTitle" class="text-lg font-bold text-slate-800 mb-2">Confirmar Ação</h3>
-                                <p id="confirmMessage" class="text-slate-600">Tem certeza que deseja prosseguir?</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-slate-50 p-4 flex justify-end gap-3">
-                        <button onclick="closeConfirmationModal()" class="bg-white border border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-lg hover:bg-slate-50 transition-colors">
-                            Cancelar
-                        </button>
-                        <button id="confirmActionBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200">
-                            Confirmar
-                        </button>
-                    </div>
-                </div>
-            </div>
         `;
 
         lucide.createIcons();
@@ -201,47 +176,7 @@
         const guicheModal = document.getElementById('guicheModal');
         const newGuicheInput = document.getElementById('newGuicheInput');
 
-        // Confirmation Modal Elements
-        const confirmationModal = document.getElementById('confirmationModal');
-        const confirmTitle = document.getElementById('confirmTitle');
-        const confirmMessage = document.getElementById('confirmMessage');
-        const confirmActionBtn = document.getElementById('confirmActionBtn');
-        const confirmIcon = document.getElementById('confirmIcon');
-        const confirmIconContainer = document.getElementById('confirmIconContainer');
-
-        let onConfirmCallback = null;
         let currentActiveItem = null;
-
-        window.openConfirmationModal = (title, message, callback, type = 'info') => {
-            confirmTitle.textContent = title;
-            confirmMessage.textContent = message;
-            onConfirmCallback = callback;
-
-            // Style based on type
-            if (type === 'danger') {
-                confirmIconContainer.className = 'bg-red-100 p-3 rounded-full shrink-0';
-                confirmIcon.className = 'w-6 h-6 text-red-600';
-                confirmIcon.setAttribute('data-lucide', 'alert-triangle');
-                confirmActionBtn.className = 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-red-200';
-            } else {
-                confirmIconContainer.className = 'bg-blue-100 p-3 rounded-full shrink-0';
-                confirmIcon.className = 'w-6 h-6 text-blue-600';
-                confirmIcon.setAttribute('data-lucide', 'alert-circle');
-                confirmActionBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200';
-            }
-
-            lucide.createIcons();
-            confirmationModal.classList.remove('hidden');
-        };
-        window.closeConfirmationModal = () => {
-            confirmationModal.classList.add('hidden');
-            onConfirmCallback = null;
-        };
-
-        confirmActionBtn.addEventListener('click', () => {
-            if (onConfirmCallback) onConfirmCallback();
-            closeConfirmationModal();
-        });
 
         window.setQueueTab = (tab) => {
             currentQueueTab = tab;
@@ -266,7 +201,7 @@
                 window.SAS.utils.notify('warning', 'Você já tem um atendimento ativo. Encerre-o antes de chamar outro.');
                 return;
             }
-            openConfirmationModal(
+            window.SAS.utils.modal.confirm(
                 'Chamar Servidor',
                 'Deseja chamar este servidor agora?',
                 async () => {
@@ -558,7 +493,7 @@
         };
 
         window.confirmArrival = (id) => {
-            openConfirmationModal(
+            window.SAS.utils.modal.confirm(
                 'Confirmar Chegada',
                 'Deseja confirmar a chegada deste cidadão?',
                 async () => {
@@ -575,7 +510,7 @@
         };
 
         window.markNoShow = (id) => {
-            openConfirmationModal(
+            window.SAS.utils.modal.confirm(
                 'Não Compareceu',
                 'Confirmar que o cidadão NÃO compareceu? Esta ação removerá o agendamento da lista de hoje.',
                 async () => {
@@ -598,7 +533,7 @@
         };
 
         window.cancelService = async (id) => {
-            openConfirmationModal(
+            window.SAS.utils.modal.confirm(
                 'Cancelar Chamado',
                 'Deseja cancelar este chamado e devolver para a fila?',
                 async () => {
@@ -619,6 +554,7 @@
             try {
                 await window.SAS.base44.entities.Agendamento.update(id, {
                     status: 'concluido',
+                    atendente_id: user.id,
                     observacao_problema: obs1,
                     observacao_solucao: obs2
                 });
@@ -637,16 +573,32 @@
         window.openTransferModal = async (id) => {
             itemToTransferId = id;
             transferObs.value = '';
-            const users = await window.SAS.base44.entities.SystemUser.list();
-            const activeUsers = users.filter(u => u.id !== user.id && u.situacao === 'ativo');
-            transferUserSelect.innerHTML = '<option value="">Selecione um atendente...</option>';
-            activeUsers.forEach(u => {
-                const option = document.createElement('option');
-                option.value = u.id;
-                option.textContent = `${u.usuario} (Guichê ${u.guiche_atual || '?'})`;
-                transferUserSelect.appendChild(option);
-            });
-            transferModal.classList.remove('hidden');
+
+            try {
+                const [users, onlineUsers] = await Promise.all([
+                    window.SAS.base44.entities.SystemUser.list(),
+                    fetch('/api/usuarios/online').then(res => res.json())
+                ]);
+
+                const activeUsers = users.filter(u => u.id !== user.id && u.situacao === 'ativo');
+                transferUserSelect.innerHTML = '<option value="">Selecione um atendente...</option>';
+
+                activeUsers.forEach(u => {
+                    const onlineInfo = onlineUsers.find(ou => ou.id === u.id);
+                    const isOnline = !!onlineInfo;
+                    const statusText = isOnline ? (onlineInfo.status_atendimento === 'pausa' ? 'Em Pausa' : 'Online') : 'Offline';
+                    const statusColor = isOnline ? (onlineInfo.status_atendimento === 'pausa' ? '🟠' : '🟢') : '⚪';
+
+                    const option = document.createElement('option');
+                    option.value = u.id;
+                    option.textContent = `${u.nome_completo || u.usuario} (Guichê ${u.guiche_atual || '?'}) - ${statusColor} ${statusText}`;
+                    transferUserSelect.appendChild(option);
+                });
+                transferModal.classList.remove('hidden');
+            } catch (e) {
+                console.error('Error loading users for transfer:', e);
+                window.SAS.utils.notify('error', 'Erro ao carregar lista de atendentes.');
+            }
         };
 
         window.closeTransferModal = () => {
@@ -657,8 +609,6 @@
         window.confirmTransfer = async () => {
             if (!itemToTransferId) return;
             const targetUserId = transferUserSelect.value;
-            const targetUser = Array.from(transferUserSelect.options).find(o => o.value === targetUserId);
-            const targetUserName = targetUser ? targetUser.text.split(' (')[0] : 'Desconhecido';
             const obs = transferObs.value;
             if (!targetUserId) {
                 window.SAS.utils.notify('warning', 'Selecione um atendente para transferir.');
@@ -668,7 +618,8 @@
                 window.SAS.utils.notify('warning', 'Por favor, informe o motivo da transferência.');
                 return;
             }
-            openConfirmationModal(
+
+            window.SAS.utils.modal.confirm(
                 'Transferir Atendimento',
                 'Tem certeza que deseja transferir este atendimento?',
                 async () => {

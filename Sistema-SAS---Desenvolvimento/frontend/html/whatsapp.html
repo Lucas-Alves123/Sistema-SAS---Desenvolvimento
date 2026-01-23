@@ -148,7 +148,7 @@
             <h2 class="text-2xl font-bold text-slate-800 mb-2">Seus dados foram registrados com sucesso!</h2>
             <p class="text-slate-600 mb-8">Você entrou na fila de atendimento.</p>
 
-            <div class="bg-slate-50 rounded-xl p-6 border border-slate-200 mb-8 inline-block w-full max-w-sm">
+            <div class="bg-slate-50 rounded-xl p-6 border border-slate-200 mb-8 inline-block w-full max-sm">
                 <div class="text-sm text-slate-500 uppercase font-bold tracking-wider mb-1">Posição Atual</div>
                 <div class="text-5xl font-bold text-blue-600" id="queuePosition">--</div>
                 <p class="text-xs text-slate-400 mt-2">Aguarde. Sua posição será atualizada automaticamente.</p>
@@ -209,13 +209,117 @@
                 Iniciar Atendimento no WhatsApp
             </a>
 
+            <button onclick="resetSession()"
+                class="mt-4 text-slate-400 hover:text-slate-600 text-sm font-medium transition-colors flex items-center justify-center gap-2 mx-auto">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Voltar ao início
+            </button>
+
             <p class="text-xs text-slate-400 mt-6">
                 O WhatsApp é apenas o canal final. A fila é gerenciada pelo sistema.
             </p>
         </div>
     </div>
 
+    <!-- Global Modal System -->
+    <div id="globalModalContainer"
+        class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-[9999] p-4">
+        <div id="globalModal" class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in">
+            <div class="p-6">
+                <div class="flex items-start gap-4">
+                    <div id="globalModalIconContainer" class="bg-blue-100 p-3 rounded-full shrink-0">
+                        <i id="globalModalIcon" data-lucide="alert-circle" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 id="globalModalTitle" class="text-lg font-bold text-slate-800 mb-2">Confirmar Ação</h3>
+                        <div id="globalModalMessage" class="text-slate-600">Tem certeza que deseja prosseguir?</div>
+                    </div>
+                </div>
+            </div>
+            <div id="globalModalFooter" class="bg-slate-50 p-4 flex justify-end gap-3">
+                <button id="globalModalCancelBtn"
+                    class="bg-white border border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-lg hover:bg-slate-50 transition-colors">
+                    Cancelar
+                </button>
+                <button id="globalModalConfirmBtn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200">
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
     <script>
+        // Global Modal Logic for WhatsApp Page
+        const modalContainer = document.getElementById('globalModalContainer');
+        const modalTitle = document.getElementById('globalModalTitle');
+        const modalMessage = document.getElementById('globalModalMessage');
+        const modalConfirmBtn = document.getElementById('globalModalConfirmBtn');
+        const modalCancelBtn = document.getElementById('globalModalCancelBtn');
+        const modalIcon = document.getElementById('globalModalIcon');
+        const modalIconContainer = document.getElementById('globalModalIconContainer');
+
+        let globalOnConfirm = null;
+
+        window.openGlobalConfirmationModal = (title, message, callback, type = 'info') => {
+            modalTitle.textContent = title;
+            modalMessage.innerHTML = message;
+            globalOnConfirm = callback;
+            modalCancelBtn.classList.remove('hidden');
+            modalConfirmBtn.textContent = 'Confirmar';
+
+            if (type === 'danger') {
+                modalIconContainer.className = 'bg-red-100 p-3 rounded-full shrink-0';
+                modalIcon.className = 'w-6 h-6 text-red-600';
+                modalIcon.setAttribute('data-lucide', 'alert-triangle');
+                modalConfirmBtn.className = 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-red-200';
+            } else {
+                modalIconContainer.className = 'bg-blue-100 p-3 rounded-full shrink-0';
+                modalIcon.className = 'w-6 h-6 text-blue-600';
+                modalIcon.setAttribute('data-lucide', 'alert-circle');
+                modalConfirmBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200';
+            }
+
+            if (window.lucide) window.lucide.createIcons();
+            modalContainer.classList.remove('hidden');
+        };
+
+        window.openGlobalAlertModal = (title, message, type = 'info') => {
+            modalTitle.textContent = title;
+            modalMessage.innerHTML = message;
+            globalOnConfirm = null;
+            modalCancelBtn.classList.add('hidden');
+            modalConfirmBtn.textContent = 'OK';
+
+            if (type === 'danger') {
+                modalIconContainer.className = 'bg-red-100 p-3 rounded-full shrink-0';
+                modalIcon.className = 'w-6 h-6 text-red-600';
+                modalIcon.setAttribute('data-lucide', 'alert-triangle');
+                modalConfirmBtn.className = 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-red-200';
+            } else {
+                modalIconContainer.className = 'bg-blue-100 p-3 rounded-full shrink-0';
+                modalIcon.className = 'w-6 h-6 text-blue-600';
+                modalIcon.setAttribute('data-lucide', 'alert-circle');
+                modalConfirmBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200';
+            }
+
+            if (window.lucide) window.lucide.createIcons();
+            modalContainer.classList.remove('hidden');
+        };
+
+        const closeGlobalModal = () => {
+            modalContainer.classList.add('hidden');
+            globalOnConfirm = null;
+        };
+
+        modalConfirmBtn.addEventListener('click', () => {
+            if (globalOnConfirm) globalOnConfirm();
+            closeGlobalModal();
+        });
+
+        modalCancelBtn.addEventListener('click', closeGlobalModal);
+
         lucide.createIcons();
 
         const form = document.getElementById('identificationForm');
@@ -231,14 +335,12 @@
         let pollInterval = null;
         let userData = JSON.parse(localStorage.getItem('sas_whatsapp_user') || '{}');
 
-        // If we have a session, resume
         if (currentId) {
             const lastStep = localStorage.getItem('sas_whatsapp_step') || '2';
             showStep(parseInt(lastStep));
-            if (lastStep === '2') startPolling();
+            startPolling();
         }
 
-        // Form Validation
         form.addEventListener('input', () => {
             const isValid = form.checkValidity();
             if (isValid) {
@@ -252,39 +354,29 @@
             }
         });
 
-        // Submit Handler
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const formData = new FormData(form);
             userData = Object.fromEntries(formData.entries());
-
             submitBtn.innerHTML = '<i class="animate-spin" data-lucide="loader-2"></i> Processando...';
             submitBtn.disabled = true;
             lucide.createIcons();
-
             try {
                 const response = await fetch('/api/agendamentos/public', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(userData)
                 });
-
                 const result = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(result.error || 'Erro ao registrar.');
-                }
-
+                if (!response.ok) throw new Error(result.error || 'Erro ao registrar.');
                 currentId = result.id;
                 localStorage.setItem('sas_whatsapp_id', currentId);
                 localStorage.setItem('sas_whatsapp_user', JSON.stringify(userData));
                 localStorage.setItem('sas_whatsapp_step', '2');
                 showStep(2);
                 startPolling();
-
             } catch (error) {
-                alert(error.message);
+                window.SAS.utils.modal.alert('Erro', error.message, 'danger');
                 submitBtn.innerHTML = 'Entrar na Fila';
                 submitBtn.disabled = false;
             }
@@ -294,7 +386,6 @@
             step1.classList.add('hidden');
             step2.classList.add('hidden');
             step3.classList.add('hidden');
-
             if (step === 1) step1.classList.remove('hidden');
             if (step === 2) step2.classList.remove('hidden');
             if (step === 3) {
@@ -307,30 +398,7 @@
 
         function updateWhatsappLink() {
             const demanda = demandaInput.value.trim();
-
-            const message = `Boa tarde! 👋
-Seu atendimento foi liberado pela Secretaria Estadual de Saúde (SES).
-
-Segue abaixo a confirmação dos dados informados no cadastro:
-
-Nome: ${userData.nome_completo}
-CPF: ${userData.cpf}
-Matrícula: ${userData.matricula}
-Cargo: ${userData.cargo}
-Vínculo: ${userData.vinculo}
-Local de trabalho: ${userData.local_trabalho}
-E-mail: ${userData.email}
-
-📎 Quando aplicável, encaminhe também:
-Procuração;
-Documento oficial com foto do outorgante;
-Documento oficial com foto do procurador.
-
-❓ Qual é a sua demanda?
-${demanda ? demanda : '(Descreva sua demanda aqui...)'}
-
-🙏 Agradecemos a compreensão e a colaboração.`;
-
+            const message = `Boa tarde! 👋\nSeu atendimento foi liberado pela Secretaria Estadual de Saúde (SES).\n\nSegue abaixo a confirmação dos dados informados no cadastro:\n\nNome: ${userData.nome_completo}\nCPF: ${userData.cpf}\nMatrícula: ${userData.matricula}\nCargo: ${userData.cargo}\nVínculo: ${userData.vinculo}\nLocal de trabalho: ${userData.local_trabalho}\nE-mail: ${userData.email}\n\n📎 Quando aplicável, encaminhe também:\nProcuração;\nDocumento oficial com foto do outorgante;\nDocumento oficial com foto do procurador.\n\n❓ Qual é a sua demanda?\n${demanda ? demanda : '(Descreva sua demanda aqui...)'}\n\n🙏 Agradecemos a compreensão e a colaboração.`;
             const encodedMessage = encodeURIComponent(message);
             whatsappLink.href = `https://wa.me/558131840058?text=${encodedMessage}`;
         }
@@ -338,35 +406,37 @@ ${demanda ? demanda : '(Descreva sua demanda aqui...)'}
         demandaInput.addEventListener('input', updateWhatsappLink);
 
         function startPolling() {
-            checkStatus(); // Immediate check
-            pollInterval = setInterval(checkStatus, 5000); // Poll every 5s
+            if (pollInterval) clearInterval(pollInterval);
+            checkStatus();
+            pollInterval = setInterval(checkStatus, 5000);
         }
 
         async function checkStatus() {
             if (!currentId) return;
-
             try {
                 const response = await fetch(`/api/agendamentos/public/status/${currentId}`);
                 const data = await response.json();
-
+                const currentStep = parseInt(localStorage.getItem('sas_whatsapp_step') || '1');
                 if (data.status === 'chegou') {
                     queuePositionEl.textContent = data.position;
+                    if (currentStep !== 2) showStep(2);
                 } else if (data.status === 'pendente' || data.status === 'em_andamento') {
-                    clearInterval(pollInterval);
-                    showStep(3);
+                    if (currentStep !== 3) showStep(3);
                 } else {
-                    // Cancelled or other
                     clearInterval(pollInterval);
-                    alert(data.message || 'Seu atendimento foi encerrado.');
-                    localStorage.removeItem('sas_whatsapp_id');
-                    localStorage.removeItem('sas_whatsapp_user');
-                    localStorage.removeItem('sas_whatsapp_step');
-                    location.reload();
+                    window.SAS.utils.modal.alert('Atendimento', data.message || 'Seu atendimento foi encerrado.', 'info');
+                    resetSession();
                 }
-
             } catch (e) {
                 console.error('Polling error', e);
             }
+        }
+
+        function resetSession() {
+            localStorage.removeItem('sas_whatsapp_id');
+            localStorage.removeItem('sas_whatsapp_user');
+            localStorage.removeItem('sas_whatsapp_step');
+            location.reload();
         }
     </script>
 </body>

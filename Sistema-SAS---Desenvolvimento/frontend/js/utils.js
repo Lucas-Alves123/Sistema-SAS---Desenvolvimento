@@ -65,9 +65,31 @@
             else if (type === 'warning') window.toast.warning(message);
             else window.toast(message);
         } else {
-            // Fallback
-            console.log(`[${type.toUpperCase()}] ${message}`);
-            if (type === 'error') alert(message);
+            // Fallback to custom modal if toast is not available
+            if (window.SAS.utils.modal) {
+                window.SAS.utils.modal.alert(type === 'error' ? 'Erro' : 'Aviso', message, type === 'error' ? 'danger' : 'info');
+            } else {
+                console.log(`[${type.toUpperCase()}] ${message}`);
+                if (type === 'error') alert(message);
+            }
+        }
+    };
+
+    // Global Modal Helper
+    window.SAS.utils.modal = {
+        confirm: (title, message, callback, type = 'info') => {
+            if (window.openGlobalConfirmationModal) {
+                window.openGlobalConfirmationModal(title, message, callback, type);
+            } else {
+                if (confirm(`${title}\n\n${message}`)) callback();
+            }
+        },
+        alert: (title, message, type = 'info') => {
+            if (window.openGlobalAlertModal) {
+                window.openGlobalAlertModal(title, message, type);
+            } else {
+                alert(`${title}\n\n${message}`);
+            }
         }
     };
 })();

@@ -14,23 +14,25 @@ def list_agendamentos():
         cpf = request.args.get('cpf')
         matricula = request.args.get('matricula')
         
-        query = "SELECT * FROM agendamentos WHERE 1=1"
+        query = """
+            SELECT a.*, u.nome_completo as atendente_nome 
+            FROM agendamentos a
+            LEFT JOIN usuarios u ON a.atendente_id = u.id
+            WHERE 1=1
+        """
         params = []
         
         if cpf:
-            query += " AND cpf = %s"
+            query += " AND a.cpf = %s"
             params.append(cpf)
         if matricula:
-            query += " AND matricula = %s"
+            query += " AND a.matricula = %s"
             params.append(matricula)
         
-        # Exclude cancelled if needed? Usually we want to see active ones.
-        # But for history, maybe all? Let's keep all for now, frontend can filter.
-        
         if sort == '-created_date':
-            query += " ORDER BY created_at DESC"
+            query += " ORDER BY a.created_at DESC"
         else:
-            query += " ORDER BY data_agendamento, hora_inicio"
+            query += " ORDER BY a.data_agendamento, a.hora_inicio"
             
         agendamentos = query_db(query, tuple(params))
         

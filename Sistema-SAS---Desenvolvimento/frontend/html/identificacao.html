@@ -321,73 +321,116 @@
         </div>
     </div>
 
-    <!-- Appointment List Modal (Step 1) -->
-    <div id="appointmentModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in">
-            <div class="bg-blue-600 p-4 flex justify-between items-center">
-                <h3 class="text-white font-bold text-lg flex items-center gap-2">
-                    <i data-lucide="calendar" class="w-5 h-5"></i>
-                    Agendamentos Encontrados
-                </h3>
-                <button id="closeModalBtn" class="text-white/80 hover:text-white transition-colors">
-                    <i data-lucide="x" class="w-6 h-6"></i>
-                </button>
-            </div>
-            <div class="p-6">
-                <p class="text-slate-600 mb-4">Encontramos os seguintes agendamentos para este servidor:</p>
-                <div id="appointmentList" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar">
-                    <!-- Injected via JS -->
-                </div>
-            </div>
-            <div class="bg-slate-50 p-4 flex justify-end">
-                <button id="modalOkBtn"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
-                    OK
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Duplicate Warning Modal (Step 2) -->
-    <div id="duplicateWarningModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
-        <div
-            class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in border-l-8 border-yellow-500">
-            <div class="p-6">
-                <div class="flex items-start gap-4">
-                    <div class="bg-yellow-100 p-3 rounded-full shrink-0">
-                        <i data-lucide="alert-triangle" class="w-6 h-6 text-yellow-600"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-800 mb-2">Atenção!</h3>
-                        <p class="text-slate-600">Já existe um agendamento marcado para esta data.</p>
-                        <p class="text-slate-500 text-sm mt-2">Deseja continuar mesmo assim?</p>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-slate-50 p-4 flex justify-end gap-3">
-                <button id="btnCancelDuplicate"
-                    class="bg-white border border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-lg hover:bg-slate-50 transition-colors">
-                    Cancelar
-                </button>
-                <button id="btnConfirmDuplicate"
-                    class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
-                    Continuar
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Scripts -->
     <script src="js/utils.js?v=4"></script>
     <script src="js/api.js?v=4"></script>
+    <script src="js/layout.js?v=4"></script>
 
     <script>
+        // Inject global modal HTML manually since layout.js might not be called here in the same way
+        // Actually, identificacao.html doesn't use layout.renderLayout() because it's a public-facing page
+        // But we want the same modal style. Let's inject it.
+        document.body.insertAdjacentHTML('beforeend', `
+            <!-- Global Modal System -->
+            <div id="globalModalContainer" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-[9999] p-4">
+                <div id="globalModal" class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in">
+                    <div class="p-6">
+                        <div class="flex items-start gap-4">
+                            <div id="globalModalIconContainer" class="bg-blue-100 p-3 rounded-full shrink-0">
+                                <i id="globalModalIcon" data-lucide="alert-circle" class="w-6 h-6 text-blue-600"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 id="globalModalTitle" class="text-lg font-bold text-slate-800 mb-2">Confirmar Ação</h3>
+                                <div id="globalModalMessage" class="text-slate-600">Tem certeza que deseja prosseguir?</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="globalModalFooter" class="bg-slate-50 p-4 flex justify-end gap-3">
+                        <button id="globalModalCancelBtn" class="bg-white border border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-lg hover:bg-slate-50 transition-colors">
+                            Cancelar
+                        </button>
+                        <button id="globalModalConfirmBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200">
+                            Confirmar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `);
+
+        // Global Modal Logic for Identificacao
+        const modalContainer = document.getElementById('globalModalContainer');
+        const modalTitle = document.getElementById('globalModalTitle');
+        const modalMessage = document.getElementById('globalModalMessage');
+        const modalConfirmBtn = document.getElementById('globalModalConfirmBtn');
+        const modalCancelBtn = document.getElementById('globalModalCancelBtn');
+        const modalIcon = document.getElementById('globalModalIcon');
+        const modalIconContainer = document.getElementById('globalModalIconContainer');
+
+        let globalOnConfirm = null;
+
+        window.openGlobalConfirmationModal = (title, message, callback, type = 'info') => {
+            modalTitle.textContent = title;
+            modalMessage.innerHTML = message;
+            globalOnConfirm = callback;
+            modalCancelBtn.classList.remove('hidden');
+            modalConfirmBtn.textContent = 'Confirmar';
+
+            if (type === 'danger') {
+                modalIconContainer.className = 'bg-red-100 p-3 rounded-full shrink-0';
+                modalIcon.className = 'w-6 h-6 text-red-600';
+                modalIcon.setAttribute('data-lucide', 'alert-triangle');
+                modalConfirmBtn.className = 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-red-200';
+            } else {
+                modalIconContainer.className = 'bg-blue-100 p-3 rounded-full shrink-0';
+                modalIcon.className = 'w-6 h-6 text-blue-600';
+                modalIcon.setAttribute('data-lucide', 'alert-circle');
+                modalConfirmBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200';
+            }
+
+            if (window.lucide) window.lucide.createIcons();
+            modalContainer.classList.remove('hidden');
+        };
+
+        window.openGlobalAlertModal = (title, message, type = 'info') => {
+            modalTitle.textContent = title;
+            modalMessage.innerHTML = message;
+            globalOnConfirm = null;
+            modalCancelBtn.classList.add('hidden');
+            modalConfirmBtn.textContent = 'OK';
+
+            if (type === 'danger') {
+                modalIconContainer.className = 'bg-red-100 p-3 rounded-full shrink-0';
+                modalIcon.className = 'w-6 h-6 text-red-600';
+                modalIcon.setAttribute('data-lucide', 'alert-triangle');
+                modalConfirmBtn.className = 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-red-200';
+            } else {
+                modalIconContainer.className = 'bg-blue-100 p-3 rounded-full shrink-0';
+                modalIcon.className = 'w-6 h-6 text-blue-600';
+                modalIcon.setAttribute('data-lucide', 'alert-circle');
+                modalConfirmBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200';
+            }
+
+            if (window.lucide) window.lucide.createIcons();
+            modalContainer.classList.remove('hidden');
+        };
+
+        const closeGlobalModal = () => {
+            modalContainer.classList.add('hidden');
+            globalOnConfirm = null;
+        };
+
+        modalConfirmBtn.addEventListener('click', () => {
+            if (globalOnConfirm) globalOnConfirm();
+            closeGlobalModal();
+        });
+
+        modalCancelBtn.addEventListener('click', closeGlobalModal);
+
         lucide.createIcons();
 
         // State
         let currentServidor = null;
-        let attendantTimes = {}; // Stores simulated times for each attendant
-        let isDuplicateConfirmed = false; // Flag for duplicate override
+        let isDuplicateConfirmed = false;
 
         // Elements - Step 1
         const step1Content = document.getElementById('step1-content');
@@ -416,22 +459,9 @@
         const btnVoltarStep2 = document.getElementById('btnVoltarStep2');
         const btnConfirmar = document.getElementById('btnConfirmar');
         const atendenteSelect = document.getElementById('atendente');
-        const timeDisplayContainer = document.getElementById('timeDisplayContainer');
-        const displayHora = document.getElementById('displayHora');
 
         // Elements - Step 4
         const step4Content = document.getElementById('step4-content');
-
-        // Modal Elements
-        const appointmentModal = document.getElementById('appointmentModal');
-        const appointmentList = document.getElementById('appointmentList');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const modalOkBtn = document.getElementById('modalOkBtn');
-
-        // Duplicate Warning Modal Elements
-        const duplicateWarningModal = document.getElementById('duplicateWarningModal');
-        const btnCancelDuplicate = document.getElementById('btnCancelDuplicate');
-        const btnConfirmDuplicate = document.getElementById('btnConfirmDuplicate');
 
         // Stepper Elements
         const steps = [
@@ -446,9 +476,7 @@
             document.getElementById('line-3-4')
         ];
 
-        // Helper to update stepper
         function updateStepper(step) {
-            // Reset all
             steps.forEach(el => {
                 el.classList.add('opacity-40');
                 el.classList.remove('step-active');
@@ -462,7 +490,6 @@
                 el.classList.add('bg-slate-200');
             });
 
-            // Activate current and previous
             for (let i = 0; i < step; i++) {
                 if (i < step - 1) {
                     markCompleted(steps[i]);
@@ -488,7 +515,7 @@
         }
 
         function markCompleted(el) {
-            el.classList.add('opacity-100'); // Keep completed steps visible
+            el.classList.add('opacity-100');
             el.classList.remove('step-active');
             const circle = el.querySelector('div');
             circle.classList.remove('bg-blue-600', 'text-white', 'shadow-lg', 'bg-slate-200', 'text-slate-500');
@@ -498,74 +525,51 @@
         }
 
         // --- STEP 1 LOGIC ---
-
-        // Auto-Search Logic for Appointments
         let debounceTimer;
         inputIdentificacao.addEventListener('input', (e) => {
             const val = e.target.value.trim();
             clearTimeout(debounceTimer);
-
-            if (val.length >= 3) { // Minimum length to start searching
+            if (val.length >= 3) {
                 debounceTimer = setTimeout(() => checkAppointments(val), 800);
             }
         });
 
         async function checkAppointments(valor) {
             try {
-                // Determine query param based on format (simple heuristic)
                 const isCpf = valor.length > 10 || valor.includes('.') || valor.includes('-');
                 const queryParam = isCpf ? `cpf=${encodeURIComponent(valor)}` : `matricula=${encodeURIComponent(valor)}`;
-
-                // Fetch appointments
-                const response = await fetch(`/api/agendamentos?${queryParam}&sort=-created_date`);
-                if (!response.ok) return; // Silent fail if error
-
-                const appointments = await response.json();
-
-                // Filter for active appointments only? Or show all?
-                // Showing 'agendado', 'pendente', 'em_andamento'
-                const activeAppointments = appointments.filter(a =>
-                    ['agendado', 'pendente', 'em_andamento', 'chegou'].includes(a.status)
-                );
-
-                if (activeAppointments.length > 0) {
-                    showAppointmentModal(activeAppointments);
+                const response = await fetch(`/api/agendamentos?${queryParam}`);
+                if (response.ok) {
+                    const appointments = await response.json();
+                    if (appointments.length > 0) {
+                        let html = '<div class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar">';
+                        appointments.forEach(appt => {
+                            const date = new Date(appt.data_agendamento).toLocaleDateString('pt-BR');
+                            const time = appt.hora_inicio ? appt.hora_inicio.substring(0, 5) : 'Sem horário';
+                            html += `
+                                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center">
+                                    <div>
+                                        <p class="font-bold text-slate-800">${appt.tipo_servico}</p>
+                                        <p class="text-sm text-slate-500">${date} às ${time}</p>
+                                    </div>
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase">${appt.status}</span>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        window.SAS.utils.modal.alert('Agendamentos Encontrados', html, 'info');
+                    }
                 }
             } catch (err) {
                 console.error('Error checking appointments:', err);
             }
         }
 
-        function showAppointmentModal(appointments) {
-            appointmentList.innerHTML = '';
-            appointments.forEach(appt => {
-                const date = new Date(appt.data_agendamento).toLocaleDateString('pt-BR');
-                const time = appt.hora_inicio ? appt.hora_inicio.substring(0, 5) : 'Sem horário';
-
-                const div = document.createElement('div');
-                div.className = 'bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center';
-                div.innerHTML = `
-                    <div>
-                        <p class="font-bold text-slate-800">${appt.tipo_servico}</p>
-                        <p class="text-sm text-slate-500">${date} às ${time}</p>
-                    </div>
-                    <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase">${appt.status}</span>
-                `;
-                appointmentList.appendChild(div);
-            });
-            appointmentModal.classList.remove('hidden');
-        }
-
-        const closeModal = () => appointmentModal.classList.add('hidden');
-        closeModalBtn.addEventListener('click', closeModal);
-        modalOkBtn.addEventListener('click', closeModal);
-
         formIdentificacao.addEventListener('submit', async (e) => {
             e.preventDefault();
             const valor = inputIdentificacao.value.trim();
             if (!valor) return;
 
-            // UI Reset
             feedbackArea.classList.remove('hidden');
             successState.classList.add('hidden');
             errorState.classList.add('hidden');
@@ -574,54 +578,31 @@
             lucide.createIcons();
 
             try {
-                // Determine Base URL - Robust Logic
-                let baseUrl = '';
-                const hostname = window.location.hostname;
-                const port = window.location.port;
-
-                // If running on file:// or not on port 5000 (e.g. Live Server on 5500), point to backend
-                if (window.location.protocol === 'file:' || (hostname === 'localhost' && port !== '5000') || (hostname === '127.0.0.1' && port !== '5000')) {
-                    baseUrl = 'http://localhost:5000';
-                }
-
-                const apiUrl = `${baseUrl}/api/identificacao/validar?valor=${encodeURIComponent(valor)}`;
-                console.log(`[Identificacao] Fetching: ${apiUrl}`);
-
-                const response = await fetch(apiUrl);
-
+                const response = await fetch(`/api/identificacao/validar?valor=${encodeURIComponent(valor)}`);
                 if (!response.ok) {
-                    if (response.status === 404) {
-                        throw new Error('Servidor não encontrado');
-                    }
+                    if (response.status === 404) throw new Error('Servidor não encontrado');
                     throw new Error(`Erro na busca (${response.status})`);
                 }
 
                 const data = await response.json();
-
                 if (data.success) {
                     currentServidor = data.data;
                     nomeServidor.textContent = currentServidor.nome_completo;
                     dadosServidor.textContent = `CPF: ${currentServidor.cpf || '-'} | Matrícula: ${currentServidor.matricula || '-'}`;
-
                     successState.classList.remove('hidden');
                     btnBuscar.classList.add('hidden');
                     btnContinuar.classList.remove('hidden');
                     btnContinuar.disabled = false;
-
-                    // Notify success
                     window.SAS.utils.notify('success', 'Servidor identificado com sucesso!');
                 } else {
                     throw new Error(data.message || 'Servidor não encontrado');
                 }
-
             } catch (err) {
                 console.error(err);
                 errorMessage.textContent = err.message;
                 errorState.classList.remove('hidden');
                 btnBuscar.classList.remove('hidden');
                 btnContinuar.classList.add('hidden');
-
-                // Notify error
                 window.SAS.utils.notify('error', err.message);
             } finally {
                 btnBuscar.disabled = false;
@@ -634,11 +615,7 @@
 
         btnContinuar.addEventListener('click', () => {
             if (!currentServidor) return;
-
             document.getElementById('display_nome').textContent = currentServidor.nome_completo;
-            // document.getElementById('display_dados').textContent = `CPF: ${currentServidor.cpf || '-'} | Matrícula: ${currentServidor.matricula || '-'}`;
-
-            // Switch Views
             step1Content.classList.add('hidden');
             step2Content.classList.remove('hidden');
             updateStepper(2);
@@ -646,35 +623,25 @@
         });
 
         // --- STEP 2 LOGIC ---
-
         btnVoltarStep1.addEventListener('click', () => {
             step2Content.classList.add('hidden');
             step1Content.classList.remove('hidden');
             updateStepper(1);
         });
 
-        // Duplicate Warning Logic
         async function checkDuplicateForDate(date) {
             if (!currentServidor) return false;
-
             try {
-                // Fetch appointments for this user
                 const cpf = currentServidor.cpf || '';
                 const matricula = currentServidor.matricula || '';
                 const queryParam = cpf ? `cpf=${encodeURIComponent(cpf)}` : `matricula=${encodeURIComponent(matricula)}`;
-
                 const response = await fetch(`/api/agendamentos?${queryParam}`);
                 if (!response.ok) return false;
-
                 const appointments = await response.json();
-
-                // Check if any active appointment matches the date
-                const hasDuplicate = appointments.some(a =>
+                return appointments.some(a =>
                     a.data_agendamento === date &&
                     ['agendado', 'pendente', 'em_andamento', 'chegou'].includes(a.status)
                 );
-
-                return hasDuplicate;
             } catch (e) {
                 console.error('Error checking duplicate:', e);
                 return false;
@@ -683,30 +650,20 @@
 
         formStep2.addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const selectedDate = dataInput.value;
-
-            // Check for duplicate on this date
             const hasDuplicate = await checkDuplicateForDate(selectedDate);
-
             if (hasDuplicate) {
-                duplicateWarningModal.classList.remove('hidden');
-                return; // Stop flow
+                window.SAS.utils.modal.confirm(
+                    'Atenção!',
+                    'Já existe um agendamento marcado para esta data. Deseja continuar mesmo assim?',
+                    () => {
+                        isDuplicateConfirmed = true;
+                        proceedToStep3();
+                    },
+                    'danger'
+                );
+                return;
             }
-
-            // If no duplicate, proceed
-            proceedToStep3();
-        });
-
-        // Duplicate Modal Actions
-        btnCancelDuplicate.addEventListener('click', () => {
-            duplicateWarningModal.classList.add('hidden');
-            // User stays on Step 2 to change date or cancel
-        });
-
-        btnConfirmDuplicate.addEventListener('click', () => {
-            duplicateWarningModal.classList.add('hidden');
-            isDuplicateConfirmed = true; // Set flag
             proceedToStep3();
         });
 
@@ -715,17 +672,13 @@
             step3Content.classList.remove('hidden');
             updateStepper(3);
             lucide.createIcons();
-
-            // Refresh slots to ensure date is respected
             if (atendenteSelect.value) {
                 atendenteSelect.dispatchEvent(new Event('change'));
             }
         }
 
-        // Date Logic
         const today = new Date().toISOString().split('T')[0];
         dataInput.min = today;
-
         dataInput.addEventListener('input', function (e) {
             const dateValue = this.value;
             if (!dateValue) return;
@@ -737,26 +690,22 @@
                 this.value = '';
                 return;
             }
-            // Reset duplicate flag when date changes
             isDuplicateConfirmed = false;
         });
 
         // --- STEP 3 LOGIC ---
-
         btnVoltarStep2.addEventListener('click', () => {
             step3Content.classList.add('hidden');
             step2Content.classList.remove('hidden');
             updateStepper(2);
         });
 
-        // Fetch Attendants
         (async function loadAttendants() {
             try {
-                // Using SystemUser as defined in api.js
-                const users = await window.SAS.base44.entities.SystemUser.list();
+                const response = await fetch('/api/usuarios');
+                const users = await response.json();
                 const attendants = users.filter(u => u.tipo === 'usuario' && u.situacao === 'ativo');
                 atendenteSelect.innerHTML = '<option value="">Selecione um atendente...</option>';
-
                 attendants.forEach(att => {
                     const opt = document.createElement('option');
                     opt.value = att.id;
@@ -765,94 +714,64 @@
                 });
             } catch (err) {
                 console.error('Erro ao carregar atendentes:', err);
-                window.SAS.utils.notify('error', 'Erro ao carregar atendentes.');
             }
         })();
 
-        // Handle Attendant Selection
-
         let selectedTimeSlot = null;
-
         atendenteSelect.addEventListener('change', async (e) => {
             const selectedId = e.target.value;
             const slotsContainer = document.getElementById('timeSlotsContainer');
             const slotsGrid = document.getElementById('slotsGrid');
-            const btnConfirmar = document.getElementById('btnConfirmar');
-
-            // Reset
             selectedTimeSlot = null;
             btnConfirmar.disabled = true;
-
             if (!selectedId) {
                 slotsContainer.classList.add('hidden');
                 return;
             }
-
             slotsContainer.classList.remove('hidden');
             slotsGrid.innerHTML = '<div class="col-span-full text-center text-slate-500 py-4"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i>Verificando disponibilidade...</div>';
             lucide.createIcons();
 
-            // Fetch Availability
             const dateStr = dataInput.value || new Date().toISOString().split('T')[0];
             const data = await fetchAvailability(selectedId, dateStr);
-
             slotsGrid.innerHTML = '';
-
             if (!data.available) {
-                slotsGrid.innerHTML = `<div class="col-span-full text-center text-red-500 bg-red-50 p-3 rounded-lg border border-red-100" > ${data.message || 'Indisponível'}</div> `;
+                slotsGrid.innerHTML = `<div class="col-span-full text-center text-red-500 bg-red-50 p-3 rounded-lg border border-red-100">${data.message || 'Indisponível'}</div>`;
                 return;
             }
-
             if (data.slots.length === 0) {
-                slotsGrid.innerHTML = `<div class="col-span-full text-center text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100" > Sem horários livres.</div> `;
+                slotsGrid.innerHTML = `<div class="col-span-full text-center text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">Sem horários livres.</div>`;
                 return;
             }
 
-            // Render Slots
             data.slots.forEach(time => {
                 const btn = document.createElement('button');
-                btn.type = 'button'; // Prevent form submit
+                btn.type = 'button';
                 btn.className = 'slot-btn w-full bg-white border border-slate-200 text-slate-700 py-2 px-1 rounded-lg text-sm font-medium hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all';
                 btn.textContent = time;
                 btn.onclick = () => {
-                    // Select logic
                     document.querySelectorAll('.slot-btn').forEach(b => {
                         b.classList.remove('bg-blue-600', 'text-white', 'border-blue-600', 'hover:bg-blue-700');
                         b.classList.add('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-blue-50');
                     });
                     btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-blue-50');
                     btn.classList.add('bg-blue-600', 'text-white', 'border-blue-600', 'hover:bg-blue-700');
-
                     selectedTimeSlot = time;
-                    console.log('Selected time:', selectedTimeSlot); // Debug log
                     btnConfirmar.disabled = false;
                 };
                 slotsGrid.appendChild(btn);
             });
         });
 
-
         formStep3.addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            console.log('Submitting form...');
-
-            // Robustly get selected time from DOM
-            const selectedBtn = document.querySelector('.slot-btn.bg-blue-600');
-            const selectedTime = selectedBtn ? selectedBtn.textContent : null;
-
-            console.log('Captured selectedTime from DOM:', selectedTime);
-
             const btn = document.getElementById('btnConfirmar');
             const originalContent = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Processando...';
             lucide.createIcons();
 
-            const selectedAttendantId = atendenteSelect.value;
-
-            if (!selectedTime) {
-                console.warn('Validation failed: No time selected');
+            if (!selectedTimeSlot) {
                 window.SAS.utils.notify('warning', 'Por favor, selecione um horário.');
                 btn.disabled = false;
                 btn.innerHTML = originalContent;
@@ -871,24 +790,23 @@
                 tipo_atendimento: 'Presencial',
                 prioridade: 'Normal',
                 data_agendamento: dataInput.value,
-                hora_inicio: selectedTime, // Use the auto-assigned time
+                hora_inicio: selectedTimeSlot,
                 status: 'agendado',
-                atendente_id: selectedAttendantId,
+                atendente_id: atendenteSelect.value,
                 created_by: null,
-                force_duplicate: isDuplicateConfirmed // Send flag
+                force_duplicate: isDuplicateConfirmed
             };
 
             try {
-                await window.SAS.base44.entities.Agendamento.create(payload);
-
+                await fetch('/api/agendamentos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
                 window.SAS.utils.notify('success', 'Agendamento realizado com sucesso!');
-
-                // Success
                 step3Content.classList.add('hidden');
                 step4Content.classList.remove('hidden');
                 updateStepper(4);
-
-                // Inject Success Content
                 step4Content.innerHTML = `
                     <div class="text-center space-y-6 animate-fade-in">
                         <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
@@ -898,7 +816,6 @@
                             <h2 class="text-3xl font-bold text-slate-800">Agendamento Confirmado!</h2>
                             <p class="text-slate-500 text-lg">O atendimento foi agendado com sucesso.</p>
                         </div>
-                        
                         <div class="flex flex-col gap-3 mt-12 max-w-sm mx-auto">
                             <button onclick="location.reload()" class="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-200 flex items-center justify-center gap-2 text-lg">
                                 <span>Realizar Novo Agendamento</span>
@@ -908,55 +825,34 @@
                     </div>
                 `;
                 lucide.createIcons();
-
             } catch (err) {
-                // Handle specific errors
-                const errorMsg = err.message || '';
-                if (errorMsg.includes('Same time conflict')) {
-                    window.SAS.utils.notify('error', 'Você já possui um agendamento neste mesmo horário. Escolha outro.');
-                } else {
-                    window.SAS.utils.notify('error', 'Erro ao realizar agendamento: ' + errorMsg);
-                }
-
+                window.SAS.utils.notify('error', 'Erro ao realizar agendamento.');
                 btn.disabled = false;
                 btn.innerHTML = originalContent;
                 lucide.createIcons();
             }
         });
 
-
-        // --- Online Attendants Logic ---
         const onlineWidget = document.getElementById('onlineAttendantsWidget');
-
         async function updateOnlineAttendants() {
             if (!onlineWidget) return;
-
             try {
-                const response = await fetch('/usuarios/online');
+                const response = await fetch('/api/usuarios/online');
                 const users = await response.json();
-
                 if (!users || users.length === 0) {
                     onlineWidget.innerHTML = '<span class="text-xs text-slate-400">Nenhum atendente online</span>';
                     return;
                 }
-
                 onlineWidget.innerHTML = '';
                 users.forEach(u => {
                     const isPause = u.status_atendimento === 'pausa';
                     const colorClass = isPause ? 'bg-red-100 text-red-700 border-red-200' : 'bg-green-100 text-green-700 border-green-200';
                     const dotClass = isPause ? 'bg-red-500' : 'bg-green-500 animate-pulse';
-
                     let statusText = isPause ? 'Pausa' : 'Online';
-                    if (isPause && u.motivo_pausa) {
-                        statusText += `: ${u.motivo_pausa} `;
-                    }
-
+                    if (isPause && u.motivo_pausa) statusText += `: ${u.motivo_pausa}`;
                     const badge = document.createElement('div');
                     badge.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${colorClass} text-xs font-bold shadow-sm transition-all cursor-help`;
-                    badge.innerHTML = `
-            <div class="w-2 h-2 rounded-full ${dotClass}" ></div>
-                <span>${u.nome_completo.split(' ')[0]}</span>
-        `;
+                    badge.innerHTML = `<div class="w-2 h-2 rounded-full ${dotClass}"></div><span>${u.nome_completo.split(' ')[0]}</span>`;
                     badge.title = `${u.nome_completo} (${statusText})`;
                     onlineWidget.appendChild(badge);
                 });
@@ -964,20 +860,15 @@
                 console.error('Error fetching online attendants:', e);
             }
         }
-
-        // Poll every 10 seconds
         updateOnlineAttendants();
         setInterval(updateOnlineAttendants, 10000);
-
 
         async function fetchAvailability(attendantId, dateStr) {
             try {
                 const response = await fetch(`/api/agendamentos/disponibilidade?atendente_id=${attendantId}&data=${dateStr}`);
-                const data = await response.json();
-                return data;
+                return await response.json();
             } catch (e) {
                 console.error("Error fetching availability:", e);
-                window.SAS.utils.notify('error', 'Erro ao verificar disponibilidade.');
                 return { available: false, message: "Erro ao verificar disponibilidade." };
             }
         }

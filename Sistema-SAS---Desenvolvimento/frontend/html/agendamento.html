@@ -150,31 +150,6 @@
                     </div>
                 </form>
             </div>
-            <!-- Generic Modal -->
-            <!-- Styled Modal -->
-            <div id="genericModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 p-4">
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in">
-                    <div class="p-6">
-                        <div class="flex items-start gap-4">
-                            <div id="modalIconContainer" class="bg-blue-100 p-3 rounded-full shrink-0">
-                                <i id="modalIcon" data-lucide="info" class="w-6 h-6 text-blue-600"></i>
-                            </div>
-                            <div>
-                                <h3 id="modalTitle" class="text-lg font-bold text-slate-800 mb-2">Atenção</h3>
-                                <p id="modalMessage" class="text-slate-600">Mensagem aqui...</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-slate-50 p-4 flex justify-end gap-3">
-                        <button id="modalCancelBtn" class="bg-white border border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-lg hover:bg-slate-50 transition-colors hidden">
-                            Cancelar
-                        </button>
-                        <button id="modalConfirmBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200">
-                            OK
-                        </button>
-                    </div>
-                </div>
-            </div>
         `;
 
         lucide.createIcons();
@@ -186,65 +161,6 @@
         const cpfInput = document.getElementById('cpf');
         const clearBtn = document.getElementById('clearBtn');
         const exportBtn = document.getElementById('exportBtn');
-
-        // Modal Elements
-        const genericModal = document.getElementById('genericModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalMessage = document.getElementById('modalMessage');
-        const modalIcon = document.getElementById('modalIcon');
-        const modalIconContainer = document.getElementById('modalIconContainer');
-        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
-        const modalCancelBtn = document.getElementById('modalCancelBtn');
-
-        let onModalConfirm = null;
-
-        window.openModal = (title, message, type = 'info', showCancel = false, onConfirm = null) => {
-            modalTitle.textContent = title;
-            modalMessage.textContent = message;
-            onModalConfirm = onConfirm;
-
-            if (showCancel) {
-                modalCancelBtn.classList.remove('hidden');
-                modalConfirmBtn.textContent = 'Confirmar';
-            } else {
-                modalCancelBtn.classList.add('hidden');
-                modalConfirmBtn.textContent = 'OK';
-            }
-
-            // Style based on type
-            if (type === 'error') {
-                modalIconContainer.className = 'bg-red-100 p-3 rounded-full shrink-0';
-                modalIcon.className = 'w-6 h-6 text-red-600';
-                modalIcon.setAttribute('data-lucide', 'alert-circle');
-                modalConfirmBtn.className = 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-red-200';
-            } else if (type === 'success') {
-                modalIconContainer.className = 'bg-green-100 p-3 rounded-full shrink-0';
-                modalIcon.className = 'w-6 h-6 text-green-600';
-                modalIcon.setAttribute('data-lucide', 'check');
-                modalConfirmBtn.className = 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-green-200';
-            } else {
-                modalIconContainer.className = 'bg-blue-100 p-3 rounded-full shrink-0';
-                modalIcon.className = 'w-6 h-6 text-blue-600';
-                modalIcon.setAttribute('data-lucide', 'info');
-                modalConfirmBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200';
-            }
-            
-            lucide.createIcons();
-            genericModal.classList.remove('hidden');
-        };
-        window.closeModal = () => {
-            genericModal.classList.add('hidden');
-            onModalConfirm = null;
-        };
-
-        modalConfirmBtn.addEventListener('click', () => {
-            if (onModalConfirm) onModalConfirm();
-            closeModal();
-        });
-
-        modalCancelBtn.addEventListener('click', () => {
-            closeModal();
-        });
 
         // CPF Mask
         cpfInput.addEventListener('input', (e) => {
@@ -258,11 +174,8 @@
         const updateTimeSlots = () => {
             const dateValue = dataInput.value;
 
-            // Default: Populate slots
             const populateSlots = () => {
-                // Save current selection if any
                 const currentSelection = horaSelect.value;
-
                 horaSelect.innerHTML = '<option value="">--:--</option>';
                 const startTime = 8 * 60; // 08:00
                 const endTime = 16 * 60 + 45; // 16:45
@@ -278,25 +191,23 @@
                     horaSelect.appendChild(opt);
                 }
 
-                // Restore selection if valid
                 if (currentSelection) {
                     horaSelect.value = currentSelection;
                 }
             };
 
             if (!dateValue) {
-                // If no date, still show slots (generic)
                 populateSlots();
                 return;
             }
 
             const [year, month, day] = dateValue.split('-').map(Number);
             const date = new Date(year, month - 1, day);
-            const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+            const dayOfWeek = date.getDay();
 
             if (dayOfWeek === 0 || dayOfWeek === 6) {
-                openModal('Fim de Semana', 'Agendamentos não podem ser realizados aos finais de semana.', 'info');
-                dataInput.value = ''; // Silently clear the value
+                window.SAS.utils.modal.alert('Fim de Semana', 'Agendamentos não podem ser realizados aos finais de semana.', 'info');
+                dataInput.value = '';
                 horaSelect.innerHTML = '<option value="">--:--</option>';
                 return;
             }
@@ -307,28 +218,24 @@
         dataInput.addEventListener('input', updateTimeSlots);
         dataInput.addEventListener('change', updateTimeSlots);
 
-        // Initialize on load
         updateTimeSlots();
 
-        // Clear Fields
         clearBtn.addEventListener('click', () => {
-            openModal('Limpar Campos', 'Deseja limpar todos os campos?', 'info', true, () => {
+            window.SAS.utils.modal.confirm('Limpar Campos', 'Deseja limpar todos os campos?', () => {
                 form.reset();
-                updateTimeSlots(); // Reset slots
+                updateTimeSlots();
             });
         });
 
-        // Export XLS Logic
         exportBtn.addEventListener('click', async () => {
             try {
                 const agendamentos = await window.SAS.base44.entities.Agendamento.list();
 
                 if (agendamentos.length === 0) {
-                    openModal('Exportar', 'Não há agendamentos para exportar.', 'info');
+                    window.SAS.utils.modal.alert('Exportar', 'Não há agendamentos para exportar.', 'info');
                     return;
                 }
 
-                // Format data for Excel
                 const dataToExport = agendamentos.map(a => ({
                     'Nome Completo': a.nome_completo,
                     'CPF': a.cpf,
@@ -345,37 +252,26 @@
                     'Status': a.status
                 }));
 
-                // Create Worksheet
                 const ws = XLSX.utils.json_to_sheet(dataToExport);
-
-                // Create Workbook
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
-
-                // Generate Excel file as binary string
                 const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-
-                // Create Blob
                 const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-
-                // Create download link
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
                 a.download = "Agendamentos_SAS.xlsx";
                 document.body.appendChild(a);
                 a.click();
-
-                // Cleanup
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
 
             } catch (err) {
                 console.error(err);
-                openModal('Erro', 'Erro ao exportar dados: ' + err.message, 'error');
+                window.SAS.utils.modal.alert('Erro', 'Erro ao exportar dados: ' + err.message, 'danger');
             }
         });
-        // Submit
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -396,8 +292,6 @@
                 created_by: user.id
             };
 
-
-            // Validation: Past Time
             if (payload.hora_inicio) {
                 const now = new Date();
                 const [year, month, day] = payload.data_agendamento.split('-').map(Number);
@@ -405,41 +299,31 @@
                 const selectedDate = new Date(year, month - 1, day, hours, minutes);
 
                 if (selectedDate < now) {
-                    openModal('Horário Inválido', 'Não é possível realizar agendamentos para horários que já passaram.', 'error');
+                    window.SAS.utils.modal.alert('Horário Inválido', 'Não é possível realizar agendamentos para horários que já passaram.', 'danger');
                     return;
                 }
             }
+
             const submitAppointment = async (data) => {
                 try {
                     await window.SAS.base44.entities.Agendamento.create(data);
-                    if (window.toast) {
-                        window.toast.success('Agendamento realizado com sucesso!');
-                    } else {
-                        openModal('Sucesso', 'Agendamento realizado com sucesso!', 'success');
-                    }
+                    window.SAS.utils.notify('success', 'Agendamento realizado com sucesso!');
                     form.reset();
-                    updateTimeSlots(); // Reset slots
+                    updateTimeSlots();
                 } catch (err) {
                     console.error('Submit Error:', err);
-
-                    // Check for attached data from api.js
                     const errorData = err.data || {};
                     const errorMessage = err.message || '';
 
-                    // Handle Duplicate Appointment
                     if (errorData.code === 'DUPLICATE_APPOINTMENT' || errorMessage.includes('Duplicate appointment')) {
-                        openModal('Agendamento Duplicado', 'Já existe um agendamento para este servidor nesta data. Deseja agendar mesmo assim?', 'info', true, async () => {
+                        window.SAS.utils.modal.confirm('Agendamento Duplicado', 'Já existe um agendamento para este servidor nesta data. Deseja agendar mesmo assim?', async () => {
                             data.force_duplicate = true;
                             await submitAppointment(data);
                         });
-                    }
-                    // Handle Slot Conflict
-                    else if (errorData.code === 'SLOT_CONFLICT' || errorMessage.includes('Slot conflict')) {
-                        openModal('Horário Ocupado', 'Este horário já está ocupado. Por favor, escolha outro horário.', 'error');
-                    }
-                    // Generic Error
-                    else {
-                        openModal('Erro', 'Erro ao realizar agendamento: ' + errorMessage, 'error');
+                    } else if (errorData.code === 'SLOT_CONFLICT' || errorMessage.includes('Slot conflict')) {
+                        window.SAS.utils.modal.alert('Horário Ocupado', 'Este horário já está ocupado. Por favor, escolha outro horário.', 'danger');
+                    } else {
+                        window.SAS.utils.modal.alert('Erro', 'Erro ao realizar agendamento: ' + errorMessage, 'danger');
                     }
                 }
             };
