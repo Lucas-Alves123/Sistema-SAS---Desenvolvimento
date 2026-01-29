@@ -26,15 +26,16 @@ async function fetchCurrentCall() {
             return;
         }
 
-        // Check if the call is different from the last one
-        if (data.nome_completo !== lastCallName || data.guiche !== lastCallGuiche) {
+        // Check if the call is different from the last one (using ID)
+        if (data.id !== lastCallId) {
             updateUI(data.nome_completo, data.guiche);
-            
+
             // Only play sound if it's a real call (not "Aguardando...")
             if (data.nome_completo !== "Aguardando...") {
                 playCallSound();
             }
 
+            lastCallId = data.id;
             lastCallName = data.nome_completo;
             lastCallGuiche = data.guiche;
         }
@@ -59,7 +60,7 @@ function updateUI(name, guiche) {
     // Trigger animation
     void contentEl.offsetWidth; // Force reflow
     contentEl.classList.add('new-call-animation');
-    
+
     // Remove pulse after 5 seconds
     setTimeout(() => {
         contentEl.classList.remove('new-call-animation');
@@ -80,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateClock();
     setInterval(updateClock, 1000);
 
+    // Start polling immediately for full automation
     fetchCurrentCall();
     setInterval(fetchCurrentCall, 3000); // Poll every 3 seconds
 });
