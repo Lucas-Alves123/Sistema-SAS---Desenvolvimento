@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Connection</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        #log {
+            background: #f0f0f0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Teste de Conexão com API</h1>
+    <p>Abra este arquivo da mesma forma que você abre o sistema.</p>
+    <button onclick="testConnection()">Testar Conexão</button>
+    <div id="status"></div>
+    <div id="log"></div>
+
+    <script>
+        async function testConnection() {
+            const logDiv = document.getElementById('log');
+            const statusDiv = document.getElementById('status');
+
+            function log(msg) {
+                logDiv.textContent += msg + '\n';
+                console.log(msg);
+            }
+
+            logDiv.textContent = '';
+            statusDiv.textContent = 'Testando...';
+
+            const url = 'http://localhost:5000/api/identificacao/validar?valor=01308451407';
+            log(`Tentando conectar em: ${url}`);
+
+            try {
+                const response = await fetch(url);
+                log(`Status da resposta: ${response.status}`);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`Dados recebidos: ${JSON.stringify(data, null, 2)}`);
+                    statusDiv.innerHTML = '<span class="success">SUCESSO! O sistema consegue falar com o backend.</span>';
+                } else {
+                    log(`Erro na resposta: ${response.statusText}`);
+                    statusDiv.innerHTML = '<span class="error">ERRO! O backend respondeu com erro.</span>';
+                }
+            } catch (error) {
+                log(`Erro de conexão: ${error.message}`);
+                statusDiv.innerHTML = '<span class="error">FALHA TOTAL! Não foi possível conectar ao backend. Verifique se ele está rodando.</span>';
+                alert('Erro de conexão: ' + error.message);
+            }
+        }
+    </script>
+</body>
+
+</html>

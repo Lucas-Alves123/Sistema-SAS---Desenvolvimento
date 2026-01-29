@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Chamada - SAS</title>
+    <link rel="stylesheet" href="../css/painel.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="panel-container">
+        <!-- Header -->
+        <header class="panel-header">
+            <div class="header-left">
+                <!-- Using the white background SAS logo -->
+                <img src="../images/sas_logo_white_bg.png" alt="Logo SAS" class="logo-sas-new">
+            </div>
+            <div class="header-right">
+                <img src="../images/govpe.png" alt="Brasão Pernambuco" class="logo-pe">
+                <div class="secretaria-text">
+                    <p>SECRETARIA</p>
+                    <p class="bold">DE SAÚDE</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Call Area -->
+        <main class="call-area">
+            <div class="rainbow-stripe"></div>
+            <div class="call-content">
+                <h1 id="server-name" class="server-name">AGUARDANDO...</h1>
+                <div class="guiche-container">
+                    <p class="guiche-label">Guichê</p>
+                    <p id="guiche-number" class="guiche-number">-</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="panel-footer">
+            <div class="footer-item footer-left">
+                <span id="current-date">--/--/----</span>
+            </div>
+            <div class="footer-item footer-right">
+                <span id="current-time">--:--</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Audio for notification -->
+    <audio id="call-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
+        preload="auto"></audio>
+
+    <script src="../js/painel.js"></script>
+</body>
+
+</html>

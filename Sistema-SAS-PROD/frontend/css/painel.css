@@ -1,0 +1,185 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #003366;
+    color: white;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.panel-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Header */
+.panel-header {
+    background-color: white;
+    color: #003366;
+    padding: 0 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 12vh;
+    /* Fixed height as requested */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    z-index: 20;
+    position: relative;
+    overflow: hidden;
+    /* Clip scaled logos */
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.logo-sas-new {
+    height: 100%;
+    transform: scale(1.8);
+    /* Significantly increased scale */
+    transform-origin: left center;
+    object-fit: contain;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* Reduced to move closer to logo */
+    height: 100%;
+}
+
+.logo-pe {
+    height: 100%;
+    transform: scale(1.6);
+    /* Significantly increased scale */
+    transform-origin: right center;
+    object-fit: contain;
+}
+
+.secretaria-text {
+    font-size: 1.4rem;
+    line-height: 1;
+    color: #003366;
+    text-align: left;
+    /* Align left as in reference */
+    font-weight: 700;
+    /* Bolder as in reference */
+}
+
+.secretaria-text .bold {
+    font-weight: 700;
+    font-size: 1.4rem;
+}
+
+/* Main Call Area */
+.call-area {
+    flex: 1;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #003366;
+    z-index: 1;
+}
+
+.rainbow-stripe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 600px;
+    height: 600px;
+    background: linear-gradient(135deg,
+            #cc0000 0%, #cc0000 12%,
+            #ffcc00 12%, #ffcc00 24%,
+            #009933 24%, #009933 36%,
+            transparent 36%);
+    opacity: 1;
+    z-index: 1;
+}
+
+.call-content {
+    text-align: center;
+    z-index: 5;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.server-name {
+    font-size: 9rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    text-shadow: 4px 4px 15px rgba(0, 0, 0, 0.5);
+    letter-spacing: -2px;
+}
+
+.guiche-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.guiche-label {
+    font-size: 5rem;
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+.guiche-number {
+    font-size: 14rem;
+    font-weight: 900;
+    line-height: 1;
+    text-shadow: 4px 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Footer */
+.panel-footer {
+    background-color: #1a1a1a;
+    padding: 15px 80px;
+    display: flex;
+    justify-content: space-between;
+    height: 8vh;
+    align-items: center;
+    border-top: none;
+}
+
+.footer-item {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.new-call-animation {
+    animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+    from {
+        transform: scale(1);
+    }
+
+    to {
+        transform: scale(1.05);
+    }
+}

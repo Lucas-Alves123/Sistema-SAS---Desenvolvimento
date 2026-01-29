@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento - SAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sonner@1.4.0/dist/sonner.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .step-active div {
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Smooth transitions for form elements */
+        input,
+        select,
+        button {
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center bg-blue-600 p-0 md:p-4">
+
+    <!-- Main Card Container -->
+    <div
+        class="w-full max-w-6xl bg-white md:rounded-3xl shadow-none md:shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-screen md:min-h-[700px] md:h-auto">
+
+        <!-- LEFT SIDE: Content -->
+        <div class="w-full md:w-3/5 p-8 md:p-12 flex flex-col relative">
+
+            <!-- Header / Stepper -->
+            <div class="mb-12">
+                <div class="flex items-center justify-between max-w-md mx-auto relative">
+
+                    <!-- Step 1 -->
+                    <div id="step1-indicator" class="relative flex flex-col items-center justify-center z-10">
+                        <div
+                            class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold shadow-lg transition-all">
+                            1</div>
+                        <span
+                            class="absolute top-full mt-2 text-xs font-bold text-blue-900 uppercase tracking-wider w-max">Identificação</span>
+                    </div>
+
+                    <!-- Line 1-2 -->
+                    <div id="line-1-2" class="flex-1 h-1 bg-slate-200 rounded transition-colors duration-300"></div>
+
+                    <!-- Step 2 -->
+                    <div id="step2-indicator" class="relative flex flex-col items-center justify-center z-10">
+                        <div
+                            class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold transition-all">
+                            2</div>
+                        <span
+                            class="absolute top-full mt-2 text-xs font-medium text-slate-400 uppercase tracking-wider w-max">Serviço</span>
+                    </div>
+
+                    <!-- Line 2-3 -->
+                    <div id="line-2-3" class="flex-1 h-1 bg-slate-200 rounded transition-colors duration-300"></div>
+
+                    <!-- Step 3 -->
+                    <div id="step3-indicator" class="relative flex flex-col items-center justify-center z-10">
+                        <div
+                            class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold transition-all">
+                            3</div>
+                        <span
+                            class="absolute top-full mt-2 text-xs font-medium text-slate-400 uppercase tracking-wider w-max">Agendamento</span>
+                    </div>
+
+                    <!-- Line 3-4 -->
+                    <div id="line-3-4" class="flex-1 h-1 bg-slate-200 rounded transition-colors duration-300"></div>
+
+                    <!-- Step 4 -->
+                    <div id="step4-indicator" class="relative flex flex-col items-center justify-center z-10">
+                        <div
+                            class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold transition-all">
+                            4</div>
+                        <span
+                            class="absolute top-full mt-2 text-xs font-medium text-slate-400 uppercase tracking-wider w-max">Confirmação</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Online Attendants Widget Removed -->
+
+            <!-- STEP 1: Identification -->
+            <div id="step1-content" class="flex-1 flex flex-col max-w-md mx-auto w-full animate-fade-in">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Bem-vindo ao SAS</h2>
+                    <p class="text-slate-500">Identifique-se para iniciar o atendimento</p>
+                </div>
+
+                <form id="identificacaoForm" class="space-y-6">
+                    <div class="space-y-2">
+                        <label for="identificacao" class="block text-sm font-bold text-slate-700 ml-1">CPF ou
+                            Matrícula</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i data-lucide="user"
+                                    class="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                            </div>
+                            <input type="text" id="identificacao"
+                                class="block w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-lg"
+                                placeholder="Digite apenas números" required autofocus>
+                        </div>
+                    </div>
+
+                    <!-- Feedback Area -->
+                    <div id="feedbackArea" class="hidden transition-all duration-300">
+                        <!-- Success State -->
+                        <div id="successState"
+                            class="hidden bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
+                            <div class="bg-blue-100 p-2 rounded-full shrink-0">
+                                <i data-lucide="check" class="w-5 h-5 text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-blue-900" id="nomeServidor">Nome do Servidor</h3>
+                                <p class="text-sm text-blue-700 mt-0.5" id="dadosServidor">CPF: ... | Matrícula: ...</p>
+                            </div>
+                        </div>
+
+                        <!-- Error State -->
+                        <div id="errorState"
+                            class="hidden bg-red-50 border border-red-100 rounded-xl p-4 flex items-start gap-3">
+                            <div class="bg-red-100 p-2 rounded-full shrink-0">
+                                <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-red-900">Não encontrado</h3>
+                                <p class="text-sm text-red-700 mt-0.5" id="errorMessage">Verifique os dados e tente
+                                    novamente.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btnBuscar"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-blue-500/30 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg">
+                        <span>Buscar Servidor</span>
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                    </button>
+
+                    <button type="button" id="btnContinuar" disabled
+                        class="hidden w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-green-500/30 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg">
+                        <span>Continuar</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- STEP 2: Service Selection -->
+            <div id="step2-content" class="hidden flex-1 flex flex-col max-w-md mx-auto w-full animate-fade-in">
+
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">O que você precisa?</h2>
+                    <p class="text-slate-500">Olá, <span id="display_nome"
+                            class="font-bold text-blue-600">Servidor</span>. Selecione o serviço desejado.</p>
+                </div>
+
+                <form id="step2Form" class="space-y-6">
+                    <div class="space-y-2">
+                        <label for="servico" class="block text-sm font-bold text-slate-700 ml-1">Tipo de Serviço</label>
+                        <div class="relative">
+                            <select id="servico" required
+                                class="block w-full pl-4 pr-10 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none font-medium text-lg cursor-pointer">
+                                <option value="">Selecione...</option>
+                                <option value="Aposentadoria">Aposentadoria</option>
+                                <option value="Atendimento Geral">Atendimento Geral</option>
+                                <option value="Seleção Pública Simplificada">Seleção Pública Simplificada</option>
+                                <option value="Certidão">Certidão</option>
+                                <option value="Licença">Licença</option>
+                                <option value="Pagamento">Pagamento</option>
+                                <option value="Plantão Extraordinário">Plantão Extraordinário</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <i data-lucide="chevron-down" class="h-5 w-5 text-slate-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="data" class="block text-sm font-bold text-slate-700 ml-1">Data do
+                            Agendamento</label>
+                        <div class="relative">
+                            <input type="date" id="data" required
+                                class="block w-full pl-4 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium text-lg cursor-pointer">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btnContinuarStep2"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-blue-500/30 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg mt-8">
+                        <span>Ver Disponibilidade</span>
+                        <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+                    </button>
+
+                    <button type="button" id="btnVoltarStep1"
+                        class="w-full bg-white border border-slate-200 text-slate-600 font-bold py-4 rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2 text-lg mt-4">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        <span>Voltar</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- STEP 3: Attendant & Time -->
+            <div id="step3-content" class="hidden flex-1 flex-col max-w-md mx-auto w-full animate-fade-in">
+
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Escolha o Horário</h2>
+                    <p class="text-slate-500">Selecione um atendente e o melhor horário.</p>
+                </div>
+
+                <form id="step3Form" class="space-y-6">
+                    <div class="space-y-2">
+                        <label for="atendente" class="block text-sm font-bold text-slate-700 ml-1">Atendente
+                            Disponível</label>
+                        <div class="relative">
+                            <select id="atendente" required
+                                class="block w-full pl-4 pr-10 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none font-medium text-lg cursor-pointer">
+                                <option value="">Carregando...</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <i data-lucide="chevron-down" class="h-5 w-5 text-slate-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time Slots Container -->
+                    <div id="timeSlotsContainer" class="hidden space-y-2">
+                        <label class="block text-sm font-bold text-slate-700 ml-1">Horários Disponíveis</label>
+                        <div id="slotsGrid"
+                            class="grid grid-cols-4 gap-2 max-h-[220px] overflow-y-auto p-1 custom-scrollbar content-start">
+                            <!-- Slots populated by JS -->
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btnConfirmar" disabled
+                        class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-blue-500/30 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg mt-8">
+                        <span>Confirmar Agendamento</span>
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    </button>
+
+                    <button type="button" id="btnVoltarStep2"
+                        class="w-full bg-white border border-slate-200 text-slate-600 font-bold py-4 rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2 text-lg mt-4">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        <span>Voltar</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- STEP 4: Success -->
+            <div id="step4-content"
+                class="hidden flex-1 flex flex-col items-center justify-center max-w-md mx-auto w-full animate-fade-in text-center">
+                <!-- Content injected by JS -->
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-auto pt-8 pb-4">
+                <p class="text-xs text-slate-400 font-medium">© 2025 SAS — Sistema de Atendimento ao Servidor</p>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: Branding (Hidden on Mobile) -->
+        <div
+            class="hidden md:flex w-2/5 bg-slate-50 relative items-center justify-center overflow-hidden border-l border-slate-100">
+            <div class="absolute inset-0 bg-blue-900 opacity-[0.03] pattern-grid-lg"></div>
+            <div class="relative z-10 flex flex-col items-center text-center p-12 h-full justify-center">
+                <div class="flex items-center gap-4 mb-12 transform scale-110">
+                    <div class="relative group cursor-default">
+                        <div
+                            class="w-24 h-20 border-4 border-blue-900 rounded-2xl bg-white flex items-center justify-center shadow-xl relative z-10 group-hover:-translate-y-2 transition-transform duration-500">
+                            <div class="flex gap-1"><i data-lucide="users" class="w-10 h-10 text-blue-900"></i></div>
+                        </div>
+                        <div class="w-8 h-4 bg-blue-900 mx-auto mt-[-2px]"></div>
+                        <div class="w-16 h-1.5 bg-blue-900 mx-auto rounded-full opacity-20"></div>
+                        <div
+                            class="absolute -top-6 -right-6 bg-yellow-400 p-3 rounded-xl shadow-lg transform rotate-12 z-20 border-4 border-white group-hover:rotate-6 transition-transform duration-500">
+                            <i data-lucide="message-square" class="w-6 h-6 text-blue-900"></i>
+                        </div>
+                    </div>
+                    <div class="text-left">
+                        <h1 class="text-7xl font-black text-blue-900 tracking-tighter leading-none select-none"
+                            style="font-family: 'Arial Black', sans-serif;">SAS</h1>
+                    </div>
+                </div>
+                <div class="text-center mb-16 space-y-2 select-none">
+                    <h2 class="text-xl font-bold text-red-500 tracking-[0.3em] uppercase">Sistema de</h2>
+                    <h2 class="text-xl font-bold text-red-500 tracking-[0.3em] uppercase">Atendimento</h2>
+                    <h2 class="text-xl font-bold text-red-500 tracking-[0.3em] uppercase">Ao Servidor</h2>
+                </div>
+                <div class="mt-8 opacity-80 hover:opacity-100 transition-opacity"><img src="images/govpe.png"
+                        alt="Governo de Pernambuco" class="h-28 object-contain drop-shadow-md"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js?v=4"></script>
+    <script src="js/api.js?v=4"></script>
+    <script src="js/layout.js?v=4"></script>
+
+    <script>
+        // Inject global modal HTML manually since layout.js might not be called here in the same way
+        // Actually, identificacao.html doesn't use layout.renderLayout() because it's a public-facing page
+        // But we want the same modal style. Let's inject it.
+        document.body.insertAdjacentHTML('beforeend', `
+            <!-- Global Modal System -->
+            <div id="globalModalContainer" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-[9999] p-4">
+                <div id="globalModal" class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in">
+                    <div class="p-6">
+                        <div class="flex items-start gap-4">
+                            <div id="globalModalIconContainer" class="bg-blue-100 p-3 rounded-full shrink-0">
+                                <i id="globalModalIcon" data-lucide="alert-circle" class="w-6 h-6 text-blue-600"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 id="globalModalTitle" class="text-lg font-bold text-slate-800 mb-2">Confirmar Ação</h3>
+                                <div id="globalModalMessage" class="text-slate-600">Tem certeza que deseja prosseguir?</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="globalModalFooter" class="bg-slate-50 p-4 flex justify-end gap-3">
+                        <button id="globalModalCancelBtn" class="bg-white border border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-lg hover:bg-slate-50 transition-colors">
+                            Cancelar
+                        </button>
+                        <button id="globalModalConfirmBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200">
+                            Confirmar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `);
+
+        // Global Modal Logic for Identificacao
+        const modalContainer = document.getElementById('globalModalContainer');
+        const modalTitle = document.getElementById('globalModalTitle');
+        const modalMessage = document.getElementById('globalModalMessage');
+        const modalConfirmBtn = document.getElementById('globalModalConfirmBtn');
+        const modalCancelBtn = document.getElementById('globalModalCancelBtn');
+        const modalIcon = document.getElementById('globalModalIcon');
+        const modalIconContainer = document.getElementById('globalModalIconContainer');
+
+        let globalOnConfirm = null;
+
+        window.openGlobalConfirmationModal = (title, message, callback, type = 'info') => {
+            modalTitle.textContent = title;
+            modalMessage.innerHTML = message;
+            globalOnConfirm = callback;
+            modalCancelBtn.classList.remove('hidden');
+            modalConfirmBtn.textContent = 'Confirmar';
+
+            if (type === 'danger') {
+                modalIconContainer.className = 'bg-red-100 p-3 rounded-full shrink-0';
+                modalIcon.className = 'w-6 h-6 text-red-600';
+                modalIcon.setAttribute('data-lucide', 'alert-triangle');
+                modalConfirmBtn.className = 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-red-200';
+            } else {
+                modalIconContainer.className = 'bg-blue-100 p-3 rounded-full shrink-0';
+                modalIcon.className = 'w-6 h-6 text-blue-600';
+                modalIcon.setAttribute('data-lucide', 'alert-circle');
+                modalConfirmBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200';
+            }
+
+            if (window.lucide) window.lucide.createIcons();
+            modalContainer.classList.remove('hidden');
+        };
+
+        window.openGlobalAlertModal = (title, message, type = 'info') => {
+            modalTitle.textContent = title;
+            modalMessage.innerHTML = message;
+            globalOnConfirm = null;
+            modalCancelBtn.classList.add('hidden');
+            modalConfirmBtn.textContent = 'OK';
+
+            if (type === 'danger') {
+                modalIconContainer.className = 'bg-red-100 p-3 rounded-full shrink-0';
+                modalIcon.className = 'w-6 h-6 text-red-600';
+                modalIcon.setAttribute('data-lucide', 'alert-triangle');
+                modalConfirmBtn.className = 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-red-200';
+            } else {
+                modalIconContainer.className = 'bg-blue-100 p-3 rounded-full shrink-0';
+                modalIcon.className = 'w-6 h-6 text-blue-600';
+                modalIcon.setAttribute('data-lucide', 'alert-circle');
+                modalConfirmBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200';
+            }
+
+            if (window.lucide) window.lucide.createIcons();
+            modalContainer.classList.remove('hidden');
+        };
+
+        const closeGlobalModal = () => {
+            modalContainer.classList.add('hidden');
+            globalOnConfirm = null;
+        };
+
+        modalConfirmBtn.addEventListener('click', () => {
+            if (globalOnConfirm) globalOnConfirm();
+            closeGlobalModal();
+        });
+
+        modalCancelBtn.addEventListener('click', closeGlobalModal);
+
+        lucide.createIcons();
+
+        // State
+        let currentServidor = null;
+        let isDuplicateConfirmed = false;
+
+        // Elements - Step 1
+        const step1Content = document.getElementById('step1-content');
+        const formIdentificacao = document.getElementById('identificacaoForm');
+        const inputIdentificacao = document.getElementById('identificacao');
+        const btnBuscar = document.getElementById('btnBuscar');
+        const btnContinuar = document.getElementById('btnContinuar');
+        const feedbackArea = document.getElementById('feedbackArea');
+        const successState = document.getElementById('successState');
+        const errorState = document.getElementById('errorState');
+        const nomeServidor = document.getElementById('nomeServidor');
+        const dadosServidor = document.getElementById('dadosServidor');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Elements - Step 2
+        const step2Content = document.getElementById('step2-content');
+        const formStep2 = document.getElementById('step2Form');
+        const btnVoltarStep1 = document.getElementById('btnVoltarStep1');
+        const btnContinuarStep2 = document.getElementById('btnContinuarStep2');
+        const servicoSelect = document.getElementById('servico');
+        const dataInput = document.getElementById('data');
+
+        // Elements - Step 3
+        const step3Content = document.getElementById('step3-content');
+        const formStep3 = document.getElementById('step3Form');
+        const btnVoltarStep2 = document.getElementById('btnVoltarStep2');
+        const btnConfirmar = document.getElementById('btnConfirmar');
+        const atendenteSelect = document.getElementById('atendente');
+
+        // Elements - Step 4
+        const step4Content = document.getElementById('step4-content');
+
+        // Stepper Elements
+        const steps = [
+            document.getElementById('step1-indicator'),
+            document.getElementById('step2-indicator'),
+            document.getElementById('step3-indicator'),
+            document.getElementById('step4-indicator')
+        ];
+        const lines = [
+            document.getElementById('line-1-2'),
+            document.getElementById('line-2-3'),
+            document.getElementById('line-3-4')
+        ];
+
+        function updateStepper(step) {
+            steps.forEach(el => {
+                el.classList.add('opacity-40');
+                el.classList.remove('step-active');
+                el.querySelector('div').classList.remove('bg-blue-600', 'text-white', 'shadow-lg');
+                el.querySelector('div').classList.add('bg-slate-200', 'text-slate-500');
+                el.querySelector('span').classList.remove('text-blue-900', 'font-bold');
+                el.querySelector('span').classList.add('text-slate-400', 'font-medium');
+            });
+            lines.forEach(el => {
+                el.classList.remove('bg-green-500');
+                el.classList.add('bg-slate-200');
+            });
+
+            for (let i = 0; i < step; i++) {
+                if (i < step - 1) {
+                    markCompleted(steps[i]);
+                    if (i < lines.length) {
+                        lines[i].classList.remove('bg-slate-200');
+                        lines[i].classList.add('bg-green-500');
+                    }
+                } else {
+                    activateStep(steps[i]);
+                }
+            }
+        }
+
+        function activateStep(el) {
+            el.classList.remove('opacity-40');
+            el.classList.add('step-active');
+            const circle = el.querySelector('div');
+            circle.classList.remove('bg-slate-200', 'text-slate-500');
+            circle.classList.add('bg-blue-600', 'text-white', 'shadow-lg');
+            const text = el.querySelector('span');
+            text.classList.remove('text-slate-400', 'font-medium');
+            text.classList.add('text-blue-900', 'font-bold');
+        }
+
+        function markCompleted(el) {
+            el.classList.add('opacity-100');
+            el.classList.remove('step-active');
+            const circle = el.querySelector('div');
+            circle.classList.remove('bg-blue-600', 'text-white', 'shadow-lg', 'bg-slate-200', 'text-slate-500');
+            circle.classList.add('bg-green-500', 'text-white');
+            circle.innerHTML = '<i data-lucide="check" class="w-4 h-4 md:w-5 md:h-5"></i>';
+            lucide.createIcons();
+        }
+
+        // --- STEP 1 LOGIC ---
+        let debounceTimer;
+        inputIdentificacao.addEventListener('input', (e) => {
+            const val = e.target.value.trim();
+            clearTimeout(debounceTimer);
+            if (val.length >= 3) {
+                debounceTimer = setTimeout(() => checkAppointments(val), 800);
+            }
+        });
+
+        async function checkAppointments(valor) {
+            try {
+                const isCpf = valor.length > 10 || valor.includes('.') || valor.includes('-');
+                const queryParam = isCpf ? `cpf=${encodeURIComponent(valor)}` : `matricula=${encodeURIComponent(valor)}`;
+                const response = await fetch(`/api/agendamentos?${queryParam}`);
+                if (response.ok) {
+                    const appointments = await response.json();
+                    if (appointments.length > 0) {
+                        let html = '<div class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar">';
+                        appointments.forEach(appt => {
+                            const date = new Date(appt.data_agendamento).toLocaleDateString('pt-BR');
+                            const time = appt.hora_inicio ? appt.hora_inicio.substring(0, 5) : 'Sem horário';
+                            html += `
+                                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center">
+                                    <div>
+                                        <p class="font-bold text-slate-800">${appt.tipo_servico}</p>
+                                        <p class="text-sm text-slate-500">${date} às ${time}</p>
+                                    </div>
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase">${appt.status}</span>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        window.SAS.utils.modal.alert('Agendamentos Encontrados', html, 'info');
+                    }
+                }
+            } catch (err) {
+                console.error('Error checking appointments:', err);
+            }
+        }
+
+        formIdentificacao.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const valor = inputIdentificacao.value.trim();
+            if (!valor) return;
+
+            feedbackArea.classList.remove('hidden');
+            successState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            btnBuscar.disabled = true;
+            btnBuscar.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Buscando...';
+            lucide.createIcons();
+
+            try {
+                const response = await fetch(`/api/identificacao/validar?valor=${encodeURIComponent(valor)}`);
+                if (!response.ok) {
+                    if (response.status === 404) throw new Error('Servidor não encontrado');
+                    throw new Error(`Erro na busca (${response.status})`);
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                    currentServidor = data.data;
+                    nomeServidor.textContent = currentServidor.nome_completo;
+                    dadosServidor.textContent = `CPF: ${currentServidor.cpf || '-'} | Matrícula: ${currentServidor.matricula || '-'}`;
+                    successState.classList.remove('hidden');
+                    btnBuscar.classList.add('hidden');
+                    btnContinuar.classList.remove('hidden');
+                    btnContinuar.disabled = false;
+                    window.SAS.utils.notify('success', 'Servidor identificado com sucesso!');
+                } else {
+                    throw new Error(data.message || 'Servidor não encontrado');
+                }
+            } catch (err) {
+                console.error(err);
+                errorMessage.textContent = err.message;
+                errorState.classList.remove('hidden');
+                btnBuscar.classList.remove('hidden');
+                btnContinuar.classList.add('hidden');
+                // Redundant notification removed
+            } finally {
+                btnBuscar.disabled = false;
+                if (!currentServidor) {
+                    btnBuscar.innerHTML = '<span>Buscar Servidor</span><i data-lucide="search" class="w-5 h-5"></i>';
+                    lucide.createIcons();
+                }
+            }
+        });
+
+        btnContinuar.addEventListener('click', () => {
+            if (!currentServidor) return;
+            document.getElementById('display_nome').textContent = currentServidor.nome_completo;
+            step1Content.classList.add('hidden');
+            step2Content.classList.remove('hidden');
+            updateStepper(2);
+            lucide.createIcons();
+        });
+
+        // --- STEP 2 LOGIC ---
+        btnVoltarStep1.addEventListener('click', () => {
+            step2Content.classList.add('hidden');
+            step1Content.classList.remove('hidden');
+            updateStepper(1);
+        });
+
+        async function checkDuplicateForDate(date) {
+            if (!currentServidor) return false;
+            try {
+                const cpf = currentServidor.cpf || '';
+                const matricula = currentServidor.matricula || '';
+                const queryParam = cpf ? `cpf=${encodeURIComponent(cpf)}` : `matricula=${encodeURIComponent(matricula)}`;
+                const response = await fetch(`/api/agendamentos?${queryParam}`);
+                if (!response.ok) return false;
+                const appointments = await response.json();
+                return appointments.some(a =>
+                    a.data_agendamento === date &&
+                    ['agendado', 'pendente', 'em_andamento', 'chegou'].includes(a.status)
+                );
+            } catch (e) {
+                console.error('Error checking duplicate:', e);
+                return false;
+            }
+        }
+
+        formStep2.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const selectedDate = dataInput.value;
+            const hasDuplicate = await checkDuplicateForDate(selectedDate);
+            if (hasDuplicate) {
+                window.SAS.utils.modal.confirm(
+                    'Atenção!',
+                    'Já existe um agendamento marcado para esta data. Deseja continuar mesmo assim?',
+                    () => {
+                        isDuplicateConfirmed = true;
+                        proceedToStep3();
+                    },
+                    'danger'
+                );
+                return;
+            }
+            proceedToStep3();
+        });
+
+        function proceedToStep3() {
+            step2Content.classList.add('hidden');
+            step3Content.classList.remove('hidden');
+            updateStepper(3);
+            lucide.createIcons();
+            if (atendenteSelect.value) {
+                atendenteSelect.dispatchEvent(new Event('change'));
+            }
+        }
+
+        const today = new Date().toISOString().split('T')[0];
+        dataInput.min = today;
+        dataInput.addEventListener('input', function (e) {
+            const dateValue = this.value;
+            if (!dateValue) return;
+            const [year, month, day] = dateValue.split('-').map(Number);
+            const date = new Date(year, month - 1, day);
+            const dayOfWeek = date.getDay();
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                window.SAS.utils.notify('warning', 'Agendamentos não podem ser realizados aos finais de semana.');
+                this.value = '';
+                return;
+            }
+            isDuplicateConfirmed = false;
+        });
+
+        // --- STEP 3 LOGIC ---
+        btnVoltarStep2.addEventListener('click', () => {
+            step3Content.classList.add('hidden');
+            step2Content.classList.remove('hidden');
+            updateStepper(2);
+        });
+
+        (async function loadAttendants() {
+            try {
+                const response = await fetch('/api/usuarios');
+                const users = await response.json();
+                const attendants = users.filter(u => u.tipo === 'usuario' && u.situacao === 'ativo');
+                atendenteSelect.innerHTML = '<option value="">Selecione um atendente...</option>';
+                attendants.forEach(att => {
+                    const opt = document.createElement('option');
+                    opt.value = att.id;
+                    opt.textContent = att.nome_completo || att.usuario;
+                    atendenteSelect.appendChild(opt);
+                });
+            } catch (err) {
+                console.error('Erro ao carregar atendentes:', err);
+            }
+        })();
+
+        let selectedTimeSlot = null;
+        atendenteSelect.addEventListener('change', async (e) => {
+            const selectedId = e.target.value;
+            const slotsContainer = document.getElementById('timeSlotsContainer');
+            const slotsGrid = document.getElementById('slotsGrid');
+            selectedTimeSlot = null;
+            btnConfirmar.disabled = true;
+            if (!selectedId) {
+                slotsContainer.classList.add('hidden');
+                return;
+            }
+            slotsContainer.classList.remove('hidden');
+            slotsGrid.innerHTML = '<div class="col-span-full text-center text-slate-500 py-4"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i>Verificando disponibilidade...</div>';
+            lucide.createIcons();
+
+            const dateStr = dataInput.value || new Date().toISOString().split('T')[0];
+            const data = await fetchAvailability(selectedId, dateStr);
+            slotsGrid.innerHTML = '';
+            if (!data.available) {
+                slotsGrid.innerHTML = `<div class="col-span-full text-center text-red-500 bg-red-50 p-3 rounded-lg border border-red-100">${data.message || 'Indisponível'}</div>`;
+                return;
+            }
+            if (data.slots.length === 0) {
+                slotsGrid.innerHTML = `<div class="col-span-full text-center text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">Sem horários livres.</div>`;
+                return;
+            }
+
+            data.slots.forEach(time => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'slot-btn w-full bg-white border border-slate-200 text-slate-700 py-2 px-1 rounded-lg text-sm font-medium hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all';
+                btn.textContent = time;
+                btn.onclick = () => {
+                    document.querySelectorAll('.slot-btn').forEach(b => {
+                        b.classList.remove('bg-blue-600', 'text-white', 'border-blue-600', 'hover:bg-blue-700');
+                        b.classList.add('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-blue-50');
+                    });
+                    btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-blue-50');
+                    btn.classList.add('bg-blue-600', 'text-white', 'border-blue-600', 'hover:bg-blue-700');
+                    selectedTimeSlot = time;
+                    btnConfirmar.disabled = false;
+                };
+                slotsGrid.appendChild(btn);
+            });
+        });
+
+        formStep3.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnConfirmar');
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Processando...';
+            lucide.createIcons();
+
+            if (!selectedTimeSlot) {
+                window.SAS.utils.notify('warning', 'Por favor, selecione um horário.');
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+                lucide.createIcons();
+                return;
+            }
+
+            const payload = {
+                nome_completo: currentServidor.nome_completo,
+                cpf: currentServidor.cpf,
+                matricula: currentServidor.matricula,
+                cargo: currentServidor.cargo,
+                vinculo: currentServidor.vinculo,
+                local_trabalho: currentServidor.local_trabalho,
+                tipo_servico: servicoSelect.value,
+                tipo_atendimento: 'Presencial',
+                prioridade: 'Normal',
+                data_agendamento: dataInput.value,
+                hora_inicio: selectedTimeSlot,
+                status: 'agendado',
+                atendente_id: atendenteSelect.value,
+                created_by: null,
+                force_duplicate: isDuplicateConfirmed
+            };
+
+            try {
+                await fetch('/api/agendamentos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                window.SAS.utils.notify('success', 'Agendamento realizado com sucesso!');
+                step3Content.classList.add('hidden');
+                step4Content.classList.remove('hidden');
+                updateStepper(4);
+                step4Content.innerHTML = `
+                    <div class="text-center space-y-6 animate-fade-in">
+                        <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                            <i data-lucide="check" class="w-12 h-12 text-green-600"></i>
+                        </div>
+                        <div class="space-y-2">
+                            <h2 class="text-3xl font-bold text-slate-800">Agendamento Confirmado!</h2>
+                            <p class="text-slate-500 text-lg">O atendimento foi agendado com sucesso.</p>
+                        </div>
+                        <div class="flex flex-col gap-3 mt-12 max-w-sm mx-auto">
+                            <button onclick="location.reload()" class="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-200 flex items-center justify-center gap-2 text-lg">
+                                <span>Realizar Novo Agendamento</span>
+                                <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                lucide.createIcons();
+            } catch (err) {
+                window.SAS.utils.notify('error', 'Erro ao realizar agendamento.');
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+                lucide.createIcons();
+            }
+        });
+
+        // Online Attendants Widget Logic Removed
+
+        async function fetchAvailability(attendantId, dateStr) {
+            try {
+                const response = await fetch(`/api/agendamentos/disponibilidade?atendente_id=${attendantId}&data=${dateStr}`);
+                return await response.json();
+            } catch (e) {
+                console.error("Error fetching availability:", e);
+                return { available: false, message: "Erro ao verificar disponibilidade." };
+            }
+        }
+    </script>
+</body>
+
+</html>
