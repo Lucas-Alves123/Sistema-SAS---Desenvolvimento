@@ -99,12 +99,12 @@ def create_public_agendamento():
         query = f"""
             INSERT INTO agendamentos ({', '.join(fields)})
             VALUES ({', '.join(placeholders)})
-            RETURNING id
         """
         
-        new_id = query_db(query, tuple(values), one=True)
+        result = query_db(query, tuple(values))
+        new_id = result['id']
         
-        return jsonify({'success': True, 'id': new_id['id']}), 201
+        return jsonify({'success': True, 'id': new_id}), 201
 
     except Exception as e:
         print(f"Public Error: {e}")
@@ -282,10 +282,11 @@ def create_agendamento():
         query = f"""
             INSERT INTO agendamentos ({', '.join(fields)})
             VALUES ({', '.join(placeholders)})
-            RETURNING *
         """
         
-        new_agendamento = query_db(query, tuple(values), one=True)
+        result = query_db(query, tuple(values))
+        new_id = result['id']
+        new_agendamento = query_db("SELECT * FROM agendamentos WHERE id = %s", (new_id,), one=True)
         
         # Serialize dates
         if new_agendamento:
@@ -323,8 +324,9 @@ def update_agendamento(id):
             if current_status['status'] != 'chegou':
                 return jsonify({'error': 'Este agendamento já foi chamado ou não está mais na fila.'}), 409
 
-        query = f"UPDATE agendamentos SET {', '.join(fields)} WHERE id = %s RETURNING *"
-        updated = query_db(query, tuple(values), one=True)
+        query = f"UPDATE agendamentos SET {', '.join(fields)} WHERE id = %s"
+        query_db(query, tuple(values))
+        updated = query_db("SELECT * FROM agendamentos WHERE id = %s", (id,), one=True)
         
         if not updated:
             return jsonify({'error': 'Agendamento not found'}), 404

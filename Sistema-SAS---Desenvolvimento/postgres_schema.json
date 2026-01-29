@@ -1,0 +1,497 @@
+{
+    "agendamentos": {
+        "columns": [
+            {
+                "column_name": "id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "nextval('agendamentos_id_seq'::regclass)"
+            },
+            {
+                "column_name": "nome_completo",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "cpf",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "matricula",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "cargo",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "vinculo",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "local_trabalho",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "email",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "tipo_servico",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "tipo_atendimento",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "prioridade",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": "'Normal'::character varying"
+            },
+            {
+                "column_name": "data_agendamento",
+                "data_type": "date",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "hora_inicio",
+                "data_type": "time without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "status",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": "'agendado'::character varying"
+            },
+            {
+                "column_name": "observacao_problema",
+                "data_type": "text",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "observacao_solucao",
+                "data_type": "text",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "observacao_transferencia",
+                "data_type": "text",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "guiche",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "atendente_id",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "atendente_nome",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "created_by",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": "CURRENT_TIMESTAMP"
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "agendamentos_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "agendamentos",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "agendamentos_atendente_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "atendente_id",
+                "foreign_table_name": "usuarios",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "agendamentos_created_by_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "created_by",
+                "foreign_table_name": "usuarios",
+                "foreign_column_name": "id"
+            }
+        ],
+        "indices": [
+            {
+                "indexname": "agendamentos_pkey",
+                "indexdef": "CREATE UNIQUE INDEX agendamentos_pkey ON public.agendamentos USING btree (id)"
+            },
+            {
+                "indexname": "idx_agendamentos_data",
+                "indexdef": "CREATE INDEX idx_agendamentos_data ON public.agendamentos USING btree (data_agendamento)"
+            },
+            {
+                "indexname": "idx_agendamentos_status",
+                "indexdef": "CREATE INDEX idx_agendamentos_status ON public.agendamentos USING btree (status)"
+            }
+        ]
+    },
+    "usuarios": {
+        "columns": [
+            {
+                "column_name": "id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "nextval('usuarios_id_seq'::regclass)"
+            },
+            {
+                "column_name": "nome_completo",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "usuario",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "senha",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "email",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "cpf",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "tipo",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "situacao",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": "'ativo'::character varying"
+            },
+            {
+                "column_name": "guiche_atual",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "status_atendimento",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": "'presencial'::character varying"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": "CURRENT_TIMESTAMP"
+            },
+            {
+                "column_name": "motivo_pausa",
+                "data_type": "text",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "horario_almoco_inicio",
+                "data_type": "time without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "horario_almoco_fim",
+                "data_type": "time without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "usuarios_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "usuarios",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "usuarios_usuario_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "usuario",
+                "foreign_table_name": "usuarios",
+                "foreign_column_name": "usuario"
+            },
+            {
+                "constraint_name": "usuarios_cpf_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "cpf",
+                "foreign_table_name": "usuarios",
+                "foreign_column_name": "cpf"
+            },
+            {
+                "constraint_name": "usuarios_email_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "email",
+                "foreign_table_name": "usuarios",
+                "foreign_column_name": "email"
+            }
+        ],
+        "indices": [
+            {
+                "indexname": "usuarios_pkey",
+                "indexdef": "CREATE UNIQUE INDEX usuarios_pkey ON public.usuarios USING btree (id)"
+            },
+            {
+                "indexname": "usuarios_usuario_key",
+                "indexdef": "CREATE UNIQUE INDEX usuarios_usuario_key ON public.usuarios USING btree (usuario)"
+            },
+            {
+                "indexname": "idx_usuarios_usuario",
+                "indexdef": "CREATE INDEX idx_usuarios_usuario ON public.usuarios USING btree (usuario)"
+            },
+            {
+                "indexname": "usuarios_cpf_unique",
+                "indexdef": "CREATE UNIQUE INDEX usuarios_cpf_unique ON public.usuarios USING btree (cpf)"
+            },
+            {
+                "indexname": "usuarios_email_key",
+                "indexdef": "CREATE UNIQUE INDEX usuarios_email_key ON public.usuarios USING btree (email)"
+            }
+        ]
+    },
+    "trabalhadores": {
+        "columns": [
+            {
+                "column_name": "id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "nextval('trabalhadores_id_seq'::regclass)"
+            },
+            {
+                "column_name": "nome_completo",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "cpf",
+                "data_type": "character",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "cns",
+                "data_type": "character",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "data_nascimento",
+                "data_type": "date",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "telefone",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "email",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "cep",
+                "data_type": "character",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "logradouro",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "numero",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "bairro",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "cidade",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "uf",
+                "data_type": "character",
+                "is_nullable": "YES",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "trabalhadores_cpf_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "cpf",
+                "foreign_table_name": "trabalhadores",
+                "foreign_column_name": "cpf"
+            },
+            {
+                "constraint_name": "trabalhadores_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "trabalhadores",
+                "foreign_column_name": "id"
+            }
+        ],
+        "indices": [
+            {
+                "indexname": "trabalhadores_cpf_key",
+                "indexdef": "CREATE UNIQUE INDEX trabalhadores_cpf_key ON public.trabalhadores USING btree (cpf)"
+            },
+            {
+                "indexname": "trabalhadores_pkey",
+                "indexdef": "CREATE UNIQUE INDEX trabalhadores_pkey ON public.trabalhadores USING btree (id)"
+            }
+        ]
+    },
+    "vinculos_trabalhadores": {
+        "columns": [
+            {
+                "column_name": "id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "nextval('vinculos_profissionais_id_seq'::regclass)"
+            },
+            {
+                "column_name": "trabalhador_id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "numero_funcional",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "tipo_vinculo",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "especialidade",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "unidade_lotacao",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "data_admissao",
+                "data_type": "date",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "data_desligamento",
+                "data_type": "date",
+                "is_nullable": "YES",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "vinculos_profissionais_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "vinculos_trabalhadores",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "fk_trabalhador",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "trabalhador_id",
+                "foreign_table_name": "trabalhadores",
+                "foreign_column_name": "id"
+            }
+        ],
+        "indices": [
+            {
+                "indexname": "vinculos_profissionais_pkey",
+                "indexdef": "CREATE UNIQUE INDEX vinculos_profissionais_pkey ON public.vinculos_trabalhadores USING btree (id)"
+            }
+        ]
+    }
+}

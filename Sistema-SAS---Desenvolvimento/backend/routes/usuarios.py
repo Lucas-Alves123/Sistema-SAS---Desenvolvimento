@@ -43,7 +43,6 @@ def create_user():
         query = """
             INSERT INTO usuarios (nome_completo, usuario, senha, email, cpf, tipo, situacao, guiche_atual, status_atendimento)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING *
         """
         params = (
             data['nome_completo'],
@@ -57,7 +56,9 @@ def create_user():
             data.get('status_atendimento', 'presencial')
         )
         
-        new_user = query_db(query, params, one=True)
+        result = query_db(query, params)
+        new_id = result['id']
+        new_user = query_db("SELECT * FROM usuarios WHERE id = %s", (new_id,), one=True)
         return jsonify(new_user), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -81,8 +82,10 @@ def update_user(id):
     values.append(id)
     
     try:
-        query = f"UPDATE usuarios SET {', '.join(fields)} WHERE id = %s RETURNING *"
-        updated_user = query_db(query, tuple(values), one=True)
+        query = f"UPDATE usuarios SET {', '.join(fields)} WHERE id = %s"
+        query_db(query, tuple(values))
+        
+        updated_user = query_db("SELECT * FROM usuarios WHERE id = %s", (id,), one=True)
         
         if not updated_user:
             return jsonify({'error': 'User not found'}), 404
@@ -122,8 +125,10 @@ def update_user_status(id):
         if new_status == 'disponivel':
             motivo = None
 
-        query = "UPDATE usuarios SET status_atendimento = %s, motivo_pausa = %s WHERE id = %s RETURNING id, nome_completo, status_atendimento, motivo_pausa"
-        updated_user = query_db(query, (new_status, motivo, id), one=True)
+        query = "UPDATE usuarios SET status_atendimento = %s, motivo_pausa = %s WHERE id = %s"
+        query_db(query, (new_status, motivo, id))
+        
+        updated_user = query_db("SELECT id, nome_completo, status_atendimento, motivo_pausa FROM usuarios WHERE id = %s", (id,), one=True)
         
         return jsonify(updated_user)
     except Exception as e:

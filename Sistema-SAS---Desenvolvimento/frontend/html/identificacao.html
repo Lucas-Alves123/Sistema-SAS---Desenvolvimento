@@ -107,10 +107,7 @@
                 </div>
             </div>
 
-            <!-- Online Attendants Widget -->
-            <div id="onlineAttendantsWidget" class="mt-0 mb-6 flex flex-wrap justify-center gap-2 min-h-[30px]">
-                <!-- Populated by JS -->
-            </div>
+            <!-- Online Attendants Widget Removed -->
 
             <!-- STEP 1: Identification -->
             <div id="step1-content" class="flex-1 flex flex-col max-w-md mx-auto w-full animate-fade-in">
@@ -603,7 +600,7 @@
                 errorState.classList.remove('hidden');
                 btnBuscar.classList.remove('hidden');
                 btnContinuar.classList.add('hidden');
-                window.SAS.utils.notify('error', err.message);
+                // Redundant notification removed
             } finally {
                 btnBuscar.disabled = false;
                 if (!currentServidor) {
@@ -833,35 +830,7 @@
             }
         });
 
-        const onlineWidget = document.getElementById('onlineAttendantsWidget');
-        async function updateOnlineAttendants() {
-            if (!onlineWidget) return;
-            try {
-                const response = await fetch('/api/usuarios/online');
-                const users = await response.json();
-                if (!users || users.length === 0) {
-                    onlineWidget.innerHTML = '<span class="text-xs text-slate-400">Nenhum atendente online</span>';
-                    return;
-                }
-                onlineWidget.innerHTML = '';
-                users.forEach(u => {
-                    const isPause = u.status_atendimento === 'pausa';
-                    const colorClass = isPause ? 'bg-red-100 text-red-700 border-red-200' : 'bg-green-100 text-green-700 border-green-200';
-                    const dotClass = isPause ? 'bg-red-500' : 'bg-green-500 animate-pulse';
-                    let statusText = isPause ? 'Pausa' : 'Online';
-                    if (isPause && u.motivo_pausa) statusText += `: ${u.motivo_pausa}`;
-                    const badge = document.createElement('div');
-                    badge.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${colorClass} text-xs font-bold shadow-sm transition-all cursor-help`;
-                    badge.innerHTML = `<div class="w-2 h-2 rounded-full ${dotClass}"></div><span>${u.nome_completo.split(' ')[0]}</span>`;
-                    badge.title = `${u.nome_completo} (${statusText})`;
-                    onlineWidget.appendChild(badge);
-                });
-            } catch (e) {
-                console.error('Error fetching online attendants:', e);
-            }
-        }
-        updateOnlineAttendants();
-        setInterval(updateOnlineAttendants, 10000);
+        // Online Attendants Widget Logic Removed
 
         async function fetchAvailability(attendantId, dateStr) {
             try {
