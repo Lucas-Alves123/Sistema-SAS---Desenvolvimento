@@ -1,0 +1,16 @@
+[Unit]
+Description=Serviço Backend SAS (Auto-Restart)
+After=network.target
+
+[Service]
+User=lucas.luna
+# Nota: domain\ users com espaço pode exigir escape ou aspas dependendo da versão do systemd
+Group=domain\ users
+WorkingDirectory=/home/lucas.luna@saude.local/src/SAS-PROD/Sistema-SAS-PROD
+Environment="PATH=/home/lucas.luna@saude.local/src/SAS-PROD/Sistema-SAS-PROD/backend/venv/bin"
+ExecStart=/home/lucas.luna@saude.local/src/SAS-PROD/Sistema-SAS-PROD/backend/venv/bin/python -m backend.app
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

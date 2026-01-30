@@ -90,7 +90,7 @@
                 </form>
 
                 <div class="mt-6 text-center">
-                    <button
+                    <button type="button" onclick="openRecoveryModal()"
                         class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline transition-colors">
                         Esqueci a senha
                     </button>
@@ -159,6 +159,88 @@
                     <img src="images/govpe.png" alt="Governo de Pernambuco" class="h-64 object-contain">
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Recuperação de Senha -->
+    <div id="modalRecuperacao" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in border-4 border-blue-600/20">
+            <div class="p-8">
+                <div class="flex flex-col items-center text-center mb-6">
+                    <div class="bg-blue-100 p-3 rounded-full mb-3">
+                        <i data-lucide="key-round" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-800">Recuperar Senha</h3>
+                    <p class="text-slate-500 text-sm mt-1" id="recoveryStepText">Passo 1: Verifique sua identidade</p>
+                </div>
+
+                <!-- Step 1: Verification -->
+                <form id="step1Form" class="space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-700">Login (Usuário)</label>
+                        <div class="relative">
+                            <i data-lucide="user"
+                                class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="recUsuario" placeholder="Seu login no sistema" required
+                                class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-700">E-mail Cadastrado</label>
+                        <div class="relative">
+                            <i data-lucide="mail"
+                                class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="email" id="recEmail" placeholder="exemplo@email.com" required
+                                class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        </div>
+                    </div>
+                    <div id="recError1"
+                        class="hidden text-red-600 text-xs bg-red-50 p-2 rounded border border-red-100 italic flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-3 h-3"></i>
+                        <span></span>
+                    </div>
+                    <div class="flex gap-3 pt-2">
+                        <button type="button" onclick="closeRecoveryModal()"
+                            class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all">Cancelar</button>
+                        <button type="submit"
+                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-blue-200">Verificar</button>
+                    </div>
+                </form>
+
+                <!-- Step 2: Reset -->
+                <form id="step2Form" class="space-y-4 hidden">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-700">Nova Senha</label>
+                        <div class="relative">
+                            <i data-lucide="lock"
+                                class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="password" id="recNovaSenha" placeholder="Min. 4 caracteres" required
+                                class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-700">Confirmar Nova Senha</label>
+                        <div class="relative">
+                            <i data-lucide="shield-check"
+                                class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="password" id="recConfirmarSenha" placeholder="Repita a nova senha" required
+                                class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        </div>
+                    </div>
+                    <div id="recError2"
+                        class="hidden text-red-600 text-xs bg-red-50 p-2 rounded border border-red-100 italic flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-3 h-3"></i>
+                        <span></span>
+                    </div>
+                    <div class="flex gap-3 pt-2">
+                        <button type="button" onclick="closeRecoveryModal()"
+                            class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all">Cancelar</button>
+                        <button type="submit"
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-green-200">Redefinir</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -232,6 +314,116 @@
                 submitBtn.textContent = 'Efetuar Login';
             }
         });
+        // Recovery Modal Logic
+        const modalRecuperacao = document.getElementById('modalRecuperacao');
+        const step1Form = document.getElementById('step1Form');
+        const step2Form = document.getElementById('step2Form');
+        const recoveryStepText = document.getElementById('recoveryStepText');
+        const recError1 = document.getElementById('recError1');
+        const recError2 = document.getElementById('recError2');
+        let currentRecoveryId = null;
+
+        window.openRecoveryModal = () => {
+            step1Form.reset();
+            step2Form.reset();
+            step1Form.classList.remove('hidden');
+            step2Form.classList.add('hidden');
+            recError1.classList.add('hidden');
+            recError2.classList.add('hidden');
+            recoveryStepText.textContent = 'Passo 1: Verifique sua identidade';
+            modalRecuperacao.classList.remove('hidden');
+            lucide.createIcons();
+        };
+
+        window.closeRecoveryModal = () => {
+            modalRecuperacao.classList.add('hidden');
+        };
+
+        // Step 1: Verification Logic
+        step1Form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            recError1.classList.add('hidden');
+            const usuario = document.getElementById('recUsuario').value.trim();
+            const email = document.getElementById('recEmail').value.trim();
+
+            const btn = step1Form.querySelector('button[type="submit"]');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Verificando...';
+
+            try {
+                const response = await fetch('/api/usuarios/recovery/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, email })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Dados não encontrados.');
+                }
+
+                const data = await response.json();
+                currentRecoveryId = data.id;
+
+                // Move to Step 2
+                step1Form.classList.add('hidden');
+                step2Form.classList.remove('hidden');
+                recoveryStepText.textContent = 'Passo 2: Defina sua nova senha';
+                lucide.createIcons();
+            } catch (err) {
+                recError1.querySelector('span').textContent = err.message;
+                recError1.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        });
+
+        // Step 2: Reset Logic
+        step2Form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            recError2.classList.add('hidden');
+            const novaSenha = document.getElementById('recNovaSenha').value;
+            const confirmarSenha = document.getElementById('recConfirmarSenha').value;
+
+            if (novaSenha.length < 4) {
+                recError2.querySelector('span').textContent = 'A senha deve ter pelo menos 4 caracteres.';
+                recError2.classList.remove('hidden');
+                return;
+            }
+
+            if (novaSenha !== confirmarSenha) {
+                recError2.querySelector('span').textContent = 'As senhas não coincidem.';
+                recError2.classList.remove('hidden');
+                return;
+            }
+
+            const btn = step2Form.querySelector('button[type="submit"]');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Redefinindo...';
+
+            try {
+                const response = await fetch('/api/usuarios/recovery/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: currentRecoveryId, password: novaSenha })
+                });
+
+                if (!response.ok) throw new Error('Erro ao redefinir senha.');
+
+                alert('Senha redefinida com sucesso! Você já pode entrar com sua nova senha.');
+                closeRecoveryModal();
+            } catch (err) {
+                recError2.querySelector('span').textContent = err.message;
+                recError2.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        });
+
     </script>
 </body>
 

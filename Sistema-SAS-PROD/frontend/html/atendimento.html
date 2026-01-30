@@ -295,10 +295,11 @@
 
         window.confirmStatusChange = async () => {
             const newStatus = newStatusSelect.value;
-            let motivo = null;
-            if (newStatus === 'pausa') {
-                motivo = statusReason.value;
-                if (!motivo.trim()) motivo = 'Pausa';
+            let motivo = statusReason.value.trim();
+
+            if (newStatus === 'pausa' && !motivo) {
+                window.SAS.utils.notify('warning', 'O motivo da pausa é obrigatório.');
+                return;
             }
 
             updateStatusUI(newStatus, motivo);
@@ -580,18 +581,46 @@
                     fetch('/api/usuarios/online').then(res => res.json())
                 ]);
 
-                const activeUsers = users.filter(u => u.id !== user.id && u.situacao === 'ativo');
+                const excludedNames = [
+                    'Administrador Sistema',
+                    'Lara Lívia Agra Amaral',
+                    'Williams Americo Sobrinho'
+                ];
+
+                const activeUsers = users.filter(u => {
+                    const isSelf = String(u.id) === String(user.id);
+                    const isAttendant = u.tipo === 'usuario';
+                    const isAtivo = u.situacao === 'ativo';
+                    const isExcluded = excludedNames.includes(u.nome_completo);
+                    return !isSelf && isAttendant && isAtivo && !isExcluded;
+                });
+
                 transferUserSelect.innerHTML = '<option value="">Selecione um atendente...</option>';
 
                 activeUsers.forEach(u => {
-                    const onlineInfo = onlineUsers.find(ou => ou.id === u.id);
-                    const isOnline = !!onlineInfo;
-                    const statusText = isOnline ? (onlineInfo.status_atendimento === 'pausa' ? 'Em Pausa' : 'Online') : 'Offline';
-                    const statusColor = isOnline ? (onlineInfo.status_atendimento === 'pausa' ? '🟠' : '🟢') : '⚪';
+                    const onlineInfo = onlineUsers.find(ou => String(ou.id) === String(u.id));
+                    let statusText = 'Offline';
+                    let statusColor = '⚪';
+                    let reasonSuffix = '';
+
+                    if (onlineInfo) {
+                        if (onlineInfo.status_atendimento === 'pausa') {
+                            statusText = 'Pausa';
+                            statusColor = '🔴';
+                            reasonSuffix = onlineInfo.motivo_pausa ? ` (${onlineInfo.motivo_pausa})` : '';
+                        } else if (onlineInfo.status_atendimento === 'offline') {
+                            statusText = 'Offline';
+                            statusColor = '⚪';
+                        } else {
+                            statusText = 'Online';
+                            statusColor = '🟢';
+                        }
+                    }
 
                     const option = document.createElement('option');
                     option.value = u.id;
-                    option.textContent = `${u.nome_completo || u.usuario} (Guichê ${u.guiche_atual || '?'}) - ${statusColor} ${statusText}`;
+                    option.textContent = `${u.nome_completo || u.usuario} (Guichê ${u.guiche_atual || '?'}) - ${statusColor} ${statusText}${reasonSuffix}`;
+                    option.title = onlineInfo && onlineInfo.motivo_pausa ? `Motivo da Pausa: ${onlineInfo.motivo_pausa}` : statusText;
                     transferUserSelect.appendChild(option);
                 });
                 transferModal.classList.remove('hidden');

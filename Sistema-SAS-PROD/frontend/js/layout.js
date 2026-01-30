@@ -57,7 +57,6 @@
                                 ${renderMenuItem('Monitor', 'monitor', 'Monitor', activePage)}
                                 ${renderMenuItem('Relatórios', 'relatorios', 'FileText', activePage)}
                                 ${renderMenuItem('Usuários', 'usuarios', 'Users', activePage)}
-                                ${renderMenuItem('Painel', 'painel', 'Tv', activePage)}
                             </nav>
 
                             <!-- User Profile & Dropdown -->
@@ -104,14 +103,14 @@
         app.innerHTML = layoutHTML + `
             <!-- Global Modal System -->
             <div id="globalModalContainer" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-[9999] p-4">
-                <div id="globalModal" class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in">
-                    <div class="p-6">
-                        <div class="flex items-start gap-4">
-                            <div id="globalModalIconContainer" class="bg-blue-100 p-3 rounded-full shrink-0">
+                <div id="globalModal" class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fade-in">
+                    <div class="px-8 pt-8">
+                        <div class="flex flex-col items-center text-center">
+                            <div id="globalModalIconContainer" class="bg-blue-100 p-3 rounded-full mb-4 hidden">
                                 <i id="globalModalIcon" data-lucide="alert-circle" class="w-6 h-6 text-blue-600"></i>
                             </div>
                             <div class="flex-1">
-                                <h3 id="globalModalTitle" class="text-lg font-bold text-slate-800 mb-2">Confirmar Ação</h3>
+                                <h3 id="globalModalTitle" class="text-2xl font-bold text-slate-800 mb-2">Confirmar Ação</h3>
                                 <div id="globalModalMessage" class="text-slate-600">Tem certeza que deseja prosseguir?</div>
                             </div>
                         </div>
@@ -149,12 +148,14 @@
 
             // Style based on type
             if (type === 'danger') {
-                modalIconContainer.className = 'bg-red-100 p-3 rounded-full shrink-0';
+                modalIconContainer.classList.remove('hidden');
+                modalIconContainer.className = 'bg-red-100 p-3 rounded-full mb-4';
                 modalIcon.className = 'w-6 h-6 text-red-600';
                 modalIcon.setAttribute('data-lucide', 'alert-triangle');
                 modalConfirmBtn.className = 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-red-200';
             } else {
-                modalIconContainer.className = 'bg-blue-100 p-3 rounded-full shrink-0';
+                modalIconContainer.classList.remove('hidden');
+                modalIconContainer.className = 'bg-blue-100 p-3 rounded-full mb-4';
                 modalIcon.className = 'w-6 h-6 text-blue-600';
                 modalIcon.setAttribute('data-lucide', 'alert-circle');
                 modalConfirmBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200';
@@ -171,14 +172,18 @@
             modalCancelBtn.classList.add('hidden');
             modalConfirmBtn.textContent = 'OK';
 
-            // Style based on type
             if (type === 'danger') {
-                modalIconContainer.className = 'bg-red-100 p-3 rounded-full shrink-0';
+                modalIconContainer.classList.remove('hidden');
+                modalIconContainer.className = 'bg-red-100 p-3 rounded-full mb-4';
                 modalIcon.className = 'w-6 h-6 text-red-600';
                 modalIcon.setAttribute('data-lucide', 'alert-triangle');
                 modalConfirmBtn.className = 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-red-200';
+            } else if (type === 'info-no-icon') {
+                modalIconContainer.classList.add('hidden');
+                modalConfirmBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200';
             } else {
-                modalIconContainer.className = 'bg-blue-100 p-3 rounded-full shrink-0';
+                modalIconContainer.classList.remove('hidden');
+                modalIconContainer.className = 'bg-blue-100 p-3 rounded-full mb-4';
                 modalIcon.className = 'w-6 h-6 text-blue-600';
                 modalIcon.setAttribute('data-lucide', 'alert-circle');
                 modalConfirmBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-blue-200';
@@ -282,7 +287,7 @@
 
         resetInactivityTimer();
 
-        // Heartbeat Logic (Every 30 seconds)
+        // Heartbeat Logic (Every 10 seconds)
         setInterval(async () => {
             const currentUser = JSON.parse(localStorage.getItem('sas_user'));
             if (currentUser) {
@@ -296,6 +301,6 @@
                     console.error('Heartbeat failed:', e);
                 }
             }
-        }, 30000);
+        }, 10000);
     };
 })();

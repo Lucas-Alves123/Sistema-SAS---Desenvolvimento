@@ -138,27 +138,46 @@
 
         const loadUsers = async () => {
             usersList = await window.SAS.base44.entities.SystemUser.list();
+            await fetchOnlineStatus();
+            renderTable(usersList);
+        };
 
+        const fetchOnlineStatus = async () => {
             try {
                 const response = await fetch('/api/usuarios/online');
                 if (response.ok) {
                     const onlineUsers = await response.json();
+                    let changed = false;
+
                     usersList = usersList.map(u => {
-                        const onlineInfo = onlineUsers.find(ou => ou.id === u.id);
-                        if (onlineInfo) {
-                            return { ...u, status_atendimento: onlineInfo.status_atendimento, motivo_pausa: onlineInfo.motivo_pausa };
+                        const onlineInfo = onlineUsers.find(ou => String(ou.id) === String(u.id));
+
+                        // Default logic for system users/non-attendants
+                        if (u.tipo !== 'usuario' || u.situacao !== 'ativo') {
+                            return { ...u, status_atendimento: '-' };
                         }
-                        if (u.tipo === 'usuario' && u.situacao === 'ativo') {
-                            return { ...u, status_atendimento: 'offline' };
+
+                        // Determine new status from backend
+                        let newStatus = onlineInfo ? onlineInfo.status_atendimento : 'offline';
+                        let newMotivo = onlineInfo ? onlineInfo.motivo_pausa : null;
+
+                        if (u.status_atendimento !== newStatus || u.motivo_pausa !== newMotivo) {
+                            changed = true;
                         }
-                        return u;
+
+                        return { ...u, status_atendimento: newStatus, motivo_pausa: newMotivo };
                     });
+
+                    if (changed) {
+                        renderTable(getFilteredUsers());
+                    }
                 }
             } catch (e) {
                 console.error('Error fetching online status:', e);
+            } finally {
+                // Recursive call with 4s delay to avoid overlap
+                setTimeout(fetchOnlineStatus, 4000);
             }
-
-            renderTable(usersList);
         };
 
         const renderTable = (data) => {
@@ -219,11 +238,34 @@
                 let atendimentoStatus = '-';
                 if (u.tipo === 'usuario' && u.situacao === 'ativo') {
                     if (u.status_atendimento === 'pausa') {
-                        atendimentoStatus = `<span class="text-red-600 font-bold" title="${u.motivo_pausa || 'Pausa'}">Pausa</span>`;
+                        atendimentoStatus = `
+                            <div class="relative group inline-block">
+                                <span class="text-red-600 font-bold cursor-help flex items-center gap-1">
+                                    <i data-lucide="pause-circle" class="w-3.5 h-3.5"></i> Pausa
+                                </span>
+                                <!-- Popover -->
+                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 invisible group-hover:visible group-hover:opacity-100 opacity-0 z-50 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
+                                    <div class="bg-slate-800 text-white text-[10px] py-1.5 px-3 rounded-lg shadow-xl w-48 border border-slate-700 relative text-center">
+                                        <div class="font-bold text-slate-400 mb-1 uppercase tracking-wider">Motivo da Pausa</div>
+                                        <div class="text-white normal-case italic whitespace-normal">${u.motivo_pausa || 'Não especificado'}</div>
+                                        <!-- Arrow -->
+                                        <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                     } else if (u.status_atendimento === 'offline') {
-                        atendimentoStatus = `<span class="text-gray-400 font-bold">Offline</span>`;
+                        atendimentoStatus = `
+                            <span class="text-gray-400 font-bold flex items-center gap-1">
+                                <div class="w-2 h-2 rounded-full bg-gray-300"></div> Offline
+                            </span>
+                        `;
                     } else {
-                        atendimentoStatus = `<span class="text-green-600 font-bold">Online</span>`;
+                        atendimentoStatus = `
+                            <span class="text-green-600 font-bold flex items-center gap-1">
+                                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div> Online
+                            </span>
+                        `;
                     }
                 }
 
@@ -251,19 +293,46 @@
             });
         };
 
-        searchInput.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = usersList.filter(u =>
+        const toggleStatus = async (id) => {
+            const index = usersList.findIndex(u => String(u.id) === String(id));
+            if (index === -1) return;
+
+            const user = usersList[index];
+            const originalStatus = user.situacao;
+            const novoStatus = originalStatus === 'ativo' ? 'inativo' : 'ativo';
+
+            // Optimistic Update
+            usersList[index].situacao = novoStatus;
+            renderTable(getFilteredUsers());
+
+            try {
+                await window.SAS.base44.entities.SystemUser.update(id, { situacao: novoStatus });
+                window.SAS.utils.notify('success', `Usuário ${novoStatus === 'ativo' ? 'ativado' : 'desativado'} com sucesso!`);
+            } catch (err) {
+                // Rollback on error
+                usersList[index].situacao = originalStatus;
+                renderTable(getFilteredUsers());
+                window.SAS.utils.modal.alert('Erro', 'Erro ao alterar status: ' + (err.message || 'Erro no servidor'), 'danger');
+            }
+        };
+
+        const getFilteredUsers = () => {
+            const term = searchInput.value.toLowerCase();
+            return usersList.filter(u =>
                 u.nome_completo.toLowerCase().includes(term) ||
                 u.usuario.toLowerCase().includes(term)
             );
-            renderTable(filtered);
+        };
+
+        searchInput.addEventListener('input', () => {
+            renderTable(getFilteredUsers());
         });
 
         if (newUserBtn) {
             newUserBtn.addEventListener('click', () => {
                 userForm.reset();
                 document.getElementById('userId').value = '';
+                document.getElementById('senha').required = true;
                 modalTitle.textContent = 'Novo Usuário';
                 modalUsuario.classList.remove('hidden');
             });
@@ -296,7 +365,8 @@
             };
 
             if (!id) {
-                const usuarioGerado = nome.toLowerCase().split(' ')[0] + '.' + (nome.toLowerCase().split(' ').pop() || '');
+                const parts = nome.trim().toLowerCase().split(' ');
+                const usuarioGerado = parts[0] + '.' + (parts.length > 1 ? parts[parts.length - 1] : '');
                 payload.usuario = usuarioGerado;
                 payload.situacao = 'ativo';
             }
@@ -316,7 +386,7 @@
                     window.SAS.utils.notify('success', 'Usuário criado com sucesso!');
                 }
                 modalUsuario.classList.add('hidden');
-                loadUsers();
+                loadUsers(); // Refresh full state
             } catch (err) {
                 console.error(err);
                 const msg = err.message || err.error || 'Erro desconhecido ao salvar.';
@@ -334,6 +404,7 @@
             document.getElementById('email').value = u.email || '';
             document.getElementById('tipo').value = u.tipo;
             document.getElementById('senha').value = '';
+            document.getElementById('senha').required = false;
             document.getElementById('confirmSenha').value = '';
 
             modalTitle.textContent = 'Editar Usuário';
@@ -349,19 +420,22 @@
                 'Excluir Usuário',
                 'Tem certeza que deseja excluir este usuário?',
                 async () => {
-                    await window.SAS.base44.entities.SystemUser.delete(id);
-                    window.SAS.utils.notify('success', 'Usuário excluído com sucesso!');
-                    loadUsers();
+                    try {
+                        const originalList = [...usersList];
+                        // Optimistic Remove
+                        usersList = usersList.filter(u => String(u.id) !== String(id));
+                        renderTable(getFilteredUsers());
+
+                        await window.SAS.base44.entities.SystemUser.delete(id);
+                        window.SAS.utils.notify('success', 'Usuário excluído com sucesso!');
+                    } catch (err) {
+                        // Rollback
+                        loadUsers();
+                        window.SAS.utils.modal.alert('Erro', 'Erro ao excluir usuário.', 'danger');
+                    }
                 },
                 'danger'
             );
-        };
-
-        const toggleStatus = async (id) => {
-            const u = usersList.find(user => String(user.id) === String(id));
-            const novoStatus = u.situacao === 'ativo' ? 'inativo' : 'ativo';
-            await window.SAS.base44.entities.SystemUser.update(id, { situacao: novoStatus });
-            loadUsers();
         };
 
         document.getElementById('cpf').addEventListener('input', (e) => {
@@ -369,7 +443,7 @@
         });
 
         loadUsers();
-        setInterval(loadUsers, 10000);
+        setTimeout(fetchOnlineStatus, 4000); // Start recursive polling
     </script>
 </body>
 

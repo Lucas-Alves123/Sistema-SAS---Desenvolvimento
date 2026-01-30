@@ -6,7 +6,7 @@
 (function () {
     window.SAS = window.SAS || {};
 
-    const API_URL = 'http://localhost:5000/api';
+    const API_URL = '/api';
 
     // Generic CRUD Helper for Fetch API
     const createCRUD = (endpoint) => ({

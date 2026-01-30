@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -102,9 +103,12 @@
                                 <option value="">Todos</option>
                             </select>
                         </div>
-                        <div class="flex items-end">
-                            <button id="filterBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-bold transition-colors flex items-center justify-center gap-2">
+                        <div class="flex items-end gap-2">
+                            <button id="filterBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-bold transition-colors flex items-center justify-center gap-2">
                                 <i data-lucide="filter" class="w-4 h-4"></i> Filtrar
+                            </button>
+                            <button id="exportDetailedBtn" class="flex-1 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 py-1.5 rounded font-bold transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="download" class="w-4 h-4"></i> Exportar
                             </button>
                         </div>
                     </div>
@@ -114,13 +118,20 @@
                         <table class="w-full text-sm text-left border-collapse">
                             <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
                                 <tr>
-                                    <th class="px-4 py-3 border-r border-slate-200">Data</th>
-                                    <th class="px-4 py-3 border-r border-slate-200">Cliente</th>
-                                    <th class="px-4 py-3 border-r border-slate-200">Serviço</th>
-                                    <th class="px-4 py-3 border-r border-slate-200">Atendente</th>
-                                    <th class="px-4 py-3 border-r border-slate-200">Status</th>
-                                    <th class="px-4 py-3 border-r border-slate-200 w-1/4">Obs. Cliente</th>
-                                    <th class="px-4 py-3 w-1/4">Obs. Solução</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">Data/Hora</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">Nome</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">CPF</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">Matrícula</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">Cargo</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">Vínculo</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">Local</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">E-mail</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">Serviço</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">Atendimento</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">Prioridade</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">Status</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">Obs 1 (Prob)</th>
+                                    <th class="px-3 py-3">Obs 2 (Sol)</th>
                                 </tr>
                             </thead>
                             <tbody id="reportTableBody" class="divide-y divide-slate-200">
@@ -275,24 +286,79 @@
 
             data.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-50 transition-colors';
+                tr.className = 'hover:bg-slate-50 transition-colors text-xs text-center';
 
                 let statusColor = 'text-gray-600';
                 if (item.status === 'concluido') statusColor = 'text-green-600 font-bold';
-                else if (item.status === 'cancelado' || item.status === 'nao_compareceu') statusColor = 'text-red-600 font-bold';
+                else if (item.status === 'cancelado' || item.status === 'nao_compareceu' || item.status === 'cancelado_pelo_servidor') statusColor = 'text-red-600 font-bold';
+                else if (item.status === 'em_atendimento') statusColor = 'text-blue-600 font-bold';
 
                 tr.innerHTML = `
-                    <td class="px-4 py-3 border-r border-slate-100 text-gray-600 whitespace-nowrap">${window.SAS.utils.formatDate(item.data_agendamento)}</td>
-                    <td class="px-4 py-3 border-r border-slate-100 font-medium text-gray-800">${item.nome_completo}</td>
-                    <td class="px-4 py-3 border-r border-slate-100 text-gray-600">${item.tipo_servico}</td>
-                    <td class="px-4 py-3 border-r border-slate-100 text-gray-600">${item.atendente_nome || '-'}</td>
-                    <td class="px-4 py-3 border-r border-slate-100 ${statusColor} capitalize">${item.status.replace('_', ' ')}</td>
-                    <td class="px-4 py-3 border-r border-slate-100 text-gray-500 text-xs italic">${item.observacao_problema || '-'}</td>
-                    <td class="px-4 py-3 text-gray-500 text-xs italic">${item.observacao_solucao || '-'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600 whitespace-nowrap">${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio ? item.hora_inicio.substring(0, 5) : ''}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 font-medium text-gray-800">${item.nome_completo || '-'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${window.SAS.utils.formatCPF(item.cpf || '') || '-'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.matricula || '-'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.cargo || '-'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600 capitalize">${item.vinculo || '-'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.local_trabalho || '-'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.email || '-'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.tipo_servico || '-'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600 capitalize">${item.tipo_atendimento || '-'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.prioridade || 'Normal'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 ${statusColor} capitalize">${item.status.replace(/_/g, ' ')}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-500 text-[10px] italic max-w-[150px] truncate">${item.observacao_problema || '-'}</td>
+                    <td class="px-2 py-3 text-gray-500 text-[10px] italic max-w-[150px] truncate">${item.observacao_solucao || '-'}</td>
                 `;
                 reportTableBody.appendChild(tr);
             });
         };
+
+        const exportDetailedBtn = document.getElementById('exportDetailedBtn');
+        exportDetailedBtn.addEventListener('click', async () => {
+            try {
+                let data = await window.SAS.base44.entities.Agendamento.list('-created_date');
+
+                // Apply same filters as table
+                const start = filterStartDate.value;
+                const end = filterEndDate.value;
+                const attendant = filterAttendant.value;
+
+                if (start) data = data.filter(d => d.data_agendamento >= start);
+                if (end) data = data.filter(d => d.data_agendamento <= end);
+                if (attendant) data = data.filter(d => d.atendente_id == attendant);
+
+                if (data.length === 0) {
+                    window.SAS.utils.modal.alert('Exportar', 'Não há dados para exportar com estes filtros.', 'info');
+                    return;
+                }
+
+                const dataToExport = data.map(a => ({
+                    'Data/Hora': `${window.SAS.utils.formatDate(a.data_agendamento)} ${a.hora_inicio || ''}`,
+                    'Nome Completo': a.nome_completo,
+                    'CPF': a.cpf,
+                    'Matrícula': a.matricula,
+                    'Cargo': a.cargo,
+                    'Vínculo': a.vinculo,
+                    'Local de Trabalho': a.local_trabalho,
+                    'E-mail': a.email,
+                    'Serviço': a.tipo_servico,
+                    'Atendimento': a.tipo_atendimento,
+                    'Prioridade': a.prioridade,
+                    'Status': a.status.replace(/_/g, ' ').toUpperCase(),
+                    'Obsservação 1 - Problema': a.observacao_problema,
+                    'Observação 2 - Solução': a.observacao_solucao
+                }));
+
+                const ws = XLSX.utils.json_to_sheet(dataToExport);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Relatorio_Detalhado");
+                XLSX.writeFile(wb, "Relatorio_SAS.xlsx");
+
+            } catch (err) {
+                console.error(err);
+                window.SAS.utils.modal.alert('Erro', 'Erro ao exportar dados: ' + err.message, 'danger');
+            }
+        });
 
         filterBtn.addEventListener('click', loadReportTable);
 
