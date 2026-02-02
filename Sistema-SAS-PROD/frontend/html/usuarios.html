@@ -70,7 +70,7 @@
     <script src="js/layout.js"></script>
 
     <script>
-        const user = window.SAS.utils.checkAuth();
+        let user = window.SAS.utils.checkAuth();
         window.SAS.layout.renderLayout('Usuários');
 
         const content = document.getElementById('page-content');
@@ -94,7 +94,7 @@
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                         <input id="searchInput" type="text" placeholder="Pesquisar por nome..." class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
-                    ${user.tipo === 'adm' ? `
+                    ${['adm', 'dev'].includes(user.tipo) ? `
                     <button id="newUserBtn" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors">
                         <i data-lucide="plus" class="w-4 h-4"></i> Novo Usuário
                     </button>
@@ -138,6 +138,14 @@
 
         const loadUsers = async () => {
             usersList = await window.SAS.base44.entities.SystemUser.list();
+
+            // Sync session if data changed in DB
+            const me = usersList.find(u => String(u.id) === String(user.id));
+            if (me && (me.tipo !== user.tipo || me.nome_completo !== user.nome_completo)) {
+                localStorage.setItem('sas_user', JSON.stringify(me));
+                user = me; // Update local reference
+            }
+
             await fetchOnlineStatus();
             renderTable(usersList);
         };
@@ -197,16 +205,24 @@
 
                 let actionsHTML = '';
 
-                if (user.tipo === 'adm') {
+                if (['adm', 'dev'].includes(user.tipo)) {
                     const isSelf = String(u.id) === String(user.id);
+                    // Use session tipo OR DB tipo (in case session is stale)
+                    const isDev = user.tipo === 'dev';
+                    const canEdit = isDev || u.tipo === 'usuario' || isSelf;
 
-                    if (u.tipo === 'usuario' || isSelf) {
+                    if (canEdit) {
                         actionsHTML = `
                             <div class="flex justify-end gap-2">
                                 <button class="text-yellow-600 hover:bg-yellow-50 p-1 rounded edit-btn" data-id="${u.id}" title="Editar">
                                     <i data-lucide="pencil" class="w-4 h-4"></i>
                                 </button>
-                                ${u.tipo === 'usuario' ? `
+                                ${u.tipo !== 'dev' && !isSelf ? `
+                                <button class="text-red-600 hover:bg-red-50 p-1 rounded delete-btn" data-id="${u.id}" title="Excluir">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                                ` : ''}
+                                ${user.tipo === 'dev' && u.tipo === 'dev' && !isSelf ? `
                                 <button class="text-red-600 hover:bg-red-50 p-1 rounded delete-btn" data-id="${u.id}" title="Excluir">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
@@ -221,12 +237,21 @@
                 }
 
                 let statusHTML = '';
-                if (user.tipo === 'adm' && u.tipo === 'usuario') {
-                    statusHTML = `
-                        <span class="cursor-pointer px-2 py-1 rounded-full text-xs font-medium ${situacaoClass} toggle-status" data-id="${u.id}">
-                            ${u.situacao === 'ativo' ? 'Ativo' : 'Inativo'}
-                        </span>
-                    `;
+                if (['adm', 'dev'].includes(user.tipo)) {
+                    const canToggle = user.tipo === 'dev' || u.tipo === 'usuario';
+                    if (canToggle) {
+                        statusHTML = `
+                            <span class="cursor-pointer px-2 py-1 rounded-full text-xs font-medium ${situacaoClass} toggle-status" data-id="${u.id}">
+                                ${u.situacao === 'ativo' ? 'Ativo' : 'Inativo'}
+                            </span>
+                        `;
+                    } else {
+                        statusHTML = `
+                            <span class="px-2 py-1 rounded-full text-xs font-medium ${situacaoClass}">
+                                ${u.situacao === 'ativo' ? 'Ativo' : 'Inativo'}
+                            </span>
+                        `;
+                    }
                 } else {
                     statusHTML = `
                         <span class="px-2 py-1 rounded-full text-xs font-medium ${situacaoClass}">
@@ -331,6 +356,19 @@
         if (newUserBtn) {
             newUserBtn.addEventListener('click', () => {
                 userForm.reset();
+
+                // Dynamically add DEV option only for @lucas.luna
+                const tipoSelect = document.getElementById('tipo');
+                const existingDev = Array.from(tipoSelect.options).find(o => o.value === 'dev');
+                if (user.usuario === 'lucas.luna' && !existingDev) {
+                    const devOpt = document.createElement('option');
+                    devOpt.value = 'dev';
+                    devOpt.textContent = 'Desenvolvedor (DEV)';
+                    tipoSelect.appendChild(devOpt);
+                } else if (user.usuario !== 'lucas.luna' && existingDev) {
+                    existingDev.remove();
+                }
+
                 document.getElementById('userId').value = '';
                 document.getElementById('senha').required = true;
                 modalTitle.textContent = 'Novo Usuário';
@@ -397,6 +435,18 @@
         const openEditModal = (id) => {
             const u = usersList.find(user => String(user.id) === String(id));
             if (!u) return;
+
+            // Dynamically add DEV option only for @lucas.luna
+            const tipoSelect = document.getElementById('tipo');
+            const existingDev = Array.from(tipoSelect.options).find(o => o.value === 'dev');
+            if (user.usuario === 'lucas.luna' && !existingDev) {
+                const devOpt = document.createElement('option');
+                devOpt.value = 'dev';
+                devOpt.textContent = 'Desenvolvedor (DEV)';
+                tipoSelect.appendChild(devOpt);
+            } else if (user.usuario !== 'lucas.luna' && existingDev) {
+                existingDev.remove();
+            }
 
             document.getElementById('userId').value = u.id;
             document.getElementById('nomeCompleto').value = u.nome_completo;

@@ -41,7 +41,7 @@
                         <div class="flex justify-between items-center h-20">
                             
                             <!-- Logo Section -->
-                            <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-3 cursor-pointer select-none" id="dev-logo-trigger">
                                 <div class="bg-blue-800 text-white font-bold px-3 py-1.5 rounded text-lg shadow-sm">SAS</div>
                                 <div class="flex flex-col leading-tight">
                                     <span class="text-blue-800 font-bold text-sm">SAS</span>
@@ -56,7 +56,7 @@
                                 ${renderMenuItem('Atendimento', 'atendimento', 'Headphones', activePage)}
                                 ${renderMenuItem('Monitor', 'monitor', 'Monitor', activePage)}
                                 ${renderMenuItem('Relatórios', 'relatorios', 'FileText', activePage)}
-                                ${renderMenuItem('Usuários', 'usuarios', 'Users', activePage)}
+                                ${['adm', 'dev'].includes(user.tipo) ? renderMenuItem('Usuários', 'usuarios', 'Users', activePage) : ''}
                             </nav>
 
                             <!-- User Profile & Dropdown -->
@@ -93,6 +93,9 @@
                 <footer class="bg-blue-800 text-white py-4 mt-auto">
                     <div class="max-w-7xl mx-auto px-4 text-center text-sm font-medium opacity-90">
                         © 2025 SAS — Sistema de Atendimento ao Servidor | Governo de Pernambuco
+                    </div>
+                    <div id="hidden-credit" class="hidden text-center text-[10px] mt-2 text-blue-300 italic animate-fade-in">
+                        Sistema desenvolvido com excelência por Lucas Mateus Alves Luna
                     </div>
                 </footer>
             </div>
@@ -302,5 +305,22 @@
                 }
             }
         }, 10000);
+
+        // Hidden Credit Logic (Easter Egg)
+        let logoClicks = 0;
+        const logoTrigger = document.getElementById('dev-logo-trigger');
+        const hiddenCredit = document.getElementById('hidden-credit');
+
+        if (logoTrigger && hiddenCredit) {
+            logoTrigger.addEventListener('click', () => {
+                logoClicks++;
+                if (logoClicks === 5) {
+                    hiddenCredit.classList.toggle('hidden');
+                    logoClicks = 0; // Reset
+                }
+                // Reset counter after 3 seconds of inactivity
+                setTimeout(() => { if (logoClicks < 5) logoClicks = 0; }, 3000);
+            });
+        }
     };
 })();
