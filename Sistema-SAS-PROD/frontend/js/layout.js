@@ -7,6 +7,31 @@
     window.SAS = window.SAS || {};
     window.SAS.layout = {};
 
+    window.SAS.layout.updateSolicitacoesBadge = async () => {
+        const currentUser = JSON.parse(localStorage.getItem('sas_user'));
+        if (!currentUser || !['adm', 'dev'].includes(currentUser.tipo)) return;
+
+        const lastSeenId = localStorage.getItem('sas_last_seen_solicitacao_id') || 0;
+
+        try {
+            const response = await fetch(`/api/solicitacoes/unread-count?last_id=${lastSeenId}`);
+            if (response.ok) {
+                const data = await response.json();
+                const badge = document.getElementById('solicitacoesBadge');
+                if (badge) {
+                    if (data.count > 0) {
+                        badge.textContent = data.count > 9 ? '9+' : data.count;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Error updating solicitacoes badge:', e);
+        }
+    };
+
     const renderMenuItem = (label, href, iconName, activePage) => {
         const isActive = activePage === label;
         // Active: Yellow background, dark text. Inactive: Gray text, hover blue.
@@ -59,13 +84,22 @@
                                 ${['adm', 'dev', 'usuario'].includes(user.tipo) ? renderMenuItem('Usuários', 'usuarios', 'Users', activePage) : ''}
                             </nav>
 
-                            <!-- User Profile & Dropdown -->
-                            <div class="relative">
-                                <button id="userMenuBtn" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-md shadow-blue-200">
-                                    <i data-lucide="user" class="w-4 h-4"></i>
-                                    <span class="font-medium">${userName}</span>
-                                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200" id="chevronIcon"></i>
-                                </button>
+                            <!-- Central de Solicitações Icon -->
+                            <div class="flex items-center gap-4">
+                                <a href="solicitacoes" class="relative flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg transition-all border border-slate-200 shadow-sm group" title="Central de Solicitações">
+                                    <i data-lucide="clipboard-list" class="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-bold">Solicitações</span>
+                                    <!-- Notification Badge -->
+                                    <span id="solicitacoesBadge" class="hidden absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm animate-bounce">0</span>
+                                </a>
+
+                                <!-- User Profile & Dropdown -->
+                                <div class="relative">
+                                    <button id="userMenuBtn" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-md shadow-blue-200">
+                                        <i data-lucide="user" class="w-4 h-4"></i>
+                                        <span class="font-medium">${userName}</span>
+                                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200" id="chevronIcon"></i>
+                                    </button>
 
                                 <!-- Dropdown Menu -->
                                 <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-slate-100 py-1 z-50 animate-fade-in">
@@ -82,6 +116,7 @@
                             </div>
                         </div>
                     </div>
+                </div>
                 </header>
 
                 <!-- Main Content -->
@@ -130,6 +165,11 @@
             </div>
         `;
         document.getElementById('page-content').innerHTML = existingContent;
+
+        // Immediate Notification Check
+        if (window.SAS.layout.updateSolicitacoesBadge) {
+            window.SAS.layout.updateSolicitacoesBadge();
+        }
 
         // Global Modal Logic
         const modalContainer = document.getElementById('globalModalContainer');
@@ -305,6 +345,12 @@
                 }
             }
         }, 10000);
+
+        // Poll every 30 seconds for new requests
+        setInterval(() => window.SAS.layout.updateSolicitacoesBadge(), 30000);
+        setTimeout(() => window.SAS.layout.updateSolicitacoesBadge(), 1000); // Initial check
+
+        // Hidden Credit Logic (Easter Egg)
 
         // Hidden Credit Logic (Easter Egg)
         let logoClicks = 0;

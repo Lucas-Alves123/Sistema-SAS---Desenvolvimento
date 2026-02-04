@@ -59,7 +59,7 @@
     };
 
     // Global Notification Helper
-    window.SAS.utils.notify = (type, message) => {
+    window.SAS.utils.notify = (type, message, title) => {
         if (window.toast) {
             if (type === 'success') window.toast.success(message);
             else if (type === 'error') window.toast.error(message);
@@ -68,7 +68,8 @@
         } else {
             // Fallback to custom modal if toast is not available
             if (window.SAS.utils.modal) {
-                window.SAS.utils.modal.alert(type === 'error' ? 'Erro' : 'Aviso', message, type === 'error' ? 'danger' : 'info');
+                const defaultTitle = type === 'error' ? 'Erro' : 'Aviso';
+                window.SAS.utils.modal.alert(title || defaultTitle, message, type === 'error' ? 'danger' : 'info');
             } else {
                 console.log(`[${type.toUpperCase()}] ${message}`);
                 if (type === 'error') alert(message);
