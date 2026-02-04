@@ -345,7 +345,7 @@
             });
 
             const active = todayAppointments.find(a =>
-                (a.status === 'pendente' || a.status === 'em_andamento') &&
+                (a.status === 'pendente' || a.status === 'em_andamento' || a.status === 'na_fila_do_painel') &&
                 a.atendente_id === user.id
             );
 
@@ -453,6 +453,30 @@
                             </button>
                             <button onclick="cancelService('${item.id}')" class="bg-white border border-gray-300 text-gray-600 px-6 py-3 rounded-lg font-bold text-lg hover:bg-gray-50 flex items-center gap-2">
                                 <i data-lucide="x" class="w-5 h-5"></i> Cancelar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (item.status === 'na_fila_do_painel') {
+                activeCallSection.innerHTML = `
+                    <div class="bg-slate-50 rounded-xl shadow border-2 border-slate-300 p-8 animate-pulse relative">
+                        <div class="absolute top-4 right-4 flex items-center gap-2 text-slate-500 font-bold text-sm bg-white px-3 py-1 rounded-full shadow-sm">
+                             <div class="w-2 h-2 rounded-full bg-slate-400 animate-bounce"></div>
+                             FILA DO PAINEL
+                        </div>
+                        <div class="mb-6">
+                            <h2 class="text-3xl font-bold text-slate-700 mb-1 opacity-60">${item.nome_completo}</h2>
+                            <div class="text-slate-400 text-lg">Aguardando liberação do painel...</div>
+                        </div>
+                        <div class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6">
+                            <p class="text-yellow-700 text-sm font-medium">
+                                <strong>Aviso:</strong> Há outra chamada ativa no painel no momento. 
+                                Seu chamado será exibido e anunciado automaticamente assim que o painel for liberado.
+                            </p>
+                        </div>
+                        <div class="flex gap-4">
+                            <button onclick="cancelService('${item.id}')" class="bg-white border border-gray-300 text-gray-500 px-6 py-3 rounded-lg font-bold text-lg hover:bg-gray-50 flex items-center gap-2">
+                                <i data-lucide="x" class="w-5 h-5"></i> Cancelar Chamada
                             </button>
                         </div>
                     </div>
