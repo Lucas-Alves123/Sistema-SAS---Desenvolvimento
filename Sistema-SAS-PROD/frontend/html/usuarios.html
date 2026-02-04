@@ -112,7 +112,7 @@
                                 <th class="p-3">Tipo</th>
                                 <th class="p-3">Status</th>
                                 <th class="p-3">Situação</th>
-                                <th class="p-3 rounded-tr-lg text-right">Ações</th>
+                                ${['adm', 'dev'].includes(user.tipo) ? '<th class="p-3 rounded-tr-lg text-right">Ações</th>' : '<th class="p-3 rounded-tr-lg"></th>'}
                             </tr>
                         </thead>
                         <tbody id="userTableBody" class="divide-y divide-slate-100">
@@ -301,7 +301,7 @@
                     <td class="p-3"><span class="bg-slate-100 px-2 py-1 rounded text-xs uppercase font-bold text-slate-600">${u.tipo}</span></td>
                     <td class="p-3">${atendimentoStatus}</td>
                     <td class="p-3">${statusHTML}</td>
-                    <td class="p-3 text-right">${actionsHTML}</td>
+                    <td class="p-3 text-right">${['adm', 'dev'].includes(user.tipo) ? actionsHTML : ''}</td>
                 `;
                 userTableBody.appendChild(tr);
             });

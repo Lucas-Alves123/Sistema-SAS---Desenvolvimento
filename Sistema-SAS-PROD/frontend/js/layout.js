@@ -56,7 +56,7 @@
                                 ${renderMenuItem('Atendimento', 'atendimento', 'Headphones', activePage)}
                                 ${renderMenuItem('Monitor', 'monitor', 'Monitor', activePage)}
                                 ${renderMenuItem('Relatórios', 'relatorios', 'FileText', activePage)}
-                                ${['adm', 'dev'].includes(user.tipo) ? renderMenuItem('Usuários', 'usuarios', 'Users', activePage) : ''}
+                                ${['adm', 'dev', 'usuario'].includes(user.tipo) ? renderMenuItem('Usuários', 'usuarios', 'Users', activePage) : ''}
                             </nav>
 
                             <!-- User Profile & Dropdown -->

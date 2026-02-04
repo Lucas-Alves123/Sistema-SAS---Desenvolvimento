@@ -536,3 +536,8 @@
 2026-01-14 16:34:42,688 - 10.16.13.79 - - [14/Jan/2026 16:34:42] "[33mGET /usuarios/online HTTP/1.1[0m" 404 -
 2026-01-14 16:34:52,686 - 10.16.13.79 - - [14/Jan/2026 16:34:52] "[33mGET /usuarios/online HTTP/1.1[0m" 404 -
 2026-01-14 16:34:57,422 -  * Detected change in 'C:\\Users\\lucas.luna\\sistema de atendimento ao servidor - sas\\Sistema-SAS---Desenvolvimento\\Sistema-SAS---Desenvolvimento\\check_lucas.py', reloading
+2026-02-04 11:54:57,402 - REQUEST RECEIVED: valor='70307579476'
+2026-02-04 11:54:57,402 - Cleaned value for CPF check: '70307579476'
+2026-02-04 11:54:57,402 - Attempting CPF search...
+2026-02-04 11:54:57,415 - CPF Search Result: {'nome_completo': 'LARA LIVIA AGRA AMARAL', 'cpf': '70307579476', 'email': 'LARA.AGRA@SAUDE.PE.GOV.BR', 'matricula': '3735532/02', 'cargo': 'CARG DIR ASSESS SUP 4 - DAS-4', 'vinculo': 'COM', 'local_trabalho': 'SEC EXEC GESTAO DO TRAB EDUC NA SAUDE'}
+2026-02-04 11:54:57,415 - Server FOUND
