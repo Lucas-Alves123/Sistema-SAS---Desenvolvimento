@@ -541,3 +541,15 @@
 2026-02-04 11:54:57,402 - Attempting CPF search...
 2026-02-04 11:54:57,415 - CPF Search Result: {'nome_completo': 'LARA LIVIA AGRA AMARAL', 'cpf': '70307579476', 'email': 'LARA.AGRA@SAUDE.PE.GOV.BR', 'matricula': '3735532/02', 'cargo': 'CARG DIR ASSESS SUP 4 - DAS-4', 'vinculo': 'COM', 'local_trabalho': 'SEC EXEC GESTAO DO TRAB EDUC NA SAUDE'}
 2026-02-04 11:54:57,415 - Server FOUND
+2026-02-05 09:12:53,033 - REQUEST RECEIVED: valor='97493694400'
+2026-02-05 09:12:53,034 - Cleaned value for CPF check: '97493694400'
+2026-02-05 09:12:53,034 - Attempting CPF search...
+2026-02-05 09:12:53,044 - CPF Search Result: None
+2026-02-05 09:12:53,044 - Attempting Matricula search...
+2026-02-05 09:12:53,065 - Matricula Search Result: None
+2026-02-05 09:12:53,065 - Server NOT FOUND
+2026-02-06 08:52:34,662 - REQUEST RECEIVED: valor='89951638449'
+2026-02-06 08:52:34,663 - Cleaned value for CPF check: '89951638449'
+2026-02-06 08:52:34,663 - Attempting CPF search...
+2026-02-06 08:52:34,672 - CPF Search Result: {'nome_completo': 'ANA NONATO', 'cpf': '89951638449', 'email': 'ANANNONATO@HOTMAIL.COM', 'matricula': '2355280/02', 'cargo': 'ENFERMEIRO ASSISTENCIAL', 'vinculo': 'CTD', 'local_trabalho': 'HOSP REG INACIO DE SA SALGUEIRO'}
+2026-02-06 08:52:34,672 - Server FOUND

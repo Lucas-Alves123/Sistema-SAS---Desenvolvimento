@@ -64,14 +64,17 @@
                             <input type="text" id="cargo" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-400" placeholder="Ex.: Analista Administrativo">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-sm font-semibold text-gray-700">Tipo de vínculo</label>
-                            <select id="vinculo" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600">
+                            <label class="text-sm font-semibold text-gray-700">Tipo de Vínculo <span class="text-red-500">*</span></label>
+                            <select id="vinculo" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600" required>
                                 <option value="">Selecione...</option>
-                                <option value="Efetivo">Efetivo</option>
                                 <option value="Comissionado">Comissionado</option>
-                                <option value="Temporário">Temporário</option>
-                                <option value="Estagiário">Estagiário</option>
-                                <option value="Jovem Aprendiz">Jovem Aprendiz</option>
+                                <option value="Concurso (Nomeado)">Concurso (Nomeado)</option>
+                                <option value="CTD (Contrato)">CTD (Contrato)</option>
+                                <option value="Estatutário">Estatutário</option>
+                                <option value="Ex-servidor">Ex-servidor</option>
+                                <option value="Extra – Sem vínculo">Extra – Sem vínculo</option>
+                                <option value="Seleção (Convocado)">Seleção (Convocado)</option>
+                                <option value="Outros">Outros</option>
                             </select>
                         </div>
                         <div class="space-y-2">
@@ -113,10 +116,10 @@
                     <!-- Row 4 -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="space-y-2">
-                            <label class="text-sm font-semibold text-gray-700">Prioridade</label>
+                            <label class="text-sm font-semibold text-gray-700">Nível de Atendimento</label>
                             <select id="prioridade" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600">
                                 <option value="Normal">Normal</option>
-                                <option value="Urgente">Urgente</option>
+                                <option value="Preferencial">Preferencial</option>
                             </select>
                         </div>
                         <div class="space-y-2">

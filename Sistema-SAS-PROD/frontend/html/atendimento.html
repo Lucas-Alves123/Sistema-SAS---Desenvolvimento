@@ -337,8 +337,8 @@
                 a.status === 'chegou' &&
                 (a.tipo_atendimento === currentQueueTab || (!a.tipo_atendimento && currentQueueTab === 'Presencial'))
             ).sort((a, b) => {
-                if (a.prioridade === 'Urgente' && b.prioridade !== 'Urgente') return -1;
-                if (a.prioridade !== 'Urgente' && b.prioridade === 'Urgente') return 1;
+                if (a.prioridade === 'Preferencial' && b.prioridade !== 'Preferencial') return -1;
+                if (a.prioridade !== 'Preferencial' && b.prioridade === 'Preferencial') return 1;
                 const timeA = a.hora_inicio || '00:00';
                 const timeB = b.hora_inicio || '00:00';
                 return timeA.localeCompare(timeB);
@@ -395,10 +395,10 @@
                 return;
             }
             items.forEach(item => {
-                const isUrgent = item.prioridade === 'Urgente';
+                const isUrgent = item.prioridade === 'Preferencial';
                 const bgClass = isUrgent ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200';
                 const textClass = isUrgent ? 'text-red-800' : 'text-green-800';
-                const badge = isUrgent ? '<span class="bg-red-200 text-red-800 text-xs px-2 py-0.5 rounded-full font-bold">URGENTE</span>' : '';
+                const badge = isUrgent ? '<span class="bg-red-200 text-red-800 text-xs px-2 py-0.5 rounded-full font-bold uppercase">PREFERENCIAL</span>' : '';
 
                 const div = document.createElement('div');
                 div.className = `${bgClass} border p-4 rounded-lg flex justify-between items-center`;
@@ -410,7 +410,7 @@
                     <div class="flex items-center gap-4">
                         <div class="text-right hidden md:block">
                             <div class="font-bold ${textClass}">Aguardando</div>
-                            <div class="text-xs ${textClass} opacity-80">Prioridade: ${item.prioridade}</div>
+                            <div class="text-xs ${textClass} opacity-80">Nível: ${item.prioridade}</div>
                         </div>
                         <button onclick="manualCall('${item.id}')" class="bg-white border border-slate-200 hover:bg-blue-50 text-blue-700 p-2 rounded-lg shadow-sm transition-all" title="Chamar Agora">
                             <i data-lucide="megaphone" class="w-5 h-5"></i>
@@ -445,7 +445,10 @@
                         <div class="mb-6">
                             <h2 class="text-3xl font-bold text-blue-800 mb-1">${item.nome_completo}</h2>
                             <div class="text-gray-500 text-lg">${item.tipo_servico}</div>
-                            <span class="bg-gray-600 text-white px-3 py-1 rounded-full text-sm font-bold mt-2 inline-block">Prioridade: ${item.prioridade}</span>
+                            <div class="flex gap-2 flex-wrap mt-2">
+                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">Vínculo: ${item.vinculo || '-'}</span>
+                                <span class="bg-gray-600 text-white px-3 py-1 rounded-full text-sm font-bold">Nível de Atendimento: ${item.prioridade}</span>
+                            </div>
                         </div>
                         <div class="flex gap-4">
                             <button onclick="startService('${item.id}')" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-bold text-lg flex items-center gap-2 transition-all">
@@ -493,7 +496,10 @@
                         <div class="mb-6 border-b pb-4">
                             <h2 class="text-3xl font-bold text-blue-800 mb-1">${item.nome_completo}</h2>
                             <div class="text-gray-500 text-lg">${item.tipo_servico}</div>
-                            <span class="bg-gray-600 text-white px-3 py-1 rounded-full text-sm font-bold mt-2 inline-block">Prioridade: ${item.prioridade}</span>
+                            <div class="flex gap-2 flex-wrap mt-2">
+                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">Vínculo: ${item.vinculo || '-'}</span>
+                                <span class="bg-gray-600 text-white px-3 py-1 rounded-full text-sm font-bold">Nível de Atendimento: ${item.prioridade}</span>
+                            </div>
                         </div>
                         <div class="space-y-6">
                             <div>
@@ -708,8 +714,8 @@
                 a.status === 'chegou' &&
                 (a.tipo_atendimento === currentQueueTab || (!a.tipo_atendimento && currentQueueTab === 'Presencial'))
             ).sort((a, b) => {
-                if (a.prioridade === 'Urgente' && b.prioridade !== 'Urgente') return -1;
-                if (a.prioridade !== 'Urgente' && b.prioridade === 'Urgente') return 1;
+                if (a.prioridade === 'Preferencial' && b.prioridade !== 'Preferencial') return -1;
+                if (a.prioridade !== 'Preferencial' && b.prioridade === 'Preferencial') return 1;
                 const timeA = a.hora_inicio || '00:00';
                 const timeB = b.hora_inicio || '00:00';
                 return timeA.localeCompare(timeB);

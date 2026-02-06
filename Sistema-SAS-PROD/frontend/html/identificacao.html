@@ -141,7 +141,8 @@
                             </div>
                             <div>
                                 <h3 class="font-bold text-blue-900" id="nomeServidor">Nome do Servidor</h3>
-                                <p class="text-sm text-blue-700 mt-0.5" id="dadosServidor">CPF: ... | Matrícula: ...</p>
+                                <p class="text-sm text-blue-700 mt-0.5" id="dadosServidor">CPF: ... | Matrícula: ... |
+                                    Vínculo: ...</p>
                             </div>
                         </div>
 
@@ -585,7 +586,7 @@
                 if (data.success) {
                     currentServidor = data.data;
                     nomeServidor.textContent = currentServidor.nome_completo;
-                    dadosServidor.textContent = `CPF: ${currentServidor.cpf || '-'} | Matrícula: ${currentServidor.matricula || '-'}`;
+                    dadosServidor.textContent = `CPF: ${currentServidor.cpf || '-'} | Matrícula: ${currentServidor.matricula || '-'} | Vínculo: ${currentServidor.vinculo || '-'}`;
                     successState.classList.remove('hidden');
                     btnBuscar.classList.add('hidden');
                     btnContinuar.classList.remove('hidden');
