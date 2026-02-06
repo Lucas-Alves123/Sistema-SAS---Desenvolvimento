@@ -118,14 +118,14 @@
                 users.forEach(u => {
                     const option = document.createElement('option');
                     option.value = u.id;
-                    option.textContent = u.usuario;
+                    option.textContent = u.nome_completo;
                     attendantFilter.appendChild(option);
                 });
             }
             let atendimentos = await window.SAS.base44.entities.Agendamento.list('-created_date');
 
             if (attendantFilter && attendantFilter.value !== 'all') {
-                atendimentos = atendimentos.filter(a => a.atendente_id === attendantFilter.value);
+                atendimentos = atendimentos.filter(a => String(a.atendente_id) === String(attendantFilter.value));
             }
 
             const counts = {

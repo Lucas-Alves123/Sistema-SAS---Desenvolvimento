@@ -25,6 +25,11 @@
 
     window.SAS.utils.formatDate = (dateString) => {
         if (!dateString) return '';
+        // Handle YYYY-MM-DD strings to avoid UTC transformation issues
+        if (dateString.length === 10 && dateString.includes('-')) {
+            const [year, month, day] = dateString.split('-').map(Number);
+            return new Date(year, month - 1, day).toLocaleDateString('pt-BR');
+        }
         const date = new Date(dateString);
         return date.toLocaleDateString('pt-BR');
     };

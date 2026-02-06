@@ -553,3 +553,79 @@
 2026-02-06 08:52:34,663 - Attempting CPF search...
 2026-02-06 08:52:34,672 - CPF Search Result: {'nome_completo': 'ANA NONATO', 'cpf': '89951638449', 'email': 'ANANNONATO@HOTMAIL.COM', 'matricula': '2355280/02', 'cargo': 'ENFERMEIRO ASSISTENCIAL', 'vinculo': 'CTD', 'local_trabalho': 'HOSP REG INACIO DE SA SALGUEIRO'}
 2026-02-06 08:52:34,672 - Server FOUND
+2026-02-06 15:28:05,347 - REQUEST RECEIVED: valor='07958432402'
+2026-02-06 15:28:05,347 - Cleaned value for CPF check: '07958432402'
+2026-02-06 15:28:05,347 - Attempting CPF search...
+2026-02-06 15:28:05,356 - CPF Search Result: None
+2026-02-06 15:28:05,356 - Attempting Matricula search...
+2026-02-06 15:28:05,374 - Matricula Search Result: None
+2026-02-06 15:28:05,374 - Server NOT FOUND
+2026-02-06 15:28:21,642 - REQUEST RECEIVED: valor='97493694400'
+2026-02-06 15:28:21,642 - Cleaned value for CPF check: '97493694400'
+2026-02-06 15:28:21,642 - Attempting CPF search...
+2026-02-06 15:28:21,659 - CPF Search Result: None
+2026-02-06 15:28:21,660 - Attempting Matricula search...
+2026-02-06 15:28:21,681 - Matricula Search Result: None
+2026-02-06 15:28:21,681 - Server NOT FOUND
+2026-02-06 15:28:23,700 - REQUEST RECEIVED: valor='97493694400'
+2026-02-06 15:28:23,700 - Cleaned value for CPF check: '97493694400'
+2026-02-06 15:28:23,700 - Attempting CPF search...
+2026-02-06 15:28:23,709 - CPF Search Result: None
+2026-02-06 15:28:23,709 - Attempting Matricula search...
+2026-02-06 15:28:23,728 - Matricula Search Result: None
+2026-02-06 15:28:23,728 - Server NOT FOUND
+2026-02-06 15:42:08,149 - REQUEST RECEIVED: valor='97493694400'
+2026-02-06 15:42:08,149 - Cleaned value for CPF check: '97493694400'
+2026-02-06 15:42:08,149 - Attempting CPF search...
+2026-02-06 15:42:08,170 - CPF Search Result: None
+2026-02-06 15:42:08,170 - Attempting Matricula search...
+2026-02-06 15:42:08,192 - Matricula Search Result: None
+2026-02-06 15:42:08,192 - Server NOT FOUND
+2026-02-06 15:42:09,855 - REQUEST RECEIVED: valor='97493694400'
+2026-02-06 15:42:09,856 - Cleaned value for CPF check: '97493694400'
+2026-02-06 15:42:09,856 - Attempting CPF search...
+2026-02-06 15:42:09,864 - CPF Search Result: None
+2026-02-06 15:42:09,865 - Attempting Matricula search...
+2026-02-06 15:42:09,884 - Matricula Search Result: None
+2026-02-06 15:42:09,884 - Server NOT FOUND
+2026-02-06 15:42:43,623 - REQUEST RECEIVED: valor='07958432402'
+2026-02-06 15:42:43,623 - Cleaned value for CPF check: '07958432402'
+2026-02-06 15:42:43,623 - Attempting CPF search...
+2026-02-06 15:42:43,632 - CPF Search Result: None
+2026-02-06 15:42:43,632 - Attempting Matricula search...
+2026-02-06 15:42:43,651 - Matricula Search Result: None
+2026-02-06 15:42:43,652 - Server NOT FOUND
+2026-02-06 15:42:44,735 - REQUEST RECEIVED: valor='07958432402'
+2026-02-06 15:42:44,735 - Cleaned value for CPF check: '07958432402'
+2026-02-06 15:42:44,735 - Attempting CPF search...
+2026-02-06 15:42:44,744 - CPF Search Result: None
+2026-02-06 15:42:44,744 - Attempting Matricula search...
+2026-02-06 15:42:44,762 - Matricula Search Result: None
+2026-02-06 15:42:44,762 - Server NOT FOUND
+2026-02-06 15:42:51,752 - REQUEST RECEIVED: valor='97493694400'
+2026-02-06 15:42:51,752 - Cleaned value for CPF check: '97493694400'
+2026-02-06 15:42:51,752 - Attempting CPF search...
+2026-02-06 15:42:51,761 - CPF Search Result: None
+2026-02-06 15:42:51,761 - Attempting Matricula search...
+2026-02-06 15:42:51,780 - Matricula Search Result: None
+2026-02-06 15:42:51,780 - Server NOT FOUND
+2026-02-06 16:06:11,977 - REQUEST RECEIVED: valor='1338234/02'
+2026-02-06 16:06:11,977 - Cleaned value for CPF check: '133823402'
+2026-02-06 16:06:11,977 - Attempting Matricula search...
+2026-02-06 16:06:12,256 - Matricula Search Result: None
+2026-02-06 16:06:12,256 - Server NOT FOUND
+2026-02-06 16:06:17,481 - REQUEST RECEIVED: valor='1338234/01'
+2026-02-06 16:06:17,481 - Cleaned value for CPF check: '133823401'
+2026-02-06 16:06:17,481 - Attempting Matricula search...
+2026-02-06 16:06:17,502 - Matricula Search Result: {'nome_completo': 'ABANEIDE CARMO DOS SANTOS', 'cpf': '26985519504', 'email': 'ABANEIDECARMO@HOTMAIL.COM', 'matricula': '1338234/01', 'cargo': 'TECNICO DE LABORATORIO', 'vinculo': 'EST', 'local_trabalho': 'GER DA VIII GERES PETROLINA'}
+2026-02-06 16:06:17,502 - Server FOUND
+2026-02-06 16:17:31,262 - REQUEST RECEIVED: valor='1338234/02'
+2026-02-06 16:17:31,263 - Cleaned value for CPF check: '133823402'
+2026-02-06 16:17:31,263 - Attempting Matricula search...
+2026-02-06 16:17:31,284 - Matricula Search Result: None
+2026-02-06 16:17:31,284 - Server NOT FOUND
+2026-02-06 16:17:33,799 - REQUEST RECEIVED: valor='1338234/01'
+2026-02-06 16:17:33,799 - Cleaned value for CPF check: '133823401'
+2026-02-06 16:17:33,799 - Attempting Matricula search...
+2026-02-06 16:17:33,808 - Matricula Search Result: {'nome_completo': 'ABANEIDE CARMO DOS SANTOS', 'cpf': '26985519504', 'email': 'ABANEIDECARMO@HOTMAIL.COM', 'matricula': '1338234/01', 'cargo': 'TECNICO DE LABORATORIO', 'vinculo': 'EST', 'local_trabalho': 'GER DA VIII GERES PETROLINA'}
+2026-02-06 16:17:33,808 - Server FOUND
