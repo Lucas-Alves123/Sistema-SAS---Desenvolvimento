@@ -346,7 +346,7 @@
 
             const active = todayAppointments.find(a =>
                 (a.status === 'pendente' || a.status === 'em_andamento' || a.status === 'na_fila_do_painel') &&
-                a.atendente_id === user.id
+                String(a.atendente_id) === String(user.id)
             );
 
             totalAguardandoEl.textContent = queue.length;
@@ -533,11 +533,11 @@
 
                             <div>
                                 <label class="block text-blue-700 font-bold mb-2">Observação 1 - Problema relatado pelo cliente</label>
-                                <textarea id="obs1" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Descreva o problema relatado..."></textarea>
+                                <textarea id="obs1" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Descreva o problema relatado...">${item.observacao_problema || ''}</textarea>
                             </div>
                             <div>
                                 <label class="block text-blue-700 font-bold mb-2">Observação 2 - Resposta/Solução dada pelo atendente</label>
-                                <textarea id="obs2" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Descreva a solução fornecida..."></textarea>
+                                <textarea id="obs2" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Descreva a solução fornecida...">${item.observacao_solucao || ''}</textarea>
                             </div>
 
                             <button onclick="finishService('${item.id}')" class="w-full bg-gray-300 hover:bg-blue-600 hover:text-white text-gray-700 font-bold py-4 rounded-lg transition-all flex justify-center items-center gap-2 mt-4" id="finishBtn">
@@ -700,8 +700,15 @@
 
                     const option = document.createElement('option');
                     option.value = u.id;
+                    option.dataset.guiche = u.guiche_atual || '';
                     option.textContent = `${u.nome_completo || u.usuario} (Guichê ${u.guiche_atual || '?'}) - ${statusColor} ${statusText}${reasonSuffix}`;
                     option.title = onlineInfo && onlineInfo.motivo_pausa ? `Motivo da Pausa: ${onlineInfo.motivo_pausa}` : statusText;
+
+                    if (statusText !== 'Online') {
+                        option.disabled = true;
+                        option.classList.add('text-gray-400');
+                    }
+
                     transferUserSelect.appendChild(option);
                 });
                 transferModal.classList.remove('hidden');
@@ -719,6 +726,7 @@
         window.confirmTransfer = async () => {
             if (!itemToTransferId) return;
             const targetUserId = transferUserSelect.value;
+            const targetGuiche = transferUserSelect.options[transferUserSelect.selectedIndex].dataset.guiche;
             const obs = transferObs.value;
             if (!targetUserId) {
                 window.SAS.utils.notify('warning', 'Selecione um atendente para transferir.');
@@ -729,6 +737,9 @@
                 return;
             }
 
+            const obs1 = document.getElementById('obs1') ? document.getElementById('obs1').value : null;
+            const obs2 = document.getElementById('obs2') ? document.getElementById('obs2').value : null;
+
             window.SAS.utils.modal.confirm(
                 'Transferir Atendimento',
                 'Tem certeza que deseja transferir este atendimento?',
@@ -737,7 +748,10 @@
                         await window.SAS.base44.entities.Agendamento.update(itemToTransferId, {
                             status: 'pendente',
                             atendente_id: targetUserId,
-                            observacao_transferencia: obs
+                            guiche: targetGuiche,
+                            observacao_transferencia: obs,
+                            observacao_problema: obs1,
+                            observacao_solucao: obs2
                         });
                         window.SAS.utils.notify('success', 'Atendimento transferido com sucesso!');
                         closeTransferModal();
