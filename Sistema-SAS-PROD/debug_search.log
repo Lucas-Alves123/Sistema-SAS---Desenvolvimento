@@ -629,3 +629,28 @@
 2026-02-06 16:17:33,799 - Attempting Matricula search...
 2026-02-06 16:17:33,808 - Matricula Search Result: {'nome_completo': 'ABANEIDE CARMO DOS SANTOS', 'cpf': '26985519504', 'email': 'ABANEIDECARMO@HOTMAIL.COM', 'matricula': '1338234/01', 'cargo': 'TECNICO DE LABORATORIO', 'vinculo': 'EST', 'local_trabalho': 'GER DA VIII GERES PETROLINA'}
 2026-02-06 16:17:33,808 - Server FOUND
+2026-02-09 08:48:49,014 - REQUEST RECEIVED: valor='89951638449'
+2026-02-09 08:48:49,016 - Cleaned value for CPF check: '89951638449'
+2026-02-09 08:48:49,016 - Attempting CPF search...
+2026-02-09 08:48:49,025 - CPF Search Result: {'nome_completo': 'ANA NONATO', 'cpf': '89951638449', 'email': 'ANANNONATO@HOTMAIL.COM', 'matricula': '2355280/02', 'cargo': 'ENFERMEIRO ASSISTENCIAL', 'vinculo': 'CTD', 'local_trabalho': 'HOSP REG INACIO DE SA SALGUEIRO'}
+2026-02-09 08:48:49,025 - Server FOUND
+2026-02-09 08:49:57,089 - REQUEST RECEIVED: valor='89951638449'
+2026-02-09 08:49:57,090 - Cleaned value for CPF check: '89951638449'
+2026-02-09 08:49:57,090 - Attempting CPF search...
+2026-02-09 08:49:57,105 - CPF Search Result: {'nome_completo': 'ANA NONATO', 'cpf': '89951638449', 'email': 'ANANNONATO@HOTMAIL.COM', 'matricula': '2355280/02', 'cargo': 'ENFERMEIRO ASSISTENCIAL', 'vinculo': 'CTD', 'local_trabalho': 'HOSP REG INACIO DE SA SALGUEIRO'}
+2026-02-09 08:49:57,105 - Server FOUND
+2026-02-09 08:54:25,064 - REQUEST RECEIVED: valor='89951638449'
+2026-02-09 08:54:25,064 - Cleaned value for CPF check: '89951638449'
+2026-02-09 08:54:25,064 - Attempting CPF search...
+2026-02-09 08:54:25,161 - CPF Search Result: {'nome_completo': 'ANA NONATO', 'cpf': '89951638449', 'email': 'ANANNONATO@HOTMAIL.COM', 'matricula': '2355280/02', 'cargo': 'ENFERMEIRO ASSISTENCIAL', 'vinculo': 'CTD', 'local_trabalho': 'HOSP REG INACIO DE SA SALGUEIRO'}
+2026-02-09 08:54:25,162 - Server FOUND
+2026-02-09 09:56:19,724 - REQUEST RECEIVED: valor='89951638449'
+2026-02-09 09:56:19,724 - Cleaned value for CPF check: '89951638449'
+2026-02-09 09:56:19,724 - Attempting CPF search...
+2026-02-09 09:56:20,015 - CPF Search Result: {'nome_completo': 'ANA NONATO', 'cpf': '89951638449', 'email': 'ANANNONATO@HOTMAIL.COM', 'matricula': '2355280/02', 'cargo': 'ENFERMEIRO ASSISTENCIAL', 'vinculo': 'CTD', 'local_trabalho': 'HOSP REG INACIO DE SA SALGUEIRO'}
+2026-02-09 09:56:20,016 - Server FOUND
+2026-02-09 10:08:00,901 - REQUEST RECEIVED: valor='89951638449'
+2026-02-09 10:08:00,901 - Cleaned value for CPF check: '89951638449'
+2026-02-09 10:08:00,901 - Attempting CPF search...
+2026-02-09 10:08:00,912 - CPF Search Result: {'nome_completo': 'ANA NONATO', 'cpf': '89951638449', 'email': 'ANANNONATO@HOTMAIL.COM', 'matricula': '2355280/02', 'cargo': 'ENFERMEIRO ASSISTENCIAL', 'vinculo': 'CTD', 'local_trabalho': 'HOSP REG INACIO DE SA SALGUEIRO'}
+2026-02-09 10:08:00,912 - Server FOUND

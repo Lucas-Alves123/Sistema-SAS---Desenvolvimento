@@ -502,6 +502,35 @@
                             </div>
                         </div>
                         <div class="space-y-6">
+                            <!-- Assunto Secundário -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <label class="block text-blue-700 font-bold mb-3">O servidor precisou tratar de mais um assunto?</label>
+                                <div class="flex gap-6 mb-4">
+                                    <label class="flex items-center gap-2 cursor-pointer group">
+                                        <input type="radio" name="outroAssunto" value="nao" checked onclick="toggleAssuntoSecundario(false)" class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                        <span class="text-sm font-medium text-gray-700 group-hover:text-blue-700">Não</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer group">
+                                        <input type="radio" name="outroAssunto" value="sim" onclick="toggleAssuntoSecundario(true)" class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                        <span class="text-sm font-medium text-gray-700 group-hover:text-blue-700">Sim</span>
+                                    </label>
+                                </div>
+
+                                <div id="assuntoSecundarioDiv" class="hidden animate-fade-in">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Escolha outros se puder <span class="text-red-500">*</span></label>
+                                    <select id="assuntoSecundario" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600">
+                                        <option value="">Selecione outro serviço...</option>
+                                        <option value="Aposentadoria">Aposentadoria</option>
+                                        <option value="Atendimento Geral">Atendimento Geral</option>
+                                        <option value="Seleção Pública Simplificada">Seleção Pública Simplificada</option>
+                                        <option value="Certidão">Certidão</option>
+                                        <option value="Licença">Licença</option>
+                                        <option value="Pagamento">Pagamento</option>
+                                        <option value="Plantão Extraordinário">Plantão Extraordinário</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <div>
                                 <label class="block text-blue-700 font-bold mb-2">Observação 1 - Problema relatado pelo cliente</label>
                                 <textarea id="obs1" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Descreva o problema relatado..."></textarea>
@@ -510,6 +539,7 @@
                                 <label class="block text-blue-700 font-bold mb-2">Observação 2 - Resposta/Solução dada pelo atendente</label>
                                 <textarea id="obs2" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Descreva a solução fornecida..."></textarea>
                             </div>
+
                             <button onclick="finishService('${item.id}')" class="w-full bg-gray-300 hover:bg-blue-600 hover:text-white text-gray-700 font-bold py-4 rounded-lg transition-all flex justify-center items-center gap-2 mt-4" id="finishBtn">
                                 <i data-lucide="check-circle" class="w-5 h-5"></i> Encerrar Atendimento
                             </button>
@@ -575,19 +605,40 @@
             );
         };
 
+        window.toggleAssuntoSecundario = (show) => {
+            const div = document.getElementById('assuntoSecundarioDiv');
+            if (div) {
+                if (show) div.classList.remove('hidden');
+                else {
+                    div.classList.add('hidden');
+                    document.getElementById('assuntoSecundario').value = '';
+                }
+            }
+        };
+
         window.finishService = async (id) => {
             const obs1 = document.getElementById('obs1').value;
             const obs2 = document.getElementById('obs2').value;
+            const outroAssuntoSim = document.querySelector('input[name="outroAssunto"]:checked').value === 'sim';
+            const assuntoSecundario = document.getElementById('assuntoSecundario').value;
+
             if (!obs1.trim() || !obs2.trim()) {
                 window.SAS.utils.notify('warning', 'É preciso preencher as duas observações para encerrar.');
                 return;
             }
+
+            if (outroAssuntoSim && !assuntoSecundario) {
+                window.SAS.utils.notify('warning', 'Por favor, selecione o assunto secundário.');
+                return;
+            }
+
             try {
                 await window.SAS.base44.entities.Agendamento.update(id, {
                     status: 'concluido',
                     atendente_id: user.id,
                     observacao_problema: obs1,
-                    observacao_solucao: obs2
+                    observacao_solucao: obs2,
+                    assunto_secundario: outroAssuntoSim ? assuntoSecundario : null
                 });
                 window.SAS.utils.notify('success', 'Atendimento encerrado com sucesso!');
                 loadData();
