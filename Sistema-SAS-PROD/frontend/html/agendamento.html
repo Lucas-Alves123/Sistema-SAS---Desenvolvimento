@@ -263,7 +263,7 @@
             const submitAppointment = async (data) => {
                 try {
                     await window.SAS.base44.entities.Agendamento.create(data);
-                    window.SAS.utils.notify('success', 'Agendamento realizado com sucesso!');
+                    window.SAS.utils.modal.alert('Sucesso', 'Agendamento feito com sucesso!', 'info');
                     form.reset();
                     updateTimeSlots();
                 } catch (err) {

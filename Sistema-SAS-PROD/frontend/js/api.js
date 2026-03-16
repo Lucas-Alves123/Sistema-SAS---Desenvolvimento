@@ -77,7 +77,27 @@
         entities: {
             SystemUser: createCRUD('usuarios'),
             Agendamento: createCRUD('agendamentos')
-            // HistoricoAtendimento removed as it was unused
+        }
+    };
+
+    window.SAS.auth = {
+        requestRecovery: async (email) => {
+            const res = await fetch(`${API_URL}/usuarios/recovery/request`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            return await res.json();
+        },
+        resetPassword: async (token, password) => {
+            const res = await fetch(`${API_URL}/usuarios/recovery/reset-with-token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, password })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Erro ao redefinir senha');
+            return data;
         }
     };
 })();

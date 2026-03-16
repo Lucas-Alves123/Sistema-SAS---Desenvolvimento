@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Senha - SAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body
+    class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-900 p-4 font-sans">
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 md:p-10 animate-fade-in">
+        <div class="flex flex-col items-center text-center mb-8">
+            <div class="bg-blue-100 p-4 rounded-full mb-4">
+                <i data-lucide="mail-search" class="w-8 h-8 text-blue-600"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-blue-900 mb-2">Recuperar Senha</h1>
+            <p class="text-gray-500">Informe seu e-mail cadastrado para receber o link de redefinição.</p>
+        </div>
+
+        <form id="recoveryForm" class="space-y-6">
+            <div class="space-y-2">
+                <label for="email" class="text-gray-600 font-medium text-sm ml-1">E-mail</label>
+                <div class="relative">
+                    <i data-lucide="mail" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="email" id="email" placeholder="seu-email@dominio.com" required
+                        class="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+                </div>
+            </div>
+
+            <div id="statusMsg" class="hidden p-4 rounded-xl border text-sm flex items-center gap-3">
+                <i id="statusIcon" data-lucide="info" class="w-5 h-5 shrink-0"></i>
+                <span id="statusText"></span>
+            </div>
+
+            <button type="submit" id="submitBtn"
+                class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-blue-200 transform hover:-translate-y-0.5">
+                Enviar Link de Recuperação
+            </button>
+        </form>
+
+        <div class="mt-8 text-center pt-6 border-t border-gray-100">
+            <a href="/"
+                class="text-blue-600 hover:text-blue-800 text-sm font-bold flex items-center justify-center gap-2 group">
+                <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+                Voltar para o Login
+            </a>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        lucide.createIcons();
+        const form = document.getElementById('recoveryForm');
+        const statusMsg = document.getElementById('statusMsg');
+        const statusText = document.getElementById('statusText');
+        const statusIcon = document.getElementById('statusIcon');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto"></i>';
+            lucide.createIcons();
+
+            try {
+                const response = await window.SAS.auth.requestRecovery(email);
+
+                statusMsg.className = 'p-4 rounded-xl border text-sm flex items-center gap-3 bg-green-50 border-green-200 text-green-700';
+                statusIcon.setAttribute('data-lucide', 'check-circle');
+                statusText.textContent = response.message || 'Se o e-mail estiver cadastrado, você receberá um link.';
+                statusMsg.classList.remove('hidden');
+
+                // Keep button disabled to prevent multiple requests quickly
+                submitBtn.textContent = 'E-mail Enviado';
+            } catch (err) {
+                statusMsg.className = 'p-4 rounded-xl border text-sm flex items-center gap-3 bg-red-50 border-red-200 text-red-700';
+                statusIcon.setAttribute('data-lucide', 'alert-circle');
+                statusText.textContent = 'Ocorreu um erro. Tente novamente mais tarde.';
+                statusMsg.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Enviar Link de Recuperação';
+            }
+            lucide.createIcons();
+        });
+    </script>
+</body>
+
+</html>

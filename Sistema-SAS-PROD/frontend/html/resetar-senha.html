@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redefinir Senha - SAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body
+    class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-900 p-4 font-sans">
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 md:p-10 animate-fade-in" id="resetCard">
+        <div class="flex flex-col items-center text-center mb-8">
+            <div class="bg-blue-100 p-4 rounded-full mb-4">
+                <i data-lucide="shield-check" class="w-8 h-8 text-blue-600"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-blue-900 mb-2">Nova Senha</h1>
+            <p class="text-gray-500" id="description">Crie uma nova senha segura para sua conta.</p>
+        </div>
+
+        <form id="resetForm" class="space-y-6">
+            <div class="space-y-2">
+                <label for="password" class="text-gray-600 font-medium text-sm ml-1">Nova Senha</label>
+                <div class="relative">
+                    <i data-lucide="lock" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="password" id="password" placeholder="Min. 4 caracteres" required minlength="4"
+                        class="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label for="confirm_password" class="text-gray-600 font-medium text-sm ml-1">Confirmar Senha</label>
+                <div class="relative">
+                    <i data-lucide="lock" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="password" id="confirm_password" placeholder="Repita a nova senha" required
+                        class="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+                </div>
+            </div>
+
+            <div id="statusMsg" class="hidden p-4 rounded-xl border text-sm flex items-center gap-3">
+                <i id="statusIcon" data-lucide="info" class="w-5 h-5 shrink-0"></i>
+                <span id="statusText"></span>
+            </div>
+
+            <button type="submit" id="submitBtn"
+                class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-blue-200 transform hover:-translate-y-0.5">
+                Redefinir Senha
+            </button>
+        </form>
+
+        <!-- Dynamic Content for Success/Error -->
+        <div id="successContent" class="hidden flex flex-col items-center text-center py-4">
+            <h2 class="text-2xl font-bold text-green-700 mb-4">Senha Atualizada!</h2>
+            <p class="text-gray-600 mb-8">Sua senha foi redefinida com sucesso. Você já pode acessar o sistema.</p>
+            <a href="/"
+                class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-4 rounded-xl transition-all shadow-lg text-center">
+                Ir para o Login
+            </a>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        lucide.createIcons();
+
+        const resetForm = document.getElementById('resetForm');
+        const statusMsg = document.getElementById('statusMsg');
+        const statusText = document.getElementById('statusText');
+        const statusIcon = document.getElementById('statusIcon');
+        const submitBtn = document.getElementById('submitBtn');
+        const resetCard = document.getElementById('resetCard');
+        const successContent = document.getElementById('successContent');
+
+        // Extract token from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        if (!token) {
+            resetForm.classList.add('hidden');
+            document.getElementById('description').textContent = 'Token de recuperação ausente ou inválido.';
+            statusMsg.className = 'p-4 rounded-xl border text-sm flex items-center gap-3 bg-red-50 border-red-200 text-red-700 mt-4';
+            statusText.textContent = 'Este link parece ser inválido ou expirado. Por favor, solicite um novo link.';
+            statusMsg.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        resetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+            const confirm_password = document.getElementById('confirm_password').value;
+
+            if (password !== confirm_password) {
+                statusMsg.className = 'p-4 rounded-xl border text-sm flex items-center gap-3 bg-red-50 border-red-200 text-red-700';
+                statusText.textContent = 'As senhas não coincidem.';
+                statusMsg.classList.remove('hidden');
+                lucide.createIcons();
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto"></i>';
+            lucide.createIcons();
+
+            try {
+                await window.SAS.auth.resetPassword(token, password);
+
+                // Hide form and show success
+                resetForm.classList.add('hidden');
+                document.getElementById('description').parentElement.classList.add('hidden');
+                successContent.classList.remove('hidden');
+
+            } catch (err) {
+                statusMsg.className = 'p-4 rounded-xl border text-sm flex items-center gap-3 bg-red-50 border-red-200 text-red-700';
+                statusIcon.setAttribute('data-lucide', 'alert-circle');
+                statusText.textContent = err.message || 'Erro ao redefinir senha.';
+                statusMsg.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Redefinir Senha';
+            }
+            lucide.createIcons();
+        });
+    </script>
+</body>
+
+</html>

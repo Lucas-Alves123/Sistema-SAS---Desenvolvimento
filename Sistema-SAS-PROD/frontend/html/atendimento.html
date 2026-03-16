@@ -65,13 +65,9 @@
 
                 <div id="queueSection" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hidden">
                     <div class="flex justify-between items-center mb-4">
-                        <div class="flex items-center gap-4">
-                            <h2 class="text-xl font-bold text-gray-800">Fila de Espera</h2>
-                            <div class="flex bg-slate-100 p-1 rounded-lg">
-                                <button onclick="setQueueTab('Presencial')" id="tabPresencial" class="px-4 py-1.5 rounded-md text-sm font-bold transition-all bg-white text-blue-700 shadow-sm">Presencial</button>
-                                <button onclick="setQueueTab('WhatsApp')" id="tabWhatsApp" class="px-4 py-1.5 rounded-md text-sm font-bold transition-all text-slate-500 hover:text-slate-700">WhatsApp</button>
+                            <div class="flex items-center gap-4">
+                                <h2 class="text-xl font-bold text-gray-800">Fila de Espera</h2>
                             </div>
-                        </div>
                         <button id="chamarProximoBtn" class="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition-all flex items-center gap-2">
                             <i data-lucide="megaphone" class="w-5 h-5"></i>
                             Chamar Próximo
@@ -178,19 +174,6 @@
 
         let currentActiveItem = null;
 
-        window.setQueueTab = (tab) => {
-            currentQueueTab = tab;
-            const tabP = document.getElementById('tabPresencial');
-            const tabW = document.getElementById('tabWhatsApp');
-            if (tab === 'Presencial') {
-                tabP.className = 'px-4 py-1.5 rounded-md text-sm font-bold transition-all bg-white text-blue-700 shadow-sm';
-                tabW.className = 'px-4 py-1.5 rounded-md text-sm font-bold transition-all text-slate-500 hover:text-slate-700';
-            } else {
-                tabP.className = 'px-4 py-1.5 rounded-md text-sm font-bold transition-all text-slate-500 hover:text-slate-700';
-                tabW.className = 'px-4 py-1.5 rounded-md text-sm font-bold transition-all bg-green-100 text-green-700 shadow-sm';
-            }
-            loadData();
-        };
 
         window.manualCall = async (id) => {
             if (currentStatus === 'pausa') {
@@ -333,16 +316,36 @@
                 return timeA.localeCompare(timeB);
             });
 
-            const queue = todayAppointments.filter(a =>
+            const interleaveQueue = (items) => {
+                const preferentials = items.filter(a => a.prioridade === 'Preferencial');
+                const normals = items.filter(a => a.prioridade !== 'Preferencial');
+
+                const result = [];
+                let pIndex = 0;
+                let nIndex = 0;
+                const ratio = 2; // 2:1 ratio
+
+                while (pIndex < preferentials.length || nIndex < normals.length) {
+                    // Add up to 'ratio' preferentials
+                    for (let i = 0; i < ratio && pIndex < preferentials.length; i++) {
+                        result.push(preferentials[pIndex++]);
+                    }
+                    // Add 1 normal
+                    if (nIndex < normals.length) {
+                        result.push(normals[nIndex++]);
+                    }
+                }
+                return result;
+            };
+
+            const queue = interleaveQueue(todayAppointments.filter(a =>
                 a.status === 'chegou' &&
                 (a.tipo_atendimento === currentQueueTab || (!a.tipo_atendimento && currentQueueTab === 'Presencial'))
             ).sort((a, b) => {
-                if (a.prioridade === 'Preferencial' && b.prioridade !== 'Preferencial') return -1;
-                if (a.prioridade !== 'Preferencial' && b.prioridade === 'Preferencial') return 1;
                 const timeA = a.hora_inicio || '00:00';
                 const timeB = b.hora_inicio || '00:00';
                 return timeA.localeCompare(timeB);
-            });
+            }));
 
             const active = todayAppointments.find(a =>
                 (a.status === 'pendente' || a.status === 'em_andamento' || a.status === 'na_fila_do_painel') &&
@@ -517,17 +520,8 @@
                                 </div>
 
                                 <div id="assuntoSecundarioDiv" class="hidden animate-fade-in">
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Escolha outros se puder <span class="text-red-500">*</span></label>
-                                    <select id="assuntoSecundario" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600">
-                                        <option value="">Selecione outro serviço...</option>
-                                        <option value="Aposentadoria">Aposentadoria</option>
-                                        <option value="Atendimento Geral">Atendimento Geral</option>
-                                        <option value="Seleção Pública Simplificada">Seleção Pública Simplificada</option>
-                                        <option value="Certidão">Certidão</option>
-                                        <option value="Licença">Licença</option>
-                                        <option value="Pagamento">Pagamento</option>
-                                        <option value="Plantão Extraordinário">Plantão Extraordinário</option>
-                                    </select>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Descreva o outro assunto <span class="text-red-500">*</span></label>
+                                    <textarea id="assuntoSecundario" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600 h-20 resize-none" placeholder="Ex.: Aposentadoria, Plantão Extraordinário..."></textarea>
                                 </div>
                             </div>
 
@@ -774,17 +768,15 @@
             }
             const all = await window.SAS.base44.entities.Agendamento.list();
             const today = new Date().toISOString().split('T')[0];
-            const queue = all.filter(a =>
+            const queue = interleaveQueue(all.filter(a =>
                 a.data_agendamento === today &&
                 a.status === 'chegou' &&
                 (a.tipo_atendimento === currentQueueTab || (!a.tipo_atendimento && currentQueueTab === 'Presencial'))
             ).sort((a, b) => {
-                if (a.prioridade === 'Preferencial' && b.prioridade !== 'Preferencial') return -1;
-                if (a.prioridade !== 'Preferencial' && b.prioridade === 'Preferencial') return 1;
                 const timeA = a.hora_inicio || '00:00';
                 const timeB = b.hora_inicio || '00:00';
                 return timeA.localeCompare(timeB);
-            });
+            }));
             if (queue.length === 0) {
                 window.SAS.utils.notify('info', 'Não há ninguém aguardando na fila.');
                 return;
