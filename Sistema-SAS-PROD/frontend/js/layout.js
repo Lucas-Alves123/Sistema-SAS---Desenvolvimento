@@ -166,6 +166,11 @@
         `;
         document.getElementById('page-content').innerHTML = existingContent;
 
+        // Initialize AI Assistant if available
+        if (window.SAS.ai && window.SAS.ai.init) {
+            window.SAS.ai.init();
+        }
+
         // Immediate Notification Check
         if (window.SAS.layout.updateSolicitacoesBadge) {
             window.SAS.layout.updateSolicitacoesBadge();

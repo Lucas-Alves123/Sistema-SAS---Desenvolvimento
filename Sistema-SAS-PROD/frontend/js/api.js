@@ -76,7 +76,14 @@
     window.SAS.base44 = {
         entities: {
             SystemUser: createCRUD('usuarios'),
-            Agendamento: createCRUD('agendamentos')
+            Agendamento: {
+                ...createCRUD('agendamentos'),
+                getNext: async () => {
+                    const res = await fetch(`${API_URL}/agendamentos/proximo`);
+                    if (!res.ok) throw new Error('Failed to fetch next in queue');
+                    return await res.json();
+                }
+            }
         }
     };
 

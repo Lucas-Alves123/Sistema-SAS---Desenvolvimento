@@ -16,6 +16,7 @@
     <!-- Scripts -->
     <script src="js/utils.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/ai_assistant.js"></script>
     <script src="js/layout.js"></script>
     <script>
         const user = window.SAS.utils.checkAuth();
@@ -316,36 +317,14 @@
                 return timeA.localeCompare(timeB);
             });
 
-            const interleaveQueue = (items) => {
-                const preferentials = items.filter(a => a.prioridade === 'Preferencial');
-                const normals = items.filter(a => a.prioridade !== 'Preferencial');
-
-                const result = [];
-                let pIndex = 0;
-                let nIndex = 0;
-                const ratio = 2; // 2:1 ratio
-
-                while (pIndex < preferentials.length || nIndex < normals.length) {
-                    // Add up to 'ratio' preferentials
-                    for (let i = 0; i < ratio && pIndex < preferentials.length; i++) {
-                        result.push(preferentials[pIndex++]);
-                    }
-                    // Add 1 normal
-                    if (nIndex < normals.length) {
-                        result.push(normals[nIndex++]);
-                    }
-                }
-                return result;
-            };
-
-            const queue = interleaveQueue(todayAppointments.filter(a =>
+            const queue = todayAppointments.filter(a =>
                 a.status === 'chegou' &&
                 (a.tipo_atendimento === currentQueueTab || (!a.tipo_atendimento && currentQueueTab === 'Presencial'))
             ).sort((a, b) => {
                 const timeA = a.hora_inicio || '00:00';
                 const timeB = b.hora_inicio || '00:00';
                 return timeA.localeCompare(timeB);
-            }));
+            });
 
             const active = todayAppointments.find(a =>
                 (a.status === 'pendente' || a.status === 'em_andamento' || a.status === 'na_fila_do_painel') &&
@@ -766,31 +745,25 @@
                 window.SAS.utils.notify('warning', 'Você já tem um atendimento ativo. Encerre-o antes de chamar o próximo.');
                 return;
             }
-            const all = await window.SAS.base44.entities.Agendamento.list();
-            const today = new Date().toISOString().split('T')[0];
-            const queue = interleaveQueue(all.filter(a =>
-                a.data_agendamento === today &&
-                a.status === 'chegou' &&
-                (a.tipo_atendimento === currentQueueTab || (!a.tipo_atendimento && currentQueueTab === 'Presencial'))
-            ).sort((a, b) => {
-                const timeA = a.hora_inicio || '00:00';
-                const timeB = b.hora_inicio || '00:00';
-                return timeA.localeCompare(timeB);
-            }));
-            if (queue.length === 0) {
-                window.SAS.utils.notify('info', 'Não há ninguém aguardando na fila.');
-                return;
-            }
-            const next = queue[0];
+
             try {
-                await window.SAS.base44.entities.Agendamento.update(next.id, {
+                const nextData = await window.SAS.base44.entities.Agendamento.getNext();
+
+                if (!nextData || !nextData.id) {
+                    window.SAS.utils.notify('info', 'Não há ninguém aguardando na fila.');
+                    return;
+                }
+
+                await window.SAS.base44.entities.Agendamento.update(nextData.id, {
                     status: 'pendente',
                     atendente_id: user.id,
                     guiche: currentGuiche
                 });
+
                 loadData();
                 window.SAS.utils.notify('success', 'Chamando próximo da fila...');
             } catch (e) {
+                console.error(e);
                 window.SAS.utils.notify('error', 'Erro ao chamar próximo.');
             }
         });
