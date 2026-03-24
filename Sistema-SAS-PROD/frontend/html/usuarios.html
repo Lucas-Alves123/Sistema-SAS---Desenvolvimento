@@ -44,16 +44,6 @@
                     </select>
                 </div>
 
-                <div class="space-y-2">
-                    <label class="text-sm font-medium">Senha</label>
-                    <input type="password" id="senha" class="w-full border p-2 rounded">
-                </div>
-
-                <div class="space-y-2">
-                    <label class="text-sm font-medium">Confirmar Senha</label>
-                    <input type="password" id="confirmSenha" class="w-full border p-2 rounded">
-                </div>
-
                 <div class="flex justify-end gap-2 pt-4">
                     <button type="button" id="cancelBtn"
                         class="border px-4 py-2 rounded hover:bg-slate-50">Cancelar</button>
@@ -286,6 +276,12 @@
                                 <div class="w-2 h-2 rounded-full bg-gray-300"></div> Offline
                             </span>
                         `;
+                    } else if (u.status_atendimento === 'em_atendimento') {
+                        atendimentoStatus = `
+                            <span class="text-blue-600 font-bold flex items-center gap-1" title="Em Atendimento">
+                                <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div> Em Atendimento
+                            </span>
+                        `;
                     } else {
                         atendimentoStatus = `
                             <span class="text-green-600 font-bold flex items-center gap-1">
@@ -371,7 +367,6 @@
                 }
 
                 document.getElementById('userId').value = '';
-                document.getElementById('senha').required = true;
                 modalTitle.textContent = 'Novo Usuário';
                 modalUsuario.classList.remove('hidden');
             });
@@ -388,13 +383,6 @@
             const cpf = document.getElementById('cpf').value;
             const email = document.getElementById('email').value;
             const tipo = document.getElementById('tipo').value;
-            const senha = document.getElementById('senha').value;
-            const confirmSenha = document.getElementById('confirmSenha').value;
-
-            if (senha && senha !== confirmSenha) {
-                window.SAS.utils.modal.alert('Atenção', 'As senhas não coincidem!', 'warning');
-                return;
-            }
 
             const payload = {
                 nome_completo: nome,
@@ -404,23 +392,20 @@
             };
 
             if (!id) {
-                const parts = nome.trim().toLowerCase().split(' ');
-                const usuarioGerado = parts[0] + '.' + (parts.length > 1 ? parts[parts.length - 1] : '');
-                payload.usuario = usuarioGerado;
+                if (email && email.includes('@')) {
+                    payload.usuario = email.split('@')[0];
+                } else {
+                    const parts = nome.trim().toLowerCase().split(' ');
+                    payload.usuario = parts[0] + '.' + (parts.length > 1 ? parts[parts.length - 1] : '');
+                }
                 payload.situacao = 'ativo';
             }
-
-            if (senha) payload.senha = senha;
 
             try {
                 if (id) {
                     await window.SAS.base44.entities.SystemUser.update(id, payload);
                     window.SAS.utils.notify('success', 'Usuário atualizado com sucesso!');
                 } else {
-                    if (!senha) {
-                        window.SAS.utils.modal.alert('Atenção', 'Senha é obrigatória para novos usuários.', 'warning');
-                        return;
-                    }
                     await window.SAS.base44.entities.SystemUser.create(payload);
                     window.SAS.utils.notify('success', 'Usuário criado com sucesso!');
                 }
@@ -454,9 +439,6 @@
             document.getElementById('cpf').value = u.cpf || '';
             document.getElementById('email').value = u.email || '';
             document.getElementById('tipo').value = u.tipo;
-            document.getElementById('senha').value = '';
-            document.getElementById('senha').required = false;
-            document.getElementById('confirmSenha').value = '';
 
             modalTitle.textContent = 'Editar Usuário';
             modalUsuario.classList.remove('hidden');

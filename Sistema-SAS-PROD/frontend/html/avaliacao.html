@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesquisa de Satisfação - SAS</title>
+    <!-- CSS -->
+    <link href="/css/output.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Toasts -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <style>
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+
+        .star-rating input {
+            display: none;
+        }
+
+        .star-rating label {
+            cursor: pointer;
+            color: #d1d5db;
+        }
+
+        .star-rating label>svg {
+            width: 32px;
+            height: 32px;
+            fill: currentColor;
+            stroke: currentColor;
+            transition: color 0.2s ease-in-out;
+        }
+
+        .star-rating label:hover,
+        .star-rating label:hover~label,
+        .star-rating input:checked~label {
+            color: #facc15;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="max-w-xl w-full bg-white rounded-2xl shadow-xl overflow-hidden">
+
+        <div class="bg-blue-800 p-6 text-center">
+            <h1 class="text-2xl font-bold text-white mb-2">Como foi o seu atendimento?</h1>
+            <p class="text-blue-100 text-sm">Sua opinião é fundamental para a melhoria dos nossos serviços.</p>
+        </div>
+
+        <div id="surveyContainer" class="p-8">
+            <form id="avaliacaoForm" class="space-y-6">
+                <!-- Tempo de Espera -->
+                <div>
+                    <p class="text-gray-800 font-semibold mb-2">Tempo de espera para ser atendido</p>
+                    <div class="star-rating" id="rating-tempo_espera">
+                        <!-- Gerados via JS -->
+                    </div>
+                </div>
+
+                <!-- Atendimento -->
+                <div>
+                    <p class="text-gray-800 font-semibold mb-2">Qualidade do Atendimento em si</p>
+                    <div class="star-rating" id="rating-atendimento"></div>
+                </div>
+
+                <!-- Resolução do Problema -->
+                <div>
+                    <p class="text-gray-800 font-semibold mb-2">Resolução do seu problema/solicitação</p>
+                    <div class="star-rating" id="rating-resolucao_problema"></div>
+                </div>
+
+                <!-- Clareza -->
+                <div>
+                    <p class="text-gray-800 font-semibold mb-2">Clareza das informações recebidas</p>
+                    <div class="star-rating" id="rating-clareza_informacoes"></div>
+                </div>
+
+                <!-- Estrutura Física -->
+                <div>
+                    <p class="text-gray-800 font-semibold mb-2">Estrutura física e conforto</p>
+                    <div class="star-rating" id="rating-estrutura_fisica"></div>
+                </div>
+
+                <!-- Limpeza -->
+                <div>
+                    <p class="text-gray-800 font-semibold mb-2">Limpeza e organização do ambiente</p>
+                    <div class="star-rating" id="rating-limpeza"></div>
+                </div>
+
+                <!-- Comentários -->
+                <div>
+                    <label class="block text-gray-800 font-semibold mb-2" for="comentarios">Comentários ou Sugestões
+                        (Opcional)</label>
+                    <textarea id="comentarios" rows="3"
+                        class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
+                        placeholder="Conte-nos mais sobre a sua experiência..."></textarea>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                        Enviar Avaliação
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="successContainer" class="p-8 text-center hidden">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="check-circle-2" class="w-10 h-10 text-green-600"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Obrigado!</h2>
+            <p class="text-gray-600">Sua avaliação foi registrada com sucesso.</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        lucide.createIcons();
+
+        function createStars(containerId, name) {
+            const container = document.getElementById(containerId);
+            for (let i = 5; i >= 1; i--) {
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.id = `${name}Star${i}`;
+                input.name = name;
+                input.value = i;
+
+                const label = document.createElement('label');
+                label.htmlFor = input.id;
+                label.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
+
+                container.appendChild(input);
+                container.appendChild(label);
+            }
+        }
+
+        // Initialize stars
+        const categories = ['tempo_espera', 'atendimento', 'resolucao_problema', 'clareza_informacoes', 'estrutura_fisica', 'limpeza'];
+        categories.forEach(cat => createStars(`rating-${cat}`, cat));
+
+        // Get ref ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const refId = urlParams.get('ref');
+
+        document.getElementById('avaliacaoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!refId) {
+                Toastify({ text: "ID do agendamento inválido ou faltando na URL.", backgroundColor: "#ef4444" }).showToast();
+                return;
+            }
+
+            const payload = {
+                agendamento_id: parseInt(refId)
+            };
+
+            let missing = false;
+            categories.forEach(cat => {
+                const selected = document.querySelector(`input[name="${cat}"]:checked`);
+                if (selected) {
+                    payload[cat] = parseInt(selected.value);
+                } else {
+                    missing = true;
+                }
+            });
+
+            if (missing) {
+                Toastify({ text: "Por favor, avalie todas as categorias selecionando as estrelinhas.", backgroundColor: "#eab308" }).showToast();
+                return;
+            }
+
+            payload.comentarios = document.getElementById('comentarios').value;
+
+            try {
+                const res = await fetch('/api/avaliacoes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.error || 'Erro ao enviar avaliação');
+                }
+
+                document.getElementById('surveyContainer').classList.add('hidden');
+                document.getElementById('successContainer').classList.remove('hidden');
+
+            } catch (error) {
+                Toastify({ text: error.message, backgroundColor: "#ef4444" }).showToast();
+            }
+        });
+    </script>
+</body>
+
+</html>

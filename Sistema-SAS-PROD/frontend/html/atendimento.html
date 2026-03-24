@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/sonner@1.4.0/dist/sonner.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
 <body>
@@ -613,6 +614,104 @@
                     observacao_solucao: obs2,
                     assunto_secundario: outroAssuntoSim ? assuntoSecundario : null
                 });
+                try {
+                    const formatTime = (ts) => {
+                        const parts = ts.split(' ');
+                        if (parts.length > 1) {
+                            return parts[1].substring(0, 5);
+                        }
+                        const d = new Date(ts);
+                        return isNaN(d.getTime()) ? '--:--' : d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    };
+
+                    const resp = await fetch('/api/agendamentos');
+                    const agendamentosAll = await resp.json();
+                    const ag = agendamentosAll.find(a => String(a.id) === String(id));
+                    
+                    if (ag) {
+                        const { jsPDF } = window.jspdf;
+                        
+                        // 1. COMPROVANTE DE ATENDIMENTO
+                        const docComp = new jsPDF();
+                        docComp.setFontSize(18);
+                        docComp.text("Comprovante de Atendimento - SAS", 105, 20, null, null, "center");
+                        
+                        docComp.setFontSize(12);
+                        const dataPrevista = ag.hora_inicio ? ag.hora_inicio.substring(0,5) : '--:--';
+                        const chegada = formatTime(ag.hora_chegada);
+                        const inicio = formatTime(ag.hora_atendimento);
+                        const fim = formatTime(ag.hora_conclusao);
+                        
+                        const textComp = `A servidora/O servidor ${ag.nome_completo} possuía agendamento previsto para ${dataPrevista}, com chegada às ${chegada}, início do atendimento às ${inicio} e finalização às ${fim}.`;
+                        const splitTextComp = docComp.splitTextToSize(textComp, 170);
+                        docComp.text(splitTextComp, 20, 40);
+                        
+                        docComp.setFontSize(10);
+                        docComp.text("Documento gerado automaticamente pelo Sistema SAS", 105, 280, null, null, "center");
+                        
+                        docComp.save(`comprovante_atendimento_${ag.nome_completo.replace(/\s+/g, '_')}.pdf`);
+                        
+                        // 2. REQUERIMENTO A
+                        const docReq = new jsPDF();
+                        const marginX = 20;
+                        let startY = 20;
+                        const lineHeight = 7;
+                        
+                        docReq.setFontSize(18);
+                        docReq.setFont("helvetica", "bold");
+                        docReq.text("Requerimento A", 105, startY, null, null, "center");
+                        startY += 15;
+                        
+                        docReq.setFontSize(14);
+                        docReq.setFont("helvetica", "bold");
+                        docReq.text("1. Identificação do Servidor", marginX, startY);
+                        startY += 8;
+                        
+                        docReq.setFontSize(11);
+                        docReq.setFont("helvetica", "normal");
+                        docReq.text(`Nome: ${ag.nome_completo || 'N/A'}`, marginX, startY); startY += lineHeight;
+                        docReq.text(`CPF: ${ag.cpf || 'N/A'}`, marginX, startY); startY += lineHeight;
+                        docReq.text(`Cargo: ${ag.cargo || 'N/A'}`, marginX, startY); startY += lineHeight;
+                        docReq.text(`Matrícula(s): ${ag.matricula || 'N/A'}`, marginX, startY); startY += lineHeight;
+                        docReq.text(`Vínculo: ${ag.vinculo || 'N/A'}`, marginX, startY); startY += lineHeight;
+                        docReq.text(`Local de Trabalho: ${ag.local_trabalho || 'N/A'}`, marginX, startY); startY += 12;
+                        
+                        docReq.setFontSize(14);
+                        docReq.setFont("helvetica", "bold");
+                        docReq.text("2. Resumo da Solicitação", marginX, startY);
+                        startY += 8;
+                        
+                        docReq.setFontSize(11);
+                        docReq.setFont("helvetica", "bold");
+                        docReq.text("Observação / Problema:", marginX, startY);
+                        startY += 6;
+                        docReq.setFont("helvetica", "normal");
+                        const splitObs1 = docReq.splitTextToSize(obs1 || 'Nenhum', 170);
+                        docReq.text(splitObs1, marginX, startY);
+                        startY += (splitObs1.length * 5) + 4;
+                        
+                        docReq.setFont("helvetica", "bold");
+                        docReq.text("Solução / Encaminhamento:", marginX, startY);
+                        startY += 6;
+                        docReq.setFont("helvetica", "normal");
+                        const splitObs2 = docReq.splitTextToSize(obs2 || 'Nenhum', 170);
+                        docReq.text(splitObs2, marginX, startY);
+                        
+                        docReq.setFontSize(9);
+                        docReq.text("Documento gerado automaticamente pelo Sistema de Atendimento ao Servidor (SAS)", 105, 280, null, null, "center");
+                        
+                        // Download Requerimento A after a slight delay
+                        setTimeout(() => {
+                            docReq.save(`Requerimento_A_${ag.cpf ? ag.cpf.replace(/\D/g, '') : 'Atendimento'}.pdf`);
+                        }, 500);
+                        
+                        window.SAS.utils.notify('success', 'Comprovante e Requerimento gerados com sucesso!');
+                    }
+                } catch (pdfErr) {
+                    console.error("Erro ao gerar PDF: ", pdfErr);
+                    window.SAS.utils.notify('warning', 'Falha ao processar o arquivo PDF.');
+                }
+
                 window.SAS.utils.notify('success', 'Atendimento encerrado com sucesso!');
                 loadData();
             } catch (e) {

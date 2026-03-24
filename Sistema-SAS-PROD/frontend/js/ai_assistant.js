@@ -44,6 +44,9 @@
                         <span class="font-bold">${CHAT_TITLE}</span>
                     </div>
                     <div class="flex items-center gap-2">
+                        <button id="ai-sound" style="display:none" class="hover:bg-white/20 p-1.5 rounded-lg transition-colors border border-white/20" title="Áudio Ativado">
+                            <i data-lucide="volume-2" class="w-4 h-4 text-white"></i>
+                        </button>
                         <button id="ai-clear" class="hover:bg-white/20 p-1.5 rounded-lg transition-colors border border-white/20" title="Limpar conversa">
                             <i data-lucide="trash-2" class="w-4 h-4 text-white"></i>
                         </button>
@@ -63,9 +66,12 @@
                 </div>
 
                 <!-- Input area -->
-                <div class="p-4 bg-white border-t border-slate-100 flex gap-2">
+                <div class="p-4 bg-white border-t border-slate-100 flex gap-2 items-center">
+                    <button id="ai-mic" style="display:none" class="bg-gray-100 text-gray-600 p-2.5 rounded-xl hover:bg-gray-200 transition-colors shadow-sm focus:outline-none" title="Falar">
+                        <i data-lucide="mic" class="w-5 h-5"></i>
+                    </button>
                     <input type="text" id="ai-input" placeholder="Pergunte algo..." class="flex-1 min-w-0 bg-slate-100 border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none">
-                    <button id="ai-send" class="bg-blue-600 text-white p-2.5 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100">
+                    <button id="ai-send" class="bg-blue-600 text-white p-2.5 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100 focus:outline-none">
                         <i data-lucide="send" class="w-5 h-5"></i>
                     </button>
                 </div>
@@ -79,9 +85,100 @@
         const windowEl = document.getElementById('ai-window');
         const closeBtn = document.getElementById('ai-close');
         const clearBtn = document.getElementById('ai-clear');
+        const soundBtn = document.getElementById('ai-sound');
+        const micBtn = document.getElementById('ai-mic');
         const input = document.getElementById('ai-input');
         const sendBtn = document.getElementById('ai-send');
         const messagesArea = document.getElementById('ai-messages');
+
+        let isSoundOn = true;
+
+        const speakText = (text) => {
+            if (!window.speechSynthesis || !isSoundOn) return;
+            window.speechSynthesis.cancel();
+
+            const cleanText = text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/_/g, '').replace(/#/g, '');
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'pt-BR';
+            utterance.rate = 1.05;
+
+            const voices = window.speechSynthesis.getVoices();
+            const ptVoice = voices.find(v => v.lang === 'pt-BR' && (v.name.includes('Google') || v.name.includes('Luciana') || v.name.includes('Maria')));
+            if (ptVoice) utterance.voice = ptVoice;
+
+            window.speechSynthesis.speak(utterance);
+        };
+
+        if (window.speechSynthesis) {
+            window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+        }
+
+        soundBtn.addEventListener('click', () => {
+            isSoundOn = !isSoundOn;
+            const icon = soundBtn.querySelector('i');
+            if (isSoundOn) {
+                icon.setAttribute('data-lucide', 'volume-2');
+                soundBtn.title = "Áudio Ativado";
+            } else {
+                icon.setAttribute('data-lucide', 'volume-x');
+                soundBtn.title = "Áudio Desativado";
+                window.speechSynthesis.cancel();
+            }
+            if (window.lucide) window.lucide.createIcons();
+        });
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'pt-BR';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                micBtn.classList.remove('bg-gray-100', 'text-gray-600');
+                micBtn.classList.add('bg-red-500', 'text-white', 'animate-pulse');
+                input.placeholder = "Ouvindo...";
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                input.value = transcript;
+                handleSend(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech Error:", event.error);
+                resetMicUI();
+                if (event.error === 'not-allowed' || event.error === 'security') {
+                    alert("Microfone bloqueado pelo Chrome! Se este site não tiver HTTPS (Cadeado fechado) ou não for localhost, o Chrome impede o uso da voz por segurança.");
+                } else if (event.error === 'network') {
+                    alert("Erro de rede: O Chrome não conseguiu conectar ao provedor de voz do Google.");
+                } else {
+                    alert("Erro no reconhecimento de voz: " + event.error);
+                }
+            };
+
+            recognition.onend = () => {
+                resetMicUI();
+            };
+        } else {
+            micBtn.style.display = 'none';
+        }
+
+        function resetMicUI() {
+            micBtn.classList.remove('bg-red-500', 'text-white', 'animate-pulse');
+            micBtn.classList.add('bg-gray-100', 'text-gray-600');
+            input.placeholder = "Pergunte algo...";
+        }
+
+        micBtn.addEventListener('click', () => {
+            if (recognition) {
+                recognition.start();
+            } else {
+                alert("Seu navegador não suporta reconhecimento de voz. Tente usar o Google Chrome.");
+            }
+        });
 
         const saveState = () => {
             localStorage.setItem('sas_ai_history', JSON.stringify(messageHistory));
@@ -257,17 +354,34 @@
             messagesArea.appendChild(typingDiv);
             messagesArea.scrollTop = messagesArea.scrollHeight;
 
+            let userContextStr = "";
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('sas_user'));
+                if (currentUser) {
+                    userContextStr = JSON.stringify({
+                        id: currentUser.id,
+                        nome: currentUser.nome_completo,
+                        tipo: currentUser.tipo
+                    });
+                }
+            } catch (e) { }
+
             try {
                 const response = await fetch('/api/ai/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message, history: messageHistory.map(m => ({ role: m.role, content: m.content })) })
+                    body: JSON.stringify({
+                        message,
+                        history: messageHistory.map(m => ({ role: m.role, content: m.content })),
+                        user_context: userContextStr
+                    })
                 });
 
                 if (response.ok) {
                     const data = await response.json();
                     typingDiv.remove();
                     addMessage(data.reply);
+                    // speakText(data.reply); // [VOZ DESATIVADA] Descomentar para reativar junto com os botões de mic e volume
                     if (window.lucide) window.lucide.createIcons();
                 } else {
                     throw new Error();

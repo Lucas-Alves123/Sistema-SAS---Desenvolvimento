@@ -48,6 +48,9 @@
                     <button id="tabDetailed" class="px-6 py-3 font-medium text-gray-500 hover:text-blue-600 transition-colors">
                         Relatório Detalhado
                     </button>
+                    <button id="tabEvaluations" class="px-6 py-3 font-medium text-gray-500 hover:text-blue-600 transition-colors">
+                        Avaliações de Satisfação
+                    </button>
                 </div>
 
                 <!-- Charts View -->
@@ -141,6 +144,59 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- Evaluations View -->
+                <div id="viewEvaluations" class="bg-white rounded-xl shadow-lg border border-slate-100 p-6 hidden animate-fade-in">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center">
+                            <div class="text-3xl font-bold text-blue-700" id="avgTotal">-</div>
+                            <div class="text-sm font-medium text-blue-600">Média Geral</div>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-xl border border-green-100 text-center">
+                            <div class="text-3xl font-bold text-green-700" id="totalEvals">0</div>
+                            <div class="text-sm font-medium text-green-600">Total de Avaliações</div>
+                        </div>
+                        <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-100 text-center">
+                            <div class="text-3xl font-bold text-yellow-700" id="avgService">-</div>
+                            <div class="text-sm font-medium text-yellow-600">Satisfação Atendimento</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2">
+                                <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Média por Categoria
+                            </h3>
+                            <canvas id="evalChart"></canvas>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 overflow-y-auto max-h-[400px]">
+                            <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2">
+                                <i data-lucide="message-square" class="w-5 h-5"></i> Comentários Recentes
+                            </h3>
+                            <div id="evalComments" class="space-y-3">
+                                <p class="text-gray-400 italic text-center py-4">Carregando comentários...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto border rounded-lg">
+                        <table class="w-full text-sm text-center">
+                            <thead class="bg-slate-100 border-b">
+                                <tr>
+                                    <th class="px-4 py-3">Data</th>
+                                    <th class="px-4 py-3">Servidor</th>
+                                    <th class="px-4 py-3">Espera</th>
+                                    <th class="px-4 py-3">Atendimento</th>
+                                    <th class="px-4 py-3">Estrutura</th>
+                                    <th class="px-4 py-3">Limpeza</th>
+                                    <th class="px-4 py-3">Resolução</th>
+                                </tr>
+                            </thead>
+                            <tbody id="evalTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -168,9 +224,24 @@
         tabDetailed.addEventListener('click', () => {
             tabDetailed.className = 'px-6 py-3 font-bold text-blue-600 border-b-2 border-blue-600 transition-colors';
             tabCharts.className = 'px-6 py-3 font-medium text-gray-500 hover:text-blue-600 transition-colors';
+            tabEvaluations.className = 'px-6 py-3 font-medium text-gray-500 hover:text-blue-600 transition-colors';
             viewDetailed.classList.remove('hidden');
             viewCharts.classList.add('hidden');
+            viewEvaluations.classList.add('hidden');
             loadReportTable(); // Load data when tab is opened
+        });
+
+        const tabEvaluations = document.getElementById('tabEvaluations');
+        const viewEvaluations = document.getElementById('viewEvaluations');
+
+        tabEvaluations.addEventListener('click', () => {
+            tabEvaluations.className = 'px-6 py-3 font-bold text-blue-600 border-b-2 border-blue-600 transition-colors';
+            tabCharts.className = 'px-6 py-3 font-medium text-gray-500 hover:text-blue-600 transition-colors';
+            tabDetailed.className = 'px-6 py-3 font-medium text-gray-500 hover:text-blue-600 transition-colors';
+            viewEvaluations.classList.remove('hidden');
+            viewCharts.classList.add('hidden');
+            viewDetailed.classList.add('hidden');
+            loadEvaluations();
         });
 
         // Chart Logic
@@ -362,6 +433,101 @@
         });
 
         filterBtn.addEventListener('click', loadReportTable);
+
+        // Evaluations Logic
+        let evalChart = null;
+
+        async function loadEvaluations() {
+            try {
+                const data = await window.SAS.base44.entities.Avaliacao.list();
+
+                document.getElementById('totalEvals').textContent = data.length;
+
+                if (data.length === 0) {
+                    document.getElementById('evalComments').innerHTML = '<p class="text-gray-400 italic text-center py-4">Nenhuma avaliação recebida ainda.</p>';
+                    return;
+                }
+
+                // Calculate Averages
+                const sum = (arr) => arr.reduce((a, b) => a + b, 0);
+                const avg = (arr) => (arr.length ? (sum(arr) / arr.length).toFixed(1) : 0);
+
+                const esperas = data.map(d => d.tempo_espera);
+                const atendimentos = data.map(d => d.atendimento);
+                const estruturas = data.map(d => d.estrutura_fisica);
+                const limpezas = data.map(d => d.limpeza);
+                const resolucoes = data.map(d => d.resolucao_problema);
+
+                const generalAvg = avg([...esperas, ...atendimentos, ...estruturas, ...limpezas, ...resolucoes]);
+                document.getElementById('avgTotal').textContent = generalAvg;
+                document.getElementById('avgService').textContent = avg(atendimentos);
+
+                // Render Chart
+                if (evalChart) evalChart.destroy();
+                const ctx = document.getElementById('evalChart').getContext('2d');
+                evalChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Espera', 'Atendimento', 'Estrutura', 'Limpeza', 'Resolução'],
+                        datasets: [{
+                            label: 'Média de Notas',
+                            data: [avg(esperas), avg(atendimentos), avg(estruturas), avg(limpezas), avg(resolucoes)],
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 5,
+                                ticks: { stepSize: 1 }
+                            }
+                        }
+                    }
+                });
+
+                // Render Comments
+                const commentsContainer = document.getElementById('evalComments');
+                commentsContainer.innerHTML = '';
+                data.filter(d => d.comentarios).slice(0, 5).forEach(d => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-white p-3 rounded-lg border border-slate-200 shadow-sm';
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-xs text-blue-800">${d.nome_completo || 'Anônimo'}</span>
+                            <span class="text-[10px] text-gray-400">${window.SAS.utils.formatDate(d.created_at)}</span>
+                        </div>
+                        <p class="text-xs text-gray-600 italic">"${d.comentarios}"</p>
+                    `;
+                    commentsContainer.appendChild(div);
+                });
+
+                // Render Table
+                const tableBody = document.getElementById('evalTableBody');
+                tableBody.innerHTML = '';
+                data.forEach(d => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b hover:bg-slate-50 transition-colors';
+                    tr.innerHTML = `
+                        <td class="px-4 py-3 text-xs text-gray-500">${window.SAS.utils.formatDate(d.created_at)}</td>
+                        <td class="px-4 py-3 text-xs font-medium">${d.nome_completo || '-'}</td>
+                        <td class="px-4 py-3 text-xs font-bold text-blue-600 text-center">${d.tempo_espera}</td>
+                        <td class="px-4 py-3 text-xs font-bold text-blue-600 text-center">${d.atendimento}</td>
+                        <td class="px-4 py-3 text-xs font-bold text-blue-600 text-center">${d.estrutura_fisica}</td>
+                        <td class="px-4 py-3 text-xs font-bold text-blue-600 text-center">${d.limpeza}</td>
+                        <td class="px-4 py-3 text-xs font-bold text-blue-600 text-center">${d.resolucao_problema}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+                lucide.createIcons();
+
+            } catch (err) {
+                console.error('Error loading evaluations:', err);
+            }
+        }
 
         // Generate initial chart
         generateBtn.click();

@@ -83,7 +83,8 @@
                     if (!res.ok) throw new Error('Failed to fetch next in queue');
                     return await res.json();
                 }
-            }
+            },
+            Avaliacao: createCRUD('avaliacoes')
         }
     };
 

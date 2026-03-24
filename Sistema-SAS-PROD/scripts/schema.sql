@@ -57,13 +57,35 @@ CREATE TABLE agendamentos (
     
     -- Metadados
     created_by INTEGER REFERENCES usuarios(id), -- Quem criou o agendamento
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Tempos de ciclo
+    hora_chegada TIMESTAMP,
+    hora_atendimento TIMESTAMP,
+    hora_conclusao TIMESTAMP
 );
 
 -- Índices para melhorar a performance das buscas
 CREATE INDEX idx_agendamentos_data ON agendamentos(data_agendamento);
 CREATE INDEX idx_agendamentos_status ON agendamentos(status);
 CREATE INDEX idx_usuarios_usuario ON usuarios(usuario);
+
+-- -----------------------------------------------------
+-- Table: avaliacoes
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS avaliacoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    agendamento_id INT UNIQUE,
+    tempo_espera INT,
+    atendimento INT,
+    estrutura_fisica INT,
+    limpeza INT,
+    resolucao_problema INT,
+    clareza_informacoes INT,
+    comentarios TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (agendamento_id) REFERENCES agendamentos(id)
+);
 
 -- DADOS INICIAIS (SEED)
 -- Cria o usuário Administrador padrão para você conseguir logar
