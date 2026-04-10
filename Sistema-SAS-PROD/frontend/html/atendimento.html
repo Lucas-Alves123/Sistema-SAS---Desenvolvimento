@@ -994,7 +994,7 @@
             if (!confirm('Deseja realmente resetar o painel? Isso limpará qualquer chamado travado e atualizará a fila.')) return;
             
             try {
-                const response = await fetch(`${API_URL}/agendamentos/reset-painel`, {
+                const response = await fetch('/api/agendamentos/reset-painel', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
                 });
