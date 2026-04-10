@@ -136,6 +136,12 @@ function announceCall(name, guiche) {
     // Cancel any current announcement
     window.speechSynthesis.cancel();
 
+    // Block announcement if it's just the waiting state
+    if (!name || name === "Aguardando..." || name.includes("Aguardando")) {
+        console.log("[TTS] Silenciando estado de espera.");
+        return;
+    }
+
     setTimeout(() => {
         // Prepare the text (cleaning guiche number for phonetic clarity)
         const cleanGuiche = String(guiche).replace(/\D/g, '') || guiche; 
