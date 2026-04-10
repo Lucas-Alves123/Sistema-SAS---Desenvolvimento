@@ -96,22 +96,25 @@ function updateUI(name, guiche) {
 // Repeating Announcement Logic
 function startRepeatingAnnouncement(name, guiche) {
     stopRepeatingAnnouncement(); // Safety check
+    console.log(`[TTS Cycle] Iniciando ciclo dinâmico para: ${name}`);
 
-    console.log(`[TTS Cycle] Iniciando ciclo para: ${name}`);
+    const scheduleNext = () => {
+        // Only schedule if we haven't been stopped
+        announcementInterval = setTimeout(() => {
+            console.log("[TTS Cycle] Disparando repetição agendada...");
+            announceCall(name, guiche, scheduleNext);
+        }, 5000); // 5 seconds interval AFTER it finishes speaking
+    };
 
-    // First announcement
-    announceCall(name, guiche);
-
-    // Repeat every 5 seconds as requested
-    announcementInterval = setInterval(() => {
-        console.log("[TTS Cycle] Disparando repetição agendada...");
-        announceCall(name, guiche);
-    }, 5000);
+    // First announcement immediate
+    announceCall(name, guiche, scheduleNext);
 }
 
 function stopRepeatingAnnouncement() {
     if (announcementInterval) {
+        // It could be either a setInterval (if old code) or setTimeout (new logic)
         clearInterval(announcementInterval);
+        clearTimeout(announcementInterval); 
         announcementInterval = null;
         console.log("[TTS Cycle] Ciclo de anúncio parado.");
     }
@@ -126,7 +129,7 @@ function stopRepeatingAnnouncement() {
 
 // Announce Call with Text-to-Speech
 // Refined to strictly find and use Brazilian Portuguese voices
-function announceCall(name, guiche) {
+function announceCall(name, guiche, onFinishedCallback = null) {
     if (!window.speechSynthesis) {
         console.warn("[TTS] Speech Synthesis não suportado.");
         return;
@@ -180,11 +183,24 @@ function announceCall(name, guiche) {
         }
 
         utterance.onstart = () => console.log("[TTS] Fala iniciada.");
-        utterance.onerror = (e) => console.error("[TTS] Erro detectado:", e);
+        
+        if (onFinishedCallback) {
+            utterance.onend = () => {
+                console.log("[TTS] Fala concluída com sucesso.");
+                onFinishedCallback();
+            };
+            utterance.onerror = (e) => {
+                console.error("[TTS Error] Erro detectado:", e);
+                // Try to continue the cycle even on error
+                onFinishedCallback();
+            };
+        } else {
+            utterance.onerror = (e) => console.error("[TTS Error] Erro detectado:", e);
+        }
 
         window.speechSynthesis.resume();
         window.speechSynthesis.speak(utterance);
-    }, 250); // Small interval to ensure clean synthesis state
+    }, 250); 
 }
 
 // Interaction Overlay Logic
