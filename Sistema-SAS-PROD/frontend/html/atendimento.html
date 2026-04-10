@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/sonner@1.4.0/dist/sonner.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="js/pdf_generator.js"></script>
+    <script src="js/pdf_generator.js?v=1.1"></script>
 </head>
 
 <body>
@@ -610,21 +610,14 @@
                             <div class="mt-2 group relative">
                                 <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Tipo de Serviço (Clique para alterar se necessário):</label>
                                 <select id="servicoCorrigido" class="w-full p-2 border border-blue-200 rounded-lg bg-blue-50 text-blue-800 font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Selecione...</option>
                                     <option value="Aposentadoria" ${item.tipo_servico === 'Aposentadoria' ? 'selected' : ''}>Aposentadoria</option>
-                                    <option value="Averbação de tempo" ${item.tipo_servico === 'Averbação de tempo' ? 'selected' : ''}>Averbação de tempo</option>
+                                    <option value="Atendimento Geral" ${item.tipo_servico === 'Atendimento Geral' ? 'selected' : ''}>Atendimento Geral</option>
+                                    <option value="Seleção Pública Simplificada" ${item.tipo_servico === 'Seleção Pública Simplificada' ? 'selected' : ''}>Seleção Pública Simplificada</option>
                                     <option value="Certidão" ${item.tipo_servico === 'Certidão' ? 'selected' : ''}>Certidão</option>
-                                    <option value="Contagem de Tempo" ${item.tipo_servico === 'Contagem de Tempo' ? 'selected' : ''}>Contagem de Tempo</option>
-                                    <option value="Exoneração / Rescisão" ${item.tipo_servico === 'Exoneração / Rescisão' ? 'selected' : ''}>Exoneração / Rescisão</option>
-                                    <option value="Incentivo à Titulação" ${item.tipo_servico === 'Incentivo à Titulação' ? 'selected' : ''}>Incentivo à Titulação</option>
-                                    <option value="Licença Prêmio" ${item.tipo_servico === 'Licença Prêmio' ? 'selected' : ''}>Licença Prêmio</option>
-                                    <option value="Licença para Tratar de Interesse Particular" ${item.tipo_servico === 'Licença para Tratar de Interesse Particular' ? 'selected' : ''}>Licença para Tratar de Interesse Particular</option>
-                                    <option value="Outros" ${item.tipo_servico === 'Outros' ? 'selected' : ''}>Outros</option>
+                                    <option value="Licença" ${item.tipo_servico === 'Licença' ? 'selected' : ''}>Licença</option>
                                     <option value="Pagamento" ${item.tipo_servico === 'Pagamento' ? 'selected' : ''}>Pagamento</option>
                                     <option value="Plantão Extraordinário" ${item.tipo_servico === 'Plantão Extraordinário' ? 'selected' : ''}>Plantão Extraordinário</option>
-                                    <option value="PPP / LTCAT" ${item.tipo_servico === 'PPP / LTCAT' ? 'selected' : ''}>PPP / LTCAT</option>
-                                    <option value="Progressão" ${item.tipo_servico === 'Progressão' ? 'selected' : ''}>Progressão</option>
-                                    <option value="Revisão de Situação Funcional" ${item.tipo_servico === 'Revisão de Situação Funcional' ? 'selected' : ''}>Revisão de Situação Funcional</option>
-                                    <option value="Salário Família" ${item.tipo_servico === 'Salário Família' ? 'selected' : ''}>Salário Família</option>
                                 </select>
                             </div>
                             <div class="flex gap-2 flex-wrap mt-4">
@@ -815,7 +808,7 @@
 
                 lastServiceName.textContent = ag.nome_completo;
                 lastBtnReq.onclick = () => window.SAS.pdf.generateRequerimentoA(ag);
-                lastBtnComp.onclick = () => window.SAS.pdf.generateComprovante(ag);
+                lastBtnComp.onclick = () => window.SAS.pdf.generateComprovante(ag, user.nome_completo || user.nome);
 
                 lastServiceSection.classList.remove('hidden');
                 lucide.createIcons();
