@@ -39,7 +39,8 @@ async function fetchCurrentCall() {
             stopRepeatingAnnouncement();
 
             // Voice logic:
-            if (!isFirstRun && data.id && data.nome_completo !== "Aguardando...") {
+            // Relaxed to allow first run announcement if name is valid
+            if (data.id && data.nome_completo !== "Aguardando...") {
                 console.log("[TTS] Iniciando ciclo de anúncio repetido...");
                 startRepeatingAnnouncement(data.nome_completo, data.guiche);
             }
@@ -192,6 +193,13 @@ function unlockAudio() {
         const kick = new SpeechSynthesisUtterance("");
         window.speechSynthesis.speak(kick);
         console.log("[TTS] Áudio desbloqueado pelo usuário.");
+        
+        // Immediate announcement of what's on screen
+        const nameOnScreen = document.getElementById('server-name').textContent;
+        const guicheOnScreen = document.getElementById('guiche-number').textContent;
+        if (nameOnScreen && nameOnScreen !== "Aguardando...") {
+            startRepeatingAnnouncement(nameOnScreen, guicheOnScreen);
+        }
     }
 }
 
