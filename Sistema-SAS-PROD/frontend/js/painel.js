@@ -5,6 +5,7 @@ let lastCallId = null;
 let isFirstRun = true;
 let isAudioUnlocked = false;
 let announcementInterval = null;
+let announcementTimeout = null;
 
 // Update Clock
 function updateClock() {
@@ -101,11 +102,11 @@ function startRepeatingAnnouncement(name, guiche) {
     // First announcement
     announceCall(name, guiche);
 
-    // Repeat every 6 seconds (slightly more to avoid overlapping with 3s polling)
+    // Repeat every 5 seconds as requested
     announcementInterval = setInterval(() => {
         console.log("[TTS Cycle] Disparando repetição agendada...");
         announceCall(name, guiche);
-    }, 6000);
+    }, 5000);
 }
 
 function stopRepeatingAnnouncement() {
@@ -113,6 +114,10 @@ function stopRepeatingAnnouncement() {
         clearInterval(announcementInterval);
         announcementInterval = null;
         console.log("[TTS Cycle] Ciclo de anúncio parado.");
+    }
+    if (announcementTimeout) {
+        clearTimeout(announcementTimeout);
+        announcementTimeout = null;
     }
     if (window.speechSynthesis) {
         window.speechSynthesis.cancel();
@@ -142,7 +147,8 @@ function announceCall(name, guiche) {
         return;
     }
 
-    setTimeout(() => {
+    if (announcementTimeout) clearTimeout(announcementTimeout);
+    announcementTimeout = setTimeout(() => {
         // Prepare the text (cleaning guiche number for phonetic clarity)
         const cleanGuiche = String(guiche).replace(/\D/g, '') || guiche; 
         const phrase = `${name}, dirigir-se ao guichê ${cleanGuiche}.`;
