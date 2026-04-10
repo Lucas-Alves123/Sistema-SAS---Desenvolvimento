@@ -144,6 +144,27 @@
                     </p>
                 </div>
 
+                <!-- Controle do Painel (Reset) -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-4">
+                    <h2 class="text-sm font-black text-slate-400 uppercase mb-4 flex items-center gap-2">
+                        <i data-lucide="refresh-cw" class="w-4 h-4 text-orange-500"></i>
+                        Controle do Painel
+                    </h2>
+                    <button onclick="resetPanel()" 
+                        class="w-full group flex items-center gap-3 p-3 border border-orange-100 rounded-xl hover:border-orange-500 hover:bg-orange-50 transition-all text-left">
+                        <div class="bg-orange-100 p-2 rounded-lg text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                            <i data-lucide="zap" class="w-5 h-5"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-sm font-bold text-slate-800">Resetar Painel</div>
+                            <div class="text-[10px] text-slate-400">Destravar fila de chamadas</div>
+                        </div>
+                    </button>
+                    <p class="mt-3 text-[10px] text-slate-400 italic">
+                        * Use caso o painel pare de chamar novos agendamentos.
+                    </p>
+                </div>
+
                 <div id="arrivalsSection" class="bg-white rounded-xl shadow-sm border border-blue-200 p-6">
                     <h2 class="text-xl font-bold text-blue-700 mb-4">Agendamentos de Hoje - Confirmar Chegada</h2>
                     <div id="arrivalsList" class="space-y-2"></div>
@@ -989,6 +1010,28 @@
                 window.SAS.utils.notify('error', 'Erro ao chamar próximo.');
             }
         });
+
+        window.resetPanel = async () => {
+            if (!confirm('Deseja realmente resetar o painel? Isso limpará qualquer chamado travado e atualizará a fila.')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/agendamentos/reset-painel`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    window.SAS.utils.notify('success', 'Painel resetado e fila atualizada!');
+                    loadData(); // Recarrega os dados para atualizar o aviso
+                } else {
+                    window.SAS.utils.notify('error', 'Erro ao resetar: ' + (result.error || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Erro resetPanel:', error);
+                window.SAS.utils.notify('error', 'Falha na comunicação com o servidor.');
+            }
+        };
 
         loadData();
         setInterval(loadData, 3000);
