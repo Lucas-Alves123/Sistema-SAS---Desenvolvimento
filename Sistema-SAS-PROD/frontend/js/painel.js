@@ -51,11 +51,12 @@ async function fetchCurrentCall() {
         } 
         // Logic to CLEAR the panel if no active call is found or if name is "Aguardando..."
         else if (!data.id || data.nome_completo === "Aguardando...") {
+            console.log("[PAINEL] Limpando e silenciando: Nenhum chamado ativo.");
+            stopRepeatingAnnouncement(); // AGGRESSIVE STOP
+            
             if (lastCallId !== null || data.nome_completo === "Aguardando...") {
                 if (nameEl && nameEl.textContent !== "Aguardando...") {
-                    console.log("[PAINEL] Limpando painel: Nenhum chamado ativo.");
                     updateUI("Aguardando...", "-");
-                    stopRepeatingAnnouncement();
                     lastCallId = null;
                 }
             }
