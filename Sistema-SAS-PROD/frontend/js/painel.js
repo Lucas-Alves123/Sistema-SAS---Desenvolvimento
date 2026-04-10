@@ -145,8 +145,9 @@ function announceCall(name, guiche, onFinishedCallback = null) {
     window.speechSynthesis.cancel();
 
     // Block announcement if it's just the waiting state
-    if (!name || name === "Aguardando..." || name.includes("Aguardando")) {
-        console.log("[TTS] Silenciando estado de espera.");
+    const nameLower = (name || "").toLowerCase().trim();
+    if (!name || nameLower === "aguardando..." || nameLower.includes("aguardando")) {
+        console.log("[TTS] Silenciando estado de espera confirmado.");
         return;
     }
 
