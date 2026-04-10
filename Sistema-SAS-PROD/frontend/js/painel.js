@@ -6,6 +6,7 @@ let isFirstRun = true;
 let isAudioUnlocked = false;
 let announcementInterval = null;
 let announcementTimeout = null;
+let isAnnouncing = false;
 
 // Update Clock
 function updateClock() {
@@ -96,11 +97,18 @@ function updateUI(name, guiche) {
 // Repeating Announcement Logic
 function startRepeatingAnnouncement(name, guiche) {
     stopRepeatingAnnouncement(); // Safety check
+    isAnnouncing = true;
     console.log(`[TTS Cycle] Iniciando ciclo dinâmico para: ${name}`);
 
     const scheduleNext = () => {
         // Only schedule if we haven't been stopped
+        if (!isAnnouncing) {
+            console.log("[TTS Cycle] Bloqueado: Atendimento já iniciado.");
+            return;
+        }
+
         announcementInterval = setTimeout(() => {
+            if (!isAnnouncing) return;
             console.log("[TTS Cycle] Disparando repetição agendada...");
             announceCall(name, guiche, scheduleNext);
         }, 5000); // 5 seconds interval AFTER it finishes speaking
@@ -111,6 +119,7 @@ function startRepeatingAnnouncement(name, guiche) {
 }
 
 function stopRepeatingAnnouncement() {
+    isAnnouncing = false;
     if (announcementInterval) {
         // It could be either a setInterval (if old code) or setTimeout (new logic)
         clearInterval(announcementInterval);
