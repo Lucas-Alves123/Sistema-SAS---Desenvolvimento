@@ -42,16 +42,20 @@ async function fetchCurrentCall() {
             if (!isFirstRun && data.id && data.nome_completo !== "Aguardando...") {
                 console.log("[TTS] Iniciando ciclo de anúncio repetido...");
                 startRepeatingAnnouncement(data.nome_completo, data.guiche);
-            } else if (isFirstRun) {
-                console.log("[PAINEL] Ignorando anúncio no carregamento inicial.");
             }
 
             lastCallId = data.id;
-        } else if (!data.id && lastCallId !== null) {
-            console.log("[PAINEL] Chamado encerrado. Parando repetição e voltando para aguardando.");
-            updateUI("Aguardando...", "-");
-            stopRepeatingAnnouncement();
-            lastCallId = null;
+        } 
+        // Logic to CLEAR the panel if no active call is found or if name is "Aguardando..."
+        else if (!data.id || data.nome_completo === "Aguardando...") {
+            if (lastCallId !== null || data.nome_completo === "Aguardando...") {
+                if (nameEl && nameEl.textContent !== "Aguardando...") {
+                    console.log("[PAINEL] Limpando painel: Nenhum chamado ativo.");
+                    updateUI("Aguardando...", "-");
+                    stopRepeatingAnnouncement();
+                    lastCallId = null;
+                }
+            }
         }
 
         isFirstRun = false;
@@ -115,53 +119,59 @@ function stopRepeatingAnnouncement() {
 }
 
 // Announce Call with Text-to-Speech
+// Refined to strictly find and use Brazilian Portuguese voices
 function announceCall(name, guiche) {
     if (!window.speechSynthesis) {
-        console.warn("[TTS] Speech Synthesis não suportado neste navegador.");
+        console.warn("[TTS] Speech Synthesis não suportado.");
         return;
     }
 
-    // Check if browser blocked it
+    // Check if browser blocked audio automatically
     if (!isAudioUnlocked) {
-        console.warn("[TTS] Áudio bloqueado pelo navegador. Aguardando interação.");
         showAudioOverlay();
         return;
     }
 
-    // CRITICAL: Cancel current speech and wait a bit before starting new one
+    // Cancel any current announcement
     window.speechSynthesis.cancel();
 
     setTimeout(() => {
-        const phrase = `${name}, dirigir-se ao guichê ${guiche}.`;
-        console.log(`[TTS] Falando agora: "${phrase}"`);
+        // Prepare the text (cleaning guiche number for phonetic clarity)
+        const cleanGuiche = String(guiche).replace(/\D/g, '') || guiche; 
+        const phrase = `${name}, dirigir-se ao guichê ${cleanGuiche}.`;
+        
+        console.log(`[TTS] Anunciando agora: "${phrase}"`);
 
         const utterance = new SpeechSynthesisUtterance(phrase);
-        utterance.lang = 'pt-BR';
-        utterance.rate = 0.95;
+        utterance.lang = 'pt-BR'; // High priority setting
+        utterance.rate = 0.85;    // Slightly slower for better understanding
         utterance.pitch = 1.0;
 
-        // Force a Portuguese voice
-        const voices = window.speechSynthesis.getVoices();
+        // SELEÇÃO DE VOZ AGRESSIVA
+        let voices = window.speechSynthesis.getVoices();
+        
         if (voices.length > 0) {
-            // Find a PT-BR voice
-            const ptVoice = voices.find(v => v.lang.includes('pt-BR') || v.lang.includes('pt_BR')) || 
-                            voices.find(v => v.lang.includes('pt'));
+            // Find the best Portuguese voice available on THIS machine
+            const ptVoice = voices.find(v => v.name.includes('Google') && (v.lang.includes('pt-BR') || v.lang.includes('pt_BR'))) ||
+                            voices.find(v => (v.lang === 'pt-BR' || v.lang === 'pt_BR')) || 
+                            voices.find(v => v.lang.includes('pt-BR')) ||
+                            voices.find(v => v.lang.startsWith('pt'));
             
             if (ptVoice) {
-                console.log(`[TTS] Voz selecionada: ${ptVoice.name} (${ptVoice.lang})`);
+                console.log(`[TTS] Voz Aplicada: ${ptVoice.name} (${ptVoice.lang})`);
                 utterance.voice = ptVoice;
+                utterance.lang = ptVoice.lang;
             } else {
-                console.warn("[TTS] Nenhuma voz em português encontrada. Usando padrão do navegador.");
+                console.warn("[TTS] Nenhuma voz em português encontrada. Usando padrão do navegador com lang=pt-BR.");
             }
         }
 
-        utterance.onstart = () => console.log("[TTS] Reprodução de áudio iniciada.");
-        utterance.onerror = (e) => console.error("[TTS] Erro detectado na síntese:", e);
+        utterance.onstart = () => console.log("[TTS] Fala iniciada.");
+        utterance.onerror = (e) => console.error("[TTS] Erro detectado:", e);
 
-        // Resume just in case it's in a stuck 'paused' state
         window.speechSynthesis.resume();
         window.speechSynthesis.speak(utterance);
-    }, 100); // 100ms technical delay for stability
+    }, 250); // Small interval to ensure clean synthesis state
 }
 
 // Interaction Overlay Logic
