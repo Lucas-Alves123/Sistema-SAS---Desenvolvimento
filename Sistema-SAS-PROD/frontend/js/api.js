@@ -78,8 +78,10 @@
             SystemUser: createCRUD('usuarios'),
             Agendamento: {
                 ...createCRUD('agendamentos'),
-                getNext: async () => {
-                    const res = await fetch(`${API_URL}/agendamentos/proximo`);
+                getNext: async (channel = null) => {
+                    let url = `${API_URL}/agendamentos/proximo`;
+                    if (channel) url += `?channel=${encodeURIComponent(channel)}`;
+                    const res = await fetch(url);
                     if (!res.ok) throw new Error('Failed to fetch next in queue');
                     return await res.json();
                 }

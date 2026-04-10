@@ -129,7 +129,6 @@ function announceCall(name, guiche) {
     }
 
     // CRITICAL: Cancel current speech and wait a bit before starting new one
-    // This helps browsers (like Chrome) clear the internal queue correctly
     window.speechSynthesis.cancel();
 
     setTimeout(() => {
@@ -140,6 +139,21 @@ function announceCall(name, guiche) {
         utterance.lang = 'pt-BR';
         utterance.rate = 0.95;
         utterance.pitch = 1.0;
+
+        // Force a Portuguese voice
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+            // Find a PT-BR voice
+            const ptVoice = voices.find(v => v.lang.includes('pt-BR') || v.lang.includes('pt_BR')) || 
+                            voices.find(v => v.lang.includes('pt'));
+            
+            if (ptVoice) {
+                console.log(`[TTS] Voz selecionada: ${ptVoice.name} (${ptVoice.lang})`);
+                utterance.voice = ptVoice;
+            } else {
+                console.warn("[TTS] Nenhuma voz em português encontrada. Usando padrão do navegador.");
+            }
+        }
 
         utterance.onstart = () => console.log("[TTS] Reprodução de áudio iniciada.");
         utterance.onerror = (e) => console.error("[TTS] Erro detectado na síntese:", e);
@@ -189,4 +203,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetchCurrentCall();
     setInterval(fetchCurrentCall, 3000);
+
+    // Some browsers need this event to load voices properly
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
 });

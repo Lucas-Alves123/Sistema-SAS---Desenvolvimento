@@ -91,33 +91,97 @@
 
                 <!-- Detailed Report View -->
                 <div id="viewDetailed" class="bg-white rounded-xl shadow-lg border border-slate-100 p-6 hidden animate-fade-in">
-                    <!-- Filters -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <div>
-                            <label class="block text-sm font-bold text-gray-600 mb-1">Data Início</label>
-                            <input type="date" id="filterStartDate" class="w-full border rounded p-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-600 mb-1">Data Fim</label>
-                            <input type="date" id="filterEndDate" class="w-full border rounded p-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-600 mb-1">Atendente</label>
-                            <select id="filterAttendant" class="w-full border rounded p-2 text-sm">
-                                <option value="">Todos</option>
-                            </select>
-                        </div>
-                        <div class="flex items-end gap-2">
-                            <button id="filterBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-bold transition-colors flex items-center justify-center gap-2">
-                                <i data-lucide="filter" class="w-4 h-4"></i> Filtrar
+                    <!-- Filter Tool Bar -->
+                    <div class="flex flex-wrap items-center justify-between gap-4 mb-4 pb-2 border-b border-slate-100">
+                        <div class="flex items-center gap-3">
+                            <h2 class="text-lg font-bold text-slate-800">Relatório Detalhado</h2>
+                            <button onclick="toggleFilterPanel()" class="flex items-center gap-2 bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-slate-200">
+                                <i data-lucide="filter" class="w-4 h-4"></i>
+                                <span>Filtros Avançados</span>
+                                <i data-lucide="chevron-down" id="filterChevron" class="w-3 h-3 transition-transform"></i>
                             </button>
-                            <button id="exportDetailedBtn" class="flex-1 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 py-1.5 rounded font-bold transition-colors flex items-center justify-center gap-2">
-                                <i data-lucide="download" class="w-4 h-4"></i> Exportar
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="exportDetailedBtn" class="flex items-center gap-2 bg-white border border-slate-200 hover:border-blue-600 text-slate-600 hover:text-blue-600 px-4 py-1.5 rounded-lg font-bold transition-all text-xs shadow-sm">
+                                <i data-lucide="download" class="w-4 h-4"></i> Exportar Excel
                             </button>
                         </div>
                     </div>
 
-                    <!-- Table -->
+                    <!-- Modern Filter Panel (Collapsible) -->
+                    <div id="filterPanel" class="overflow-hidden transition-all duration-300 ease-in-out max-h-0 opacity-0">
+                        <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 mb-6 shadow-sm">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                                <!-- Date Range -->
+                                <div class="space-y-1">
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase">Período Inicial</label>
+                                    <div class="relative">
+                                        <i data-lucide="calendar" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                        <input type="date" id="filterStartDate" class="w-full bg-white border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1">
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase">Período Final</label>
+                                    <div class="relative">
+                                        <i data-lucide="calendar" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                        <input type="date" id="filterEndDate" class="w-full bg-white border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                                    </div>
+                                </div>
+
+                                <!-- Drops -->
+                                <div class="space-y-1">
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase">Responsável</label>
+                                    <div class="relative">
+                                        <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                        <select id="filterAttendant" class="w-full bg-white border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none transition-all">
+                                            <option value="">Todos os Atendentes</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1">
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase">Tipo de Serviço</label>
+                                    <div class="relative">
+                                        <i data-lucide="tag" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                        <select id="filterService" class="w-full bg-white border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none transition-all">
+                                            <option value="">Todos os Serviços</option>
+                                            <option value="Aposentadoria">Aposentadoria</option>
+                                            <option value="Atendimento Geral">Atendimento Geral</option>
+                                            <option value="Certidão">Certidão</option>
+                                            <option value="Licença">Licença</option>
+                                            <option value="Pagamento">Pagamento</option>
+                                            <option value="Plantão Extraordinário">Plantão Extraordinário</option>
+                                            <option value="Seleção Pública Simplificada">Seleção Pública Simplificada</option>
+                                            <option value="Outros">Outros</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1">
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase">Canal/Tipo</label>
+                                    <div class="relative">
+                                        <i data-lucide="monitor" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                        <select id="filterType" class="w-full bg-white border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none transition-all">
+                                            <option value="">Todos os Canais</option>
+                                            <option value="Presencial">Presencial</option>
+                                            <option value="Whatsapp">Whatsapp</option>
+                                            <option value="E-mail">E-mail</option>
+                                            <option value="Telefônico">Telefônico</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end gap-3 mt-6">
+                                <button id="filterBtn" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-lg font-bold shadow-md shadow-blue-100 transition-all text-sm">
+                                    <i data-lucide="filter" class="w-4 h-4"></i> Aplicar Filtros
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table Container -->
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left border-collapse">
                             <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
@@ -208,41 +272,43 @@
         const metricTypeSelect = document.getElementById('metricType');
         let myChart = null;
 
-        // Tabs Logic
+        // Single Source of Truth for Tab Logic
         const tabCharts = document.getElementById('tabCharts');
         const tabDetailed = document.getElementById('tabDetailed');
+        const tabEvaluations = document.getElementById('tabEvaluations');
         const viewCharts = document.getElementById('viewCharts');
         const viewDetailed = document.getElementById('viewDetailed');
-
-        tabCharts.addEventListener('click', () => {
-            tabCharts.className = 'px-6 py-3 font-bold text-blue-600 border-b-2 border-blue-600 transition-colors';
-            tabDetailed.className = 'px-6 py-3 font-medium text-gray-500 hover:text-blue-600 transition-colors';
-            viewCharts.classList.remove('hidden');
-            viewDetailed.classList.add('hidden');
-        });
-
-        tabDetailed.addEventListener('click', () => {
-            tabDetailed.className = 'px-6 py-3 font-bold text-blue-600 border-b-2 border-blue-600 transition-colors';
-            tabCharts.className = 'px-6 py-3 font-medium text-gray-500 hover:text-blue-600 transition-colors';
-            tabEvaluations.className = 'px-6 py-3 font-medium text-gray-500 hover:text-blue-600 transition-colors';
-            viewDetailed.classList.remove('hidden');
-            viewCharts.classList.add('hidden');
-            viewEvaluations.classList.add('hidden');
-            loadReportTable(); // Load data when tab is opened
-        });
-
-        const tabEvaluations = document.getElementById('tabEvaluations');
         const viewEvaluations = document.getElementById('viewEvaluations');
 
-        tabEvaluations.addEventListener('click', () => {
-            tabEvaluations.className = 'px-6 py-3 font-bold text-blue-600 border-b-2 border-blue-600 transition-colors';
-            tabCharts.className = 'px-6 py-3 font-medium text-gray-500 hover:text-blue-600 transition-colors';
-            tabDetailed.className = 'px-6 py-3 font-medium text-gray-500 hover:text-blue-600 transition-colors';
-            viewEvaluations.classList.remove('hidden');
-            viewCharts.classList.add('hidden');
-            viewDetailed.classList.add('hidden');
-            loadEvaluations();
-        });
+        function switchReportTab(target) {
+            // Reset all buttons
+            [tabCharts, tabDetailed, tabEvaluations].forEach(btn => {
+                btn.className = 'px-6 py-3 font-medium text-gray-500 hover:text-blue-600 transition-colors';
+            });
+            // Hide all views
+            [viewCharts, viewDetailed, viewEvaluations].forEach(view => {
+                view.classList.add('hidden');
+            });
+
+            // Activate target
+            if (target === 'charts') {
+                tabCharts.className = 'px-6 py-3 font-bold text-blue-600 border-b-2 border-blue-600 transition-colors';
+                viewCharts.classList.remove('hidden');
+                generateBtn.click(); // Update chart
+            } else if (target === 'detailed') {
+                tabDetailed.className = 'px-6 py-3 font-bold text-blue-600 border-b-2 border-blue-600 transition-colors';
+                viewDetailed.classList.remove('hidden');
+                loadReportTable();
+            } else if (target === 'evaluations') {
+                tabEvaluations.className = 'px-6 py-3 font-bold text-blue-600 border-b-2 border-blue-600 transition-colors';
+                viewEvaluations.classList.remove('hidden');
+                loadEvaluations();
+            }
+        }
+
+        tabCharts.addEventListener('click', () => switchReportTab('charts'));
+        tabDetailed.addEventListener('click', () => switchReportTab('detailed'));
+        tabEvaluations.addEventListener('click', () => switchReportTab('evaluations'));
 
         // Chart Logic
         generateBtn.addEventListener('click', async () => {
@@ -314,6 +380,8 @@
         const filterStartDate = document.getElementById('filterStartDate');
         const filterEndDate = document.getElementById('filterEndDate');
         const filterAttendant = document.getElementById('filterAttendant');
+        const filterService = document.getElementById('filterService');
+        const filterType = document.getElementById('filterType');
         const filterBtn = document.getElementById('filterBtn');
         const reportTableBody = document.getElementById('reportTableBody');
 
@@ -338,6 +406,8 @@
             const start = filterStartDate.value;
             const end = filterEndDate.value;
             const attendant = filterAttendant.value;
+            const service = filterService.value;
+            const typeValue = filterType.value;
 
             if (start) {
                 data = data.filter(d => d.data_agendamento >= start);
@@ -347,6 +417,12 @@
             }
             if (attendant) {
                 data = data.filter(d => d.atendente_id == attendant);
+            }
+            if (service) {
+                data = data.filter(d => d.tipo_servico === service);
+            }
+            if (typeValue) {
+                data = data.filter(d => (d.tipo_atendimento || 'Presencial') === typeValue);
             }
 
             reportTableBody.innerHTML = '';
@@ -394,10 +470,14 @@
                 const start = filterStartDate.value;
                 const end = filterEndDate.value;
                 const attendant = filterAttendant.value;
+                const service = filterService.value;
+                const typeValue = filterType.value;
 
                 if (start) data = data.filter(d => d.data_agendamento >= start);
                 if (end) data = data.filter(d => d.data_agendamento <= end);
                 if (attendant) data = data.filter(d => d.atendente_id == attendant);
+                if (service) data = data.filter(d => d.tipo_servico === service);
+                if (typeValue) data = data.filter(d => (d.tipo_atendimento || 'Presencial') === typeValue);
 
                 if (data.length === 0) {
                     window.SAS.utils.modal.alert('Exportar', 'Não há dados para exportar com estes filtros.', 'info');
@@ -528,6 +608,26 @@
                 console.error('Error loading evaluations:', err);
             }
         }
+
+        // Toggle Filter Panel
+        let isFilterOpen = false;
+        window.toggleFilterPanel = () => {
+            const panel = document.getElementById('filterPanel');
+            const chevron = document.getElementById('filterChevron');
+            isFilterOpen = !isFilterOpen;
+            
+            if (isFilterOpen) {
+                panel.style.maxHeight = '500px';
+                panel.style.opacity = '1';
+                panel.classList.add('mt-4');
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                panel.style.maxHeight = '0';
+                panel.style.opacity = '0';
+                panel.classList.remove('mt-4');
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        };
 
         // Generate initial chart
         generateBtn.click();

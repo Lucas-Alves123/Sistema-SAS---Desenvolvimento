@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/sonner@1.4.0/dist/sonner.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="js/pdf_generator.js"></script>
 </head>
 
 <body>
@@ -65,16 +66,59 @@
             <div id="mainArea" class="max-w-5xl mx-auto space-y-8">
                 <div id="activeCallSection" class="hidden"></div>
 
+                <!-- Nova Seção de Download do Último Atendimento -->
+                <div id="lastServiceSection" class="hidden animate-fade-in">
+                    <div class="bg-emerald-50 border-2 border-emerald-200 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <div class="bg-emerald-100 p-3 rounded-full text-emerald-600">
+                                <i data-lucide="check-circle" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <div class="text-emerald-800 font-bold text-lg" id="lastServiceName">NOME DO SERVIDOR</div>
+                                <div class="text-emerald-600 text-sm">Atendimento concluído! Baixe os documentos se desejar:</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <button id="lastBtnReq" class="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md">
+                                <i data-lucide="file-text" class="w-4 h-4"></i> Requerimento A
+                            </button>
+                            <button id="lastBtnComp" class="flex-1 md:flex-none bg-white border-2 border-emerald-200 hover:bg-emerald-100 text-emerald-700 px-4 py-2 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all">
+                                <i data-lucide="award" class="w-4 h-4"></i> Comprovante
+                            </button>
+                            <button onclick="document.getElementById('lastServiceSection').classList.add('hidden')" class="p-2 text-emerald-400 hover:text-emerald-600">
+                                <i data-lucide="x" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="queueSection" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hidden">
                     <div class="flex justify-between items-center mb-4">
-                            <div class="flex items-center gap-4">
-                                <h2 class="text-xl font-bold text-gray-800">Fila de Espera</h2>
-                            </div>
+                        <div class="flex items-center gap-4">
+                            <h2 class="text-xl font-bold text-gray-800">Fila de Espera</h2>
+                        </div>
                         <button id="chamarProximoBtn" class="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition-all flex items-center gap-2">
                             <i data-lucide="megaphone" class="w-5 h-5"></i>
                             Chamar Próximo
                         </button>
                     </div>
+
+                    <!-- Abas de Canais -->
+                    <div class="flex gap-2 mb-4 border-b border-gray-100 overflow-x-auto pb-1">
+                        <button onclick="switchTab('Presencial')" id="tab-Presencial" class="px-4 py-2 font-bold text-sm rounded-t-lg transition-all border-b-2 border-blue-600 text-blue-700 whitespace-nowrap">
+                            Presencial (<span id="count-Presencial">0</span>)
+                        </button>
+                        <button onclick="switchTab('Whatsapp')" id="tab-Whatsapp" class="px-4 py-2 font-bold text-sm rounded-t-lg transition-all border-b-2 border-transparent text-gray-400 hover:bg-gray-50 whitespace-nowrap">
+                            Whatsapp (<span id="count-Whatsapp">0</span>)
+                        </button>
+                        <button onclick="switchTab('E-mail')" id="tab-E-mail" class="px-4 py-2 font-bold text-sm rounded-t-lg transition-all border-b-2 border-transparent text-gray-400 hover:bg-gray-50 whitespace-nowrap">
+                            E-mail (<span id="count-E-mail">0</span>)
+                        </button>
+                        <button onclick="switchTab('Telefônico')" id="tab-Telefônico" class="px-4 py-2 font-bold text-sm rounded-t-lg transition-all border-b-2 border-transparent text-gray-400 hover:bg-gray-50 whitespace-nowrap">
+                            Telefônico (<span id="count-Telefônico">0</span>)
+                        </button>
+                    </div>
+
                     <div id="queueList" class="space-y-2"></div>
                 </div>
 
@@ -134,6 +178,52 @@
                 </div>
             </div>
 
+            <!-- Download Modal -->
+            <div id="downloadModal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[100] animate-fade-in p-4">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
+                    <div class="bg-gradient-to-r from-blue-700 to-blue-900 p-8 text-white text-center relative">
+                        <div class="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+                            <i data-lucide="check-circle" class="w-10 h-10 text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">Atendimento Concluído!</h3>
+                        <p class="opacity-80">O que você deseja fazer agora?</p>
+                    </div>
+                    
+                    <div class="p-8">
+                        <div class="grid grid-cols-1 gap-4">
+                            <!-- Download Requerimento A -->
+                            <button id="btnDownloadReq" class="group flex items-center gap-4 p-4 border-2 border-slate-100 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all text-left">
+                                <div class="bg-blue-100 p-3 rounded-lg text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                    <i data-lucide="file-text" class="w-6 h-6"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-bold text-slate-800">Gerar Requerimento A</div>
+                                    <div class="text-xs text-slate-500">Documento oficial SES-PE com checklist</div>
+                                </div>
+                                <i data-lucide="download" class="w-5 h-5 text-slate-300 group-hover:text-blue-600"></i>
+                            </button>
+
+                            <!-- Download Comprovante -->
+                            <button id="btnDownloadComp" class="group flex items-center gap-4 p-4 border-2 border-slate-100 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all text-left">
+                                <div class="bg-green-100 p-3 rounded-lg text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                                    <i data-lucide="award" class="w-6 h-6"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-bold text-slate-800">Baixar Comprovante</div>
+                                    <div class="text-xs text-slate-500">Atestado simples de presença</div>
+                                </div>
+                                <i data-lucide="download" class="w-5 h-5 text-slate-300 group-hover:text-green-600"></i>
+                            </button>
+                        </div>
+
+                        <button onclick="closeDownloadModal()" class="w-full mt-6 py-3 font-bold text-slate-500 hover:text-slate-800 transition-colors flex items-center justify-center gap-2">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                            Fechar e Continuar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Guiche Modal -->
             <div id="guicheModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
                 <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm animate-fade-in">
@@ -177,6 +267,10 @@
         let currentActiveItem = null;
 
 
+        window.closeDownloadModal = () => {
+            document.getElementById('downloadModal').classList.add('hidden');
+        };
+
         window.manualCall = async (id) => {
             if (currentStatus === 'pausa') {
                 window.SAS.utils.notify('warning', 'Você está em pausa. Fique online para chamar o servidor.');
@@ -191,8 +285,9 @@
                 'Deseja chamar este servidor agora?',
                 async () => {
                     try {
+                        const targetStatus = currentQueueTab === 'Presencial' ? 'na_fila_do_painel' : 'pendente';
                         await window.SAS.base44.entities.Agendamento.update(id, {
-                            status: 'pendente',
+                            status: targetStatus,
                             atendente_id: user.id,
                             guiche: currentGuiche
                         });
@@ -312,7 +407,10 @@
             const todayAppointments = all.filter(a => a.data_agendamento === today);
             totalAgendadosEl.textContent = todayAppointments.length;
 
-            const arrivals = todayAppointments.filter(a => a.status === 'agendado').sort((a, b) => {
+            const arrivals = todayAppointments.filter(a => 
+                a.status === 'agendado' &&
+                (a.tipo_atendimento === currentQueueTab || (!a.tipo_atendimento && currentQueueTab === 'Presencial'))
+            ).sort((a, b) => {
                 const timeA = a.hora_inicio || '23:59';
                 const timeB = b.hora_inicio || '23:59';
                 return timeA.localeCompare(timeB);
@@ -333,9 +431,36 @@
             );
 
             totalAguardandoEl.textContent = queue.length;
+
+            // Atualiza contadores das abas
+            const counts = { 'Presencial': 0, 'Whatsapp': 0, 'E-mail': 0, 'Telefônico': 0 };
+            todayAppointments.filter(a => a.status === 'chegou').forEach(a => {
+                const canal = a.tipo_atendimento || 'Presencial';
+                if (counts[canal] !== undefined) counts[canal]++;
+            });
+            Object.keys(counts).forEach(canal => {
+                const el = document.getElementById(`count-${canal}`);
+                if (el) el.textContent = counts[canal];
+            });
+
             renderArrivals(arrivals);
             renderQueue(queue);
             renderActiveCall(active);
+        };
+
+        window.switchTab = (tab) => {
+            currentQueueTab = tab;
+            ['Presencial', 'Whatsapp', 'E-mail', 'Telefônico'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (btn) {
+                    if (t === tab) {
+                        btn.className = 'px-4 py-2 font-bold text-sm rounded-t-lg transition-all border-b-2 border-blue-600 text-blue-700 whitespace-nowrap';
+                    } else {
+                        btn.className = 'px-4 py-2 font-bold text-sm rounded-t-lg transition-all border-b-2 border-transparent text-gray-400 hover:bg-gray-50 whitespace-nowrap';
+                    }
+                }
+            });
+            loadData();
         };
 
         const renderArrivals = (items) => {
@@ -428,9 +553,13 @@
                         <div class="mb-6">
                             <h2 class="text-3xl font-bold text-blue-800 mb-1">${item.nome_completo}</h2>
                             <div class="text-gray-500 text-lg">${item.tipo_servico}</div>
-                            <div class="flex gap-2 flex-wrap mt-2">
-                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">Vínculo: ${item.vinculo || '-'}</span>
-                                <span class="bg-gray-600 text-white px-3 py-1 rounded-full text-sm font-bold">Nível de Atendimento: ${item.prioridade}</span>
+                            <div class="flex gap-2 flex-wrap mt-3">
+                                <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-100">
+                                    <i data-lucide="shield-check" class="w-3 h-3"></i> Vínculo: ${item.vinculo || '-'}
+                                </span>
+                                <span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-xs font-bold border border-slate-200">
+                                    <i data-lucide="user" class="w-3 h-3"></i> Nível: ${item.prioridade}
+                                </span>
                             </div>
                         </div>
                         <div class="flex gap-4">
@@ -478,30 +607,46 @@
                         ` : ''}
                         <div class="mb-6 border-b pb-4">
                             <h2 class="text-3xl font-bold text-blue-800 mb-1">${item.nome_completo}</h2>
-                            <div class="text-gray-500 text-lg">${item.tipo_servico}</div>
-                            <div class="flex gap-2 flex-wrap mt-2">
-                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">Vínculo: ${item.vinculo || '-'}</span>
-                                <span class="bg-gray-600 text-white px-3 py-1 rounded-full text-sm font-bold">Nível de Atendimento: ${item.prioridade}</span>
+                            <div class="mt-2 group relative">
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Tipo de Serviço (Clique para alterar se necessário):</label>
+                                <select id="servicoCorrigido" class="w-full p-2 border border-blue-200 rounded-lg bg-blue-50 text-blue-800 font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="Aposentadoria" ${item.tipo_servico === 'Aposentadoria' ? 'selected' : ''}>Aposentadoria</option>
+                                    <option value="Averbação de tempo" ${item.tipo_servico === 'Averbação de tempo' ? 'selected' : ''}>Averbação de tempo</option>
+                                    <option value="Certidão" ${item.tipo_servico === 'Certidão' ? 'selected' : ''}>Certidão</option>
+                                    <option value="Contagem de Tempo" ${item.tipo_servico === 'Contagem de Tempo' ? 'selected' : ''}>Contagem de Tempo</option>
+                                    <option value="Exoneração / Rescisão" ${item.tipo_servico === 'Exoneração / Rescisão' ? 'selected' : ''}>Exoneração / Rescisão</option>
+                                    <option value="Incentivo à Titulação" ${item.tipo_servico === 'Incentivo à Titulação' ? 'selected' : ''}>Incentivo à Titulação</option>
+                                    <option value="Licença Prêmio" ${item.tipo_servico === 'Licença Prêmio' ? 'selected' : ''}>Licença Prêmio</option>
+                                    <option value="Licença para Tratar de Interesse Particular" ${item.tipo_servico === 'Licença para Tratar de Interesse Particular' ? 'selected' : ''}>Licença para Tratar de Interesse Particular</option>
+                                    <option value="Outros" ${item.tipo_servico === 'Outros' ? 'selected' : ''}>Outros</option>
+                                    <option value="Pagamento" ${item.tipo_servico === 'Pagamento' ? 'selected' : ''}>Pagamento</option>
+                                    <option value="Plantão Extraordinário" ${item.tipo_servico === 'Plantão Extraordinário' ? 'selected' : ''}>Plantão Extraordinário</option>
+                                    <option value="PPP / LTCAT" ${item.tipo_servico === 'PPP / LTCAT' ? 'selected' : ''}>PPP / LTCAT</option>
+                                    <option value="Progressão" ${item.tipo_servico === 'Progressão' ? 'selected' : ''}>Progressão</option>
+                                    <option value="Revisão de Situação Funcional" ${item.tipo_servico === 'Revisão de Situação Funcional' ? 'selected' : ''}>Revisão de Situação Funcional</option>
+                                    <option value="Salário Família" ${item.tipo_servico === 'Salário Família' ? 'selected' : ''}>Salário Família</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-2 flex-wrap mt-4">
+                                <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-xs font-bold border border-blue-100 shadow-sm">
+                                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Vínculo: ${item.vinculo || '-'}
+                                </span>
+                                <span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 px-4 py-1.5 rounded-full text-xs font-bold border border-slate-200 shadow-sm">
+                                    <i data-lucide="star" class="w-3.5 h-3.5"></i> Nível: ${item.prioridade}
+                                </span>
                             </div>
                         </div>
                         <div class="space-y-6">
-                            <!-- Assunto Secundário -->
+                            <!-- Assuntos Dinâmicos -->
                             <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                <label class="block text-blue-700 font-bold mb-3">O servidor precisou tratar de mais um assunto?</label>
-                                <div class="flex gap-6 mb-4">
-                                    <label class="flex items-center gap-2 cursor-pointer group">
-                                        <input type="radio" name="outroAssunto" value="nao" checked onclick="toggleAssuntoSecundario(false)" class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
-                                        <span class="text-sm font-medium text-gray-700 group-hover:text-blue-700">Não</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer group">
-                                        <input type="radio" name="outroAssunto" value="sim" onclick="toggleAssuntoSecundario(true)" class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
-                                        <span class="text-sm font-medium text-gray-700 group-hover:text-blue-700">Sim</span>
-                                    </label>
+                                <div class="flex justify-between items-center mb-3">
+                                    <label class="block text-blue-700 font-bold">O servidor precisou tratar de mais um assunto?</label>
+                                    <button onclick="addAssuntoRow()" class="bg-blue-600 text-white text-xs px-3 py-1 rounded-md font-bold hover:bg-blue-700 transition-all flex items-center gap-1">
+                                        <i data-lucide="plus" class="w-3 h-3"></i> Adicionar
+                                    </button>
                                 </div>
-
-                                <div id="assuntoSecundarioDiv" class="hidden animate-fade-in">
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Descreva o outro assunto <span class="text-red-500">*</span></label>
-                                    <textarea id="assuntoSecundario" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600 h-20 resize-none" placeholder="Ex.: Aposentadoria, Plantão Extraordinário..."></textarea>
+                                <div id="assuntosContainer" class="space-y-3">
+                                    <!-- Linhas de assuntos aparecem aqui -->
                                 </div>
                             </div>
 
@@ -590,19 +735,60 @@
             }
         };
 
+        window.addAssuntoRow = () => {
+            const container = document.getElementById('assuntosContainer');
+            const div = document.createElement('div');
+            div.className = 'assunto-row bg-white p-3 rounded-lg border border-slate-200 flex gap-2 animate-fade-in mb-2';
+            div.innerHTML = `
+                <div class="flex-1">
+                    <select class="assunto-categoria w-full p-2 border border-slate-300 rounded-md text-xs mb-1 outline-none">
+                        <option value="">Selecione a categoria...</option>
+                        <option value="Aposentadoria">Aposentadoria</option>
+                        <option value="Certidão">Certidão</option>
+                        <option value="Contagem de Tempo">Contagem de Tempo</option>
+                        <option value="Exoneração / Rescisão">Exoneração / Rescisão</option>
+                        <option value="Incentivo à Titulação">Incentivo à Titulação</option>
+                        <option value="Licença Prêmio">Licença Prêmio</option>
+                        <option value="Pagamento">Pagamento</option>
+                        <option value="PPP / LTCAT">PPP / LTCAT</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                    <textarea class="assunto-descricao w-full p-2 border border-slate-300 rounded-md text-xs outline-none h-12" placeholder="Relate detalhadamente o que foi tratado neste assunto..."></textarea>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-red-500 p-1 self-start">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+        };
+
         window.finishService = async (id) => {
             const obs1 = document.getElementById('obs1').value;
             const obs2 = document.getElementById('obs2').value;
-            const outroAssuntoSim = document.querySelector('input[name="outroAssunto"]:checked').value === 'sim';
-            const assuntoSecundario = document.getElementById('assuntoSecundario').value;
+            const servicoCorrigido = document.getElementById('servicoCorrigido').value;
+            
+            // Coleta de assuntos adicionais dinâmicos
+            const assuntoRows = document.querySelectorAll('.assunto-row');
+            const assuntosAdicionais = [];
+            let validationFailed = false;
+
+            assuntoRows.forEach(row => {
+                const categoria = row.querySelector('.assunto-categoria').value;
+                const descricao = row.querySelector('.assunto-descricao').value;
+                if (!categoria || !descricao.trim()) {
+                    validationFailed = true;
+                }
+                assuntosAdicionais.push({ categoria, descricao });
+            });
 
             if (!obs1.trim() || !obs2.trim()) {
                 window.SAS.utils.notify('warning', 'É preciso preencher as duas observações para encerrar.');
                 return;
             }
 
-            if (outroAssuntoSim && !assuntoSecundario) {
-                window.SAS.utils.notify('warning', 'Por favor, selecione o assunto secundário.');
+            if (validationFailed) {
+                window.SAS.utils.notify('warning', 'Por favor, preencha a categoria e a descrição de todos os assuntos adicionais.');
                 return;
             }
 
@@ -610,111 +796,34 @@
                 await window.SAS.base44.entities.Agendamento.update(id, {
                     status: 'concluido',
                     atendente_id: user.id,
+                    tipo_servico: servicoCorrigido,
                     observacao_problema: obs1,
                     observacao_solucao: obs2,
-                    assunto_secundario: outroAssuntoSim ? assuntoSecundario : null
+                    assuntos_adicionais: assuntosAdicionais.length > 0 ? JSON.stringify(assuntosAdicionais) : null
                 });
-                try {
-                    const formatTime = (ts) => {
-                        const parts = ts.split(' ');
-                        if (parts.length > 1) {
-                            return parts[1].substring(0, 5);
-                        }
-                        const d = new Date(ts);
-                        return isNaN(d.getTime()) ? '--:--' : d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    };
 
-                    const resp = await fetch('/api/agendamentos');
-                    const agendamentosAll = await resp.json();
-                    const ag = agendamentosAll.find(a => String(a.id) === String(id));
-                    
-                    if (ag) {
-                        const { jsPDF } = window.jspdf;
-                        
-                        // 1. COMPROVANTE DE ATENDIMENTO
-                        const docComp = new jsPDF();
-                        docComp.setFontSize(18);
-                        docComp.text("Comprovante de Atendimento - SAS", 105, 20, null, null, "center");
-                        
-                        docComp.setFontSize(12);
-                        const dataPrevista = ag.hora_inicio ? ag.hora_inicio.substring(0,5) : '--:--';
-                        const chegada = formatTime(ag.hora_chegada);
-                        const inicio = formatTime(ag.hora_atendimento);
-                        const fim = formatTime(ag.hora_conclusao);
-                        
-                        const textComp = `A servidora/O servidor ${ag.nome_completo} possuía agendamento previsto para ${dataPrevista}, com chegada às ${chegada}, início do atendimento às ${inicio} e finalização às ${fim}.`;
-                        const splitTextComp = docComp.splitTextToSize(textComp, 170);
-                        docComp.text(splitTextComp, 20, 40);
-                        
-                        docComp.setFontSize(10);
-                        docComp.text("Documento gerado automaticamente pelo Sistema SAS", 105, 280, null, null, "center");
-                        
-                        docComp.save(`comprovante_atendimento_${ag.nome_completo.replace(/\s+/g, '_')}.pdf`);
-                        
-                        // 2. REQUERIMENTO A
-                        const docReq = new jsPDF();
-                        const marginX = 20;
-                        let startY = 20;
-                        const lineHeight = 7;
-                        
-                        docReq.setFontSize(18);
-                        docReq.setFont("helvetica", "bold");
-                        docReq.text("Requerimento A", 105, startY, null, null, "center");
-                        startY += 15;
-                        
-                        docReq.setFontSize(14);
-                        docReq.setFont("helvetica", "bold");
-                        docReq.text("1. Identificação do Servidor", marginX, startY);
-                        startY += 8;
-                        
-                        docReq.setFontSize(11);
-                        docReq.setFont("helvetica", "normal");
-                        docReq.text(`Nome: ${ag.nome_completo || 'N/A'}`, marginX, startY); startY += lineHeight;
-                        docReq.text(`CPF: ${ag.cpf || 'N/A'}`, marginX, startY); startY += lineHeight;
-                        docReq.text(`Cargo: ${ag.cargo || 'N/A'}`, marginX, startY); startY += lineHeight;
-                        docReq.text(`Matrícula(s): ${ag.matricula || 'N/A'}`, marginX, startY); startY += lineHeight;
-                        docReq.text(`Vínculo: ${ag.vinculo || 'N/A'}`, marginX, startY); startY += lineHeight;
-                        docReq.text(`Local de Trabalho: ${ag.local_trabalho || 'N/A'}`, marginX, startY); startY += 12;
-                        
-                        docReq.setFontSize(14);
-                        docReq.setFont("helvetica", "bold");
-                        docReq.text("2. Resumo da Solicitação", marginX, startY);
-                        startY += 8;
-                        
-                        docReq.setFontSize(11);
-                        docReq.setFont("helvetica", "bold");
-                        docReq.text("Observação / Problema:", marginX, startY);
-                        startY += 6;
-                        docReq.setFont("helvetica", "normal");
-                        const splitObs1 = docReq.splitTextToSize(obs1 || 'Nenhum', 170);
-                        docReq.text(splitObs1, marginX, startY);
-                        startY += (splitObs1.length * 5) + 4;
-                        
-                        docReq.setFont("helvetica", "bold");
-                        docReq.text("Solução / Encaminhamento:", marginX, startY);
-                        startY += 6;
-                        docReq.setFont("helvetica", "normal");
-                        const splitObs2 = docReq.splitTextToSize(obs2 || 'Nenhum', 170);
-                        docReq.text(splitObs2, marginX, startY);
-                        
-                        docReq.setFontSize(9);
-                        docReq.text("Documento gerado automaticamente pelo Sistema de Atendimento ao Servidor (SAS)", 105, 280, null, null, "center");
-                        
-                        // Download Requerimento A after a slight delay
-                        setTimeout(() => {
-                            docReq.save(`Requerimento_A_${ag.cpf ? ag.cpf.replace(/\D/g, '') : 'Atendimento'}.pdf`);
-                        }, 500);
-                        
-                        window.SAS.utils.notify('success', 'Comprovante e Requerimento gerados com sucesso!');
-                    }
-                } catch (pdfErr) {
-                    console.error("Erro ao gerar PDF: ", pdfErr);
-                    window.SAS.utils.notify('warning', 'Falha ao processar o arquivo PDF.');
-                }
+                // Carrega dados atualizados para download
+                const respAll = await fetch('/api/agendamentos');
+                const agAll = await respAll.json();
+                const ag = agAll.find(a => String(a.id) === String(id));
+
+                // Atualiza o painel de download manual (sem modal automático)
+                const lastServiceSection = document.getElementById('lastServiceSection');
+                const lastServiceName = document.getElementById('lastServiceName');
+                const lastBtnReq = document.getElementById('lastBtnReq');
+                const lastBtnComp = document.getElementById('lastBtnComp');
+
+                lastServiceName.textContent = ag.nome_completo;
+                lastBtnReq.onclick = () => window.SAS.pdf.generateRequerimentoA(ag);
+                lastBtnComp.onclick = () => window.SAS.pdf.generateComprovante(ag);
+
+                lastServiceSection.classList.remove('hidden');
+                lucide.createIcons();
 
                 window.SAS.utils.notify('success', 'Atendimento encerrado com sucesso!');
                 loadData();
             } catch (e) {
+                console.error(e);
                 window.SAS.utils.notify('error', 'Erro ao encerrar atendimento.');
             }
         };
@@ -846,15 +955,16 @@
             }
 
             try {
-                const nextData = await window.SAS.base44.entities.Agendamento.getNext();
+                const nextData = await window.SAS.base44.entities.Agendamento.getNext(currentQueueTab);
 
                 if (!nextData || !nextData.id) {
                     window.SAS.utils.notify('info', 'Não há ninguém aguardando na fila.');
                     return;
                 }
 
+                const targetStatus = currentQueueTab === 'Presencial' ? 'na_fila_do_painel' : 'pendente';
                 await window.SAS.base44.entities.Agendamento.update(nextData.id, {
-                    status: 'pendente',
+                    status: targetStatus,
                     atendente_id: user.id,
                     guiche: currentGuiche
                 });

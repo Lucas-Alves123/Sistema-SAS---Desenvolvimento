@@ -618,7 +618,7 @@
 
                 const data = await response.json();
                 if (data.success) {
-                    currentServidor = data.data;
+                    currentServidor = Array.isArray(data.data) ? data.data[0] : data.data;
                     nomeServidor.textContent = currentServidor.nome_completo;
                     dadosServidor.textContent = `CPF: ${currentServidor.cpf || '-'} | Matrícula: ${currentServidor.matricula || '-'} | Vínculo: ${currentServidor.vinculo || '-'}`;
                     successState.classList.remove('hidden');

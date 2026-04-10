@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
 <body>
@@ -17,6 +18,7 @@
     <script src="js/utils.js"></script>
     <script src="js/api.js"></script>
     <script src="js/ai_assistant.js"></script>
+    <script src="js/pdf_generator.js"></script>
     <script src="js/layout.js"></script>
 
     <script>
@@ -159,7 +161,21 @@
                     else if (item.status === 'cancelado' || item.status === 'nao_compareceu') statusColor = 'bg-red-100 text-red-800';
 
                     let actionBtn = '';
-                    if (item.status === 'concluido' || item.status === 'cancelado' || item.status === 'nao_compareceu') {
+                    if (item.status === 'concluido') {
+                        actionBtn = `
+                            <div class="flex items-center gap-1">
+                                <button onclick="openDetailsModal('${item.id}')" class="text-blue-600 hover:bg-blue-100 p-1.5 rounded-lg transition-colors" title="Ver Detalhes">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="downloadComprovante('${item.id}')" class="text-emerald-600 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors" title="Baixar Comprovante">
+                                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="downloadRequerimento('${item.id}')" class="text-blue-600 hover:bg-blue-100 p-1.5 rounded-lg transition-colors" title="Baixar Requerimento A">
+                                    <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        `;
+                    } else if (item.status === 'cancelado' || item.status === 'nao_compareceu') {
                         actionBtn = `
                             <button onclick="openDetailsModal('${item.id}')" class="text-blue-600 hover:bg-blue-100 p-1.5 rounded-lg transition-colors" title="Ver Detalhes">
                                 <i data-lucide="eye" class="w-5 h-5"></i>
@@ -191,7 +207,7 @@
         window.openDetailsModal = async (id) => {
             try {
                 const all = await window.SAS.base44.entities.Agendamento.list();
-                const item = all.find(a => a.id == id);
+                const item = all.find(a => String(a.id) === String(id));
 
                 if (!item) return;
 
@@ -256,10 +272,10 @@
                                     <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">Serviço Principal</label>
                                     <div class="text-sm text-blue-700 font-bold">${item.tipo_servico}</div>
                                 </div>
-                                ${item.assunto_secundario ? `
+                                ${item.assuntos_adicionais ? `
                                 <div class="text-center">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">Assunto Secundário</label>
-                                    <div class="text-sm text-blue-700 font-bold">${item.assunto_secundario}</div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">Assuntos Extras</label>
+                                    <div class="text-xs text-blue-600 font-bold">Sim (Ver no Requerimento)</div>
                                 </div>
                                 ` : ''}
                                 <div class="text-center">
@@ -296,10 +312,23 @@
                                 <p class="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">${item.observacao_solucao || 'Nenhuma solução registrada.'}</p>
                             </div>
                         </div>
+
+                        <!-- Actions (Download) -->
+                        ${item.status === 'concluido' ? `
+                        <div class="flex flex-col sm:flex-row gap-3 mt-8">
+                            <button onclick="downloadComprovante('${item.id}')" class="flex-1 bg-emerald-50 text-emerald-700 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-100 transition-all border border-emerald-100">
+                                <i data-lucide="file-text" class="w-5 h-5"></i> Baixar Comprovante
+                            </button>
+                            <button onclick="downloadRequerimento('${item.id}')" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">
+                                <i data-lucide="clipboard-list" class="w-5 h-5"></i> Baixar Requerimento A
+                            </button>
+                        </div>
+                        ` : ''}
                     </div>
                 `;
 
                 window.SAS.utils.modal.alert('Detalhes do Atendimento', html, 'info-no-icon');
+                lucide.createIcons();
             } catch (e) {
                 console.error('Error opening modal:', e);
                 window.SAS.utils.modal.alert('Erro', 'Erro ao carregar detalhes.', 'danger');
@@ -318,6 +347,19 @@
             refreshBtn.classList.add('animate-spin');
             loadData().then(() => setTimeout(() => refreshBtn.classList.remove('animate-spin'), 500));
         });
+
+        // PDF Download Handlers
+        window.downloadComprovante = async (id) => {
+            const all = await window.SAS.base44.entities.Agendamento.list();
+            const ag = all.find(a => String(a.id) === String(id));
+            if (ag) window.SAS.pdf.generateComprovante(ag);
+        };
+
+        window.downloadRequerimento = async (id) => {
+            const all = await window.SAS.base44.entities.Agendamento.list();
+            const ag = all.find(a => String(a.id) === String(id));
+            if (ag) window.SAS.pdf.generateRequerimentoA(ag);
+        };
 
         loadData();
     </script>
