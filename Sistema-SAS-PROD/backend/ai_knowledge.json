@@ -1,0 +1,945 @@
+{
+    "institucional": {
+        "nome": "SAS - Serviço de Atendimento ao Servidor",
+        "objetivo": "Aprimorar o relacionamento entre a Secretaria de Saúde de Pernambuco e seus servidores, garantindo acesso às informações com qualidade, eficiência e transparência, promovendo um atendimento ágil e resolutivo.",
+        "desenvolvedor": "Desenvolvido com excelência por Lucas Mateus Alves Luna.",
+        "contexto": "Criado para concentrar, em um único ambiente, a prestação de serviços da área administrativa da Secretaria de Saúde de Pernambuco, tem como finalidade atender os servidores da rede estadual, oferecendo esclarecimentos relacionados ao seu histórico funcional, direitos e demais demandas institucionais. A iniciativa busca orientar, agilizar e facilitar o atendimento ao servidor público.",
+        "horario": "Nosso horário de atendimento é das 8h às 17h."
+    },
+    "servicos": [
+        {
+            "id": "aposentadoria",
+            "nome": "Aposentadoria",
+            "descricao": "Processo de transição da atividade para a inatividade remunerada por tempo de serviço ou idade.",
+            "documentos": [
+                "RG e CPF",
+                "Comprovante de residência atualizado",
+                "Último contracheque",
+                "Certidão de Tempo de Contribuição (se houver tempo fora)",
+                "PIS/PASEP"
+            ]
+        },
+        {
+            "id": "plantao_extraordinario",
+            "nome": "Plantão Extraordinário",
+            "descricao": "Solicitação ou ajuste de remuneração por plantões realizados fora da escala regular.",
+            "documentos": [
+                "Escala assinada pela chefia",
+                "Folha de frequência do mês",
+                "Identificação funcional"
+            ]
+        },
+        {
+            "id": "licenca",
+            "nome": "Licença (Prêmio/Maternidade/Saúde)",
+            "descricao": "Afastamento legal do servidor por motivos previstos em lei.",
+            "documentos": [
+                "Requerimento preenchido",
+                "Atestado médico ou certidão de nascimento",
+                "Parecer da junta médica (se aplicável)"
+            ]
+        },
+        {
+            "id": "pagamento",
+            "nome": "Pagamento / Contracheque",
+            "descricao": "Dúvidas sobre vencimentos, descontos ou emissão de segunda via de contracheque.",
+            "documentos": [
+                "Documento de identidade",
+                "Número da matrícula funcional"
+            ]
+        },
+        {
+            "id": "selecao_simplificada",
+            "nome": "Seleção Pública Simplificada",
+            "descricao": "Processo seletivo para contratação temporária de profissionais.",
+            "documentos": [
+                "RG e CPF",
+                "Comprovação de títulos e experiência",
+                "Diploma ou certificado de escolaridade",
+                "Documentos previstos no edital específico"
+            ]
+        },
+        {
+            "id": "certidao",
+            "nome": "Certidão",
+            "descricao": "Emissão de certidões narrativas, de tempo de serviço ou outros documentos oficiais.",
+            "documentos": [
+                "Requerimento formalizado",
+                "Documento de identidade",
+                "Número de matrícula funcional"
+            ]
+        },
+        {
+            "id": "atendimento_geral",
+            "nome": "Atendimento Geral",
+            "descricao": "Dúvidas diversas que não se encaixam nas categorias específicas.",
+            "documentos": [
+                "Documento oficial com foto"
+            ]
+        }
+    ],
+    "social": {
+        "greetings": [
+            "ola",
+            "oi",
+            "bom dia",
+            "boa tarde",
+            "boa noite",
+            "eai",
+            "opa",
+            "blz",
+            "tudo bem"
+        ],
+        "responses": [
+            "Olá! Tudo bem? Sou o seu Assistente Digital do SAS. Como posso facilitar seu trabalho hoje?",
+            "Oi! Como vai? Estou aqui para tirar suas dúvidas e te ajudar a navegar no sistema SAS.",
+            "Bom dia! Sou o SAS Assistente. Em que posso ser útil hoje?",
+            "Boa tarde! Como posso te auxiliar com os módulos do SAS agora?",
+            "Boa noite! Se precisar de qualquer informação sobre o sistema, é só me perguntar."
+        ],
+        "small_talk": {
+            "tudo bem": "Tudo ótimo por aqui no servidor! E com você? Pronto para agilizar os atendimentos hoje?",
+            "quem e voce": "Eu sou o SAS Assistente, o seu Manual Digital Inteligente. Fui criado para te ajudar a entender cada botão e função deste sistema de forma simples.",
+            "o que voce faz": "Eu ajudo você a usar o Sistema SAS! Posso explicar o que cada botão faz, quais documentos levar para um serviço ou como realizar um agendamento. É só perguntar!",
+            "sas assistente": "Sou eu! Estou aqui para ser seu guia no sistema. Posso te ajudar com dúvidas sobre o atendimento, agendamento, relatórios e muito mais.",
+            "ajuda": "Claro! Posso te ajudar a navegar no SAS. Você tem dúvida sobre algum módulo (como Atendimento ou Agendamento) ou quer saber sobre algum serviço (como Aposentadoria)?",
+            "valeu": "De nada! Fico feliz em ajudar. Se precisar de mais alguma coisa, estarei por aqui.",
+            "obrigado": "Por nada! Estou à disposição para o que precisar no SAS.",
+            "nao entendi": "Sem problemas! Vou tentar explicar de um jeito mais simples para você. O que exatamente ficou confuso?",
+            "pode explicar": "Claro! Vou detalhar melhor esse ponto para você entender perfeitamente.",
+            "tenho outra duvida": "Com certeza! Pode falar, estou aqui para tirar todas as suas dúvidas sobre o SAS.",
+            "outra coisa": "Manda ver! O que mais você precisa saber sobre o sistema?",
+            "posso perguntar": "Claro que sim! Minha função é exatamente essa: te ajudar com qualquer detalhe do SAS. Qual sua dúvida?",
+            "eita": "Aconteceu algo? Se for algum erro no sistema, você pode me contar ou abrir uma solicitação no menu lateral!",
+            "entendi": "Que ótimo! Fico feliz em ter ajudado. Se surgir qualquer outra coisa, é só me chamar.",
+            "com certeza": "Isso aí! Pode contar comigo. O que mais precisarmos resolver no SAS hoje, estou às ordens."
+        }
+    },
+    "tutoriais": [
+        {
+            "topico": "agendamento",
+            "keywords": [
+                "como agendar",
+                "marcar atendimento",
+                "novo agendamento",
+                "passo a passo agendamento"
+            ],
+            "passos": [
+                "Acesse o menu **Agendamento** no menu lateral.",
+                "Preencha os dados do servidor (Nome, CPF, Matrícula).",
+                "Selecione o **Tipo de Serviço** (ex: Aposentadoria, Pagamento).",
+                "Escolha a **Data** e o **Horário** desejados.",
+                "Clique em **Confirmar Agendamento** para finalizar.",
+                "O sistema validará se já existe agendamento para aquele dia."
+            ]
+        },
+        {
+            "topico": "atendimento",
+            "keywords": [
+                "como atender",
+                "chamar senha",
+                "chamar proximo",
+                "finalizar atendimento",
+                "registrar solucao"
+            ],
+            "passos": [
+                "No menu **Atendimento**, verifique seu guichê e clique em **Online**.",
+                "Clique no botão **Chamar Próximo** para convocar a senha no painel.",
+                "O sistema segue a regra de 2 Preferenciais para cada 1 Normal.",
+                "Ao abrir o atendimento, registre o **Problema** e a **Solução**.",
+                "Você pode **Transferir** o atendimento para outro colega se necessário.",
+                "Clique em **Finalizar** para liberar o guichê para a próxima chamada."
+            ]
+        },
+        {
+            "topico": "triagem",
+            "keywords": [
+                "confirmar chegada",
+                "triagem recepcao",
+                "identificar servidor"
+            ],
+            "passos": [
+                "Na recepção, acesse o menu **Atendimento** e veja a lista de **Agendamentos de Hoje**.",
+                "Pergunte o CPF ou Matrícula do servidor.",
+                "Clique no botão **Confirmar Chegada** (ícone de check verde).",
+                "O servidor entrará na fila de espera e aparecerá para os atendentes nos guichês."
+            ]
+        },
+        {
+            "topico": "monitor",
+            "keywords": [
+                "painel monitor",
+                "ver quem esta online",
+                "tempo medio",
+                "icone de olho",
+                "olhos monitor"
+            ],
+            "passos": [
+                "Acesse o menu **Monitor** para ver o painel administrativo.",
+                "Lá você vê quem está online, quantos atendimentos cada um fez e o tempo médio.",
+                "**Ícone de Olho**: Clique nele para ver o detalhamento completo de um atendimento concluído.",
+                "É possível filtrar por atendente ou por serviço.",
+                "Ótimo para gestores acompanharem o fluxo da sala em tempo real."
+            ]
+        },
+        {
+            "topico": "relatorios",
+            "keywords": [
+                "gerar relatorio",
+                "exportar excel",
+                "graficos de atendimento",
+                "baixar dados",
+                "tipo de visualizacao",
+                "metrica de relatorio"
+            ],
+            "passos": [
+                "Acesse o menu **Relatórios**.",
+                "**Gráficos**: Escolha o 'Tipo de Visualização' (Barra, Pizza, etc.) e a 'Métrica' (Status, Serviço ou Atendente).",
+                "Clique em **Gerar Gráfico** para ver os dados visuais no canvas.",
+                "**Relatório Detalhado**: Clique na aba superior para ver a tabela completa.",
+                "Use os filtros de **Data Início**, **Data Fim** e **Atendente** para refinar os dados.",
+                "Para salvar tudo, use o botão **Exportar** (ícone de download azul) para baixar o arquivo `.xlsx` completo."
+            ]
+        },
+        {
+            "topico": "usuarios",
+            "keywords": [
+                "cadastrar usuario",
+                "criar novo acesso",
+                "mudar permissao",
+                "tipo de usuario adm dev",
+                "usuario inativo ativo",
+                "resetar senha",
+                "bolinha verde online"
+            ],
+            "passos": [
+                "Acesse o menu **Usuários**.",
+                "**Tipos de Perfil**: **DEV** (Total), **ADM** (Gestão) e **Usuário** (Atendimento).",
+                "**Status Visual**: Bolinha **Verde Pulsante** (Online), **Vermelha** (Pausa) ou **Cinza** (Offline).",
+                "Passe o mouse na bolinha vermelha para ver o **Motivo da Pausa** do colega.",
+                "**Ações**: Use o ícone de **lápis amarelo** para editar ou o **lixo vermelho** para excluir.",
+                "**Situação**: Clique no selo 'Ativo/Inativo' para bloquear ou liberar um acesso instantaneamente."
+            ]
+        },
+        {
+            "topico": "solicitacoes",
+            "keywords": [
+                "abrir chamado suporte",
+                "pedir melhoria",
+                "erro no sistema",
+                "falar com desenvolvedor",
+                "chat whatsapp solicitacao",
+                "badge notificacao",
+                "unread messages"
+            ],
+            "passos": [
+                "Acesse o menu **Solicitações**.",
+                "Preencha Título, Categoria (Melhoria/Erro) e Prioridade.",
+                "Acompanhe pelo **Chat Estilo WhatsApp** dentro de cada solicitação.",
+                "Fique atento ao **Badge Vermelho** no menu; ele indica mensagens não lidas.",
+                "**Fluxo**: Sua solicitação passará por Análise, Desenvolvimento e Teste até ser Concluída."
+            ]
+        },
+        {
+            "topico": "ppp e ltcat",
+            "keywords": [
+                "o que e ppp",
+                "o que e ltcat",
+                "quem tem direito ppp",
+                "aposentadoria especial",
+                "laudo tecnico",
+                "agentes nocivos",
+                "insalubridade"
+            ],
+            "passos": [
+                "**O que é o PPP?**: Perfil Profissiográfico Previdenciário. Documento que resume sua jornada de trabalho e riscos expostos.",
+                "**O que é o LTCAT?**: Laudo Técnico das Condições Ambientais de Trabalho. É o laudo que prova se o ambiente tem riscos.",
+                "**Objetivo**: Comprovar ao INSS a exposição a agentes nocivos para garantir a **Aposentadoria Especial**.",
+                "**Direito**: Todo trabalhador exposto a agentes químicos, físicos ou biológicos tem direito ao registro.",
+                "**Diferença**: O LTCAT avalia o **ambiente** (técnico); o PPP é o resumo da **vida do trabalhador** (administrativo)."
+            ]
+        },
+        {
+            "topico": "senha",
+            "keywords": [
+                "trocar senha",
+                "esqueci senha",
+                "resetar acesso"
+            ],
+            "passos": [
+                "Na tela de Login, clique em **Esqueci minha senha**.",
+                "Insira seu e-mail cadastrado.",
+                "Você receberá um link para criar uma nova senha com segurança.",
+                "Caso não tenha e-mail cadastrado, solicite ao seu superior (ADM) que resete sua senha no menu **Usuários**."
+            ]
+        },
+        {
+            "topico": "documentacao necessaria",
+            "keywords": [
+                "quais documentos",
+                "o que levar",
+                "documento necessario",
+                "o que preciso"
+            ],
+            "passos": [
+                "**Identidade Original**: Tenha sempre em mãos o seu RG original ou CNH (com CPF).",
+                "**Dados Funcionais**: Guarde o número da sua **Matrícula** do governo.",
+                "**Pagamento**: Para serviços envolvendo recebimentos, traga seu último **Contracheque**.",
+                "**Saúde**: Requerimentos médicos exigem **Laudos e Atestados** recentes e legíveis.",
+                "Dica: Toda vez que escolher um serviço no SAS, ele já avisa se precisa de algo a mais!"
+            ]
+        },
+        {
+            "topico": "tolerancia de atraso",
+            "keywords": [
+                "posso chegar atrasado",
+                "estou atrasado posso",
+                "qual a tolerancia",
+                "perdi minha vez",
+                "tempo de atraso"
+            ],
+            "passos": [
+                "**Seja Pontual**: O SAS funciona com agendamentos cravados para que a fila flua rápido.",
+                "**Tolerância**: Temos uma margem de flexibilidade de **15 minutos** de atraso.",
+                "**O que acontece depois?**: Após esse tempo de carência, você perde a garantia de horário daquele dia, devendo tentar num encaixe ou mesmo reagendar."
+            ]
+        },
+        {
+            "topico": "levar acompanhante",
+            "keywords": [
+                "posso levar acompanhante",
+                "posso entrar acompanhado",
+                "direito a acompanhante",
+                "levar filho ou parente",
+                "ir com pessoa"
+            ],
+            "passos": [
+                "Com certeza absoluta! Você pode entrar no posto acompanhado de **uma** pessoa.",
+                "É um direito essencial para casos de **idosos**, servidores com **mobilidade reduzida**, **gestantes** ou pessoas com **necessidades especiais**.",
+                "Recomendamos não levar várias pessoas extras para a sala só por conforto, para evitar lotação, preservando o ar-condicionado e a paz no ambiente."
+            ]
+        },
+        {
+            "topico": "tipos de licencas",
+            "keywords": [
+                "licenca premio",
+                "licenca medica",
+                "licenca maternidade",
+                "afastamentos legais",
+                "direito a afastamento"
+            ],
+            "passos": [
+                "**Licença Prêmio**: Um benefício gigante! A cada 5 anos limpos de trabalho, o servidor retira garantidamente 3 meses de afastamento 100% remunerado.",
+                "**Licença Médica**: Feita pra quem precisa tratar da saúde física ou mental num nível crítico. Depende da perícia médica oficial.",
+                "**Licença Maternidade/Trato Adotante**: Uma licença legal focada nas crianças de mães funcionárias públicas."
+            ]
+        },
+        {
+            "topico": "regra da fila proporcao",
+            "keywords": [
+                "como a fila funciona",
+                "como o painel chama",
+                "regra de preferencia",
+                "preferencial primeiro",
+                "2 pra 1"
+            ],
+            "passos": [
+                "Para garantir justiça e agilidade, o SAS usa a regra oficial de **2 para 1**.",
+                "O painel chama automaticamente **2 senhas Preferenciais** e, em seguida, **1 senha Normal**.",
+                "Se a fila preferencial acabar, ele chamará as normais sequencialmente sem interrupção."
+            ]
+        },
+        {
+            "topico": "transferir atendimento sas",
+            "keywords": [
+                "como transferir atendimento",
+                "mandar pra outro guiche",
+                "passar pro colega",
+                "transferencia de senha"
+            ],
+            "passos": [
+                "Se o assunto não for da sua alçada, você pode transferir o cidadão sem perder nada do que anotou!",
+                "1. Dentro da tela de atendimento ativa, clique no botão azul secundário **Transferir**.",
+                "2. Selecione o Colega que receberá a senha (o sistema filtra para exibir apenas quem está **Online**).",
+                "3. O SAS manterá as Observações/Problema preenchidas, agilizando a vida do colega que assumir o caso!"
+            ]
+        },
+        {
+            "topico": "significado dos status bolinhas",
+            "keywords": [
+                "bolinha vermelha",
+                "bolinha verde",
+                "escala de pausa",
+                "ficar em pausa",
+                "motivo de pausa",
+                "bolinha cinza"
+            ],
+            "passos": [
+                "As cores (bolinhas) no menu de Usuários indicam exatamente quem está livre para ajudar a fila:",
+                "🟢 **Verde Pulsante (Online)**: O atendente está logado, no guichê, livre e habilitado para puxar senhas.",
+                "🔴 **Vermelho (Pausa)**: O atendente pausou o atendimento. Acione o hover (passe o mouse na bolinha) e veja o motivo exato: 'Almoço', 'Banheiro', 'Fim de Expediente'.",
+                "⚪ **Cinza (Offline)**: O usuário encerrou o expediente ou fechou a aplicação localmente."
+            ]
+        },
+        {
+            "topico": "novo acesso criar",
+            "keywords": [
+                "como crio acesso",
+                "criar usuario novo",
+                "colocar novato",
+                "permissao sas",
+                "login pro novato"
+            ],
+            "passos": [
+                "Para evitar furos de segurança, nem todo mundo pode criar novos acessos.",
+                "Apenas Gestores com nível **ADM** (ou o desenvolvedor) conseguem.",
+                "Se for um colega novato, peça para o ADM criá-lo no menu 'Usuários'. O sistema formará o login automático no formato `nome.sobrenome` e uma senha inicial pronta."
+            ]
+        },
+        {
+            "topico": "icone olho azul monitor",
+            "keywords": [
+                "olho azul",
+                "simbolo de olho",
+                "o que faz o olho",
+                "detalhes do atendimento"
+            ],
+            "passos": [
+                "No menu **Monitor**, você verá um ícone de **Olho Azul** ao lado de cada senha/servidor cujo atendimento foi finalizado.",
+                "Ele serve para o Gestor fazer uma auditoria do fluxo: ao clicar, o sistema exibe o histórico completo, mostrando exatamente qual foi o **Problema relatado** e qual foi a **Solução dada** pelo atendente na mesa."
+            ]
+        },
+        {
+            "topico": "filtrar produtividade atendente",
+            "keywords": [
+                "ver apenas um atendente",
+                "produtividade de",
+                "filtrar por pessoa",
+                "filtrar monitor"
+            ],
+            "passos": [
+                "Se você é gestor e quer acompanhar o rendimento de um colaborador, vá no menu **Monitor**.",
+                "No topo da página, use a barra 'Filtrar por Atendente' e selecione o nome do seu colega.",
+                "Em 1 segundo, a tela isolará os cards mostrando **apenas as métricas e o tempo médio daquela pessoa**!"
+            ]
+        },
+        {
+            "topico": "exportar excel planilhas",
+            "keywords": [
+                "baixar no excel",
+                "exportar planilha",
+                "relatorio geral excel",
+                "salvar relatorio",
+                "exportacao"
+            ],
+            "passos": [
+                "Acesse o menu **Relatórios**.",
+                "Defina o intervalo desejado nos campos de 'Data de Início' e 'Fim'.",
+                "Mude para a visão **Relatório Detalhado** (no topo) para enxergar os dados crus em tabela.",
+                "Por fim, clique no botão de **Exportar** (o ícone de download azul). O SAS vai gerar uma planilha `.xlsx` perfeita, separada por colunas para você apresentar para a diretoria!"
+            ]
+        },
+        {
+            "topico": "tipos de graficos",
+            "keywords": [
+                "quais graficos",
+                "ver em graficos",
+                "pizza barras",
+                "grafico em rosca",
+                "mudar visual"
+            ],
+            "passos": [
+                "No menu **Relatórios**, na aba 'Gráficos', você escolhe a métrica: quer avaliar pelo status do serviço, tipo de demanda ou ver quem atende mais?",
+                "Você tem o poder de visualizar o resultado como quiser: **Barras** (ideal para ver picos), **Pizza** ou **Rosca** (para ver a proporção de cada fatia do setor).",
+                "Selecione as opções, aperte em 'Gerar Gráfico' e os dados aparecerão redesenhados na mesma hora."
+            ]
+        }
+    ],
+    "modulos": [
+        {
+            "id": "home",
+            "nome": "Início / Dashboard",
+            "descricao": "Página inicial de boas-vindas com atalhos rápidos e visão institucional.",
+            "recursos": [
+                "**Opções Avançadas**: Botões de acesso rápido para 'Novo Agendamento' e 'Painel de Chamadas'.",
+                "**Cards de Missão**: Explicação sobre Agilidade, Segurança e Transparência do sistema SAS.",
+                "**Identidade Visual**: Cores de Pernambuco (Azul, Amarelo, Vermelho) presentes no design."
+            ]
+        },
+        {
+            "id": "agendamento",
+            "nome": "Módulo de Agendamento",
+            "descricao": "Página onde se realiza a marcação de atendimentos para os servidores.",
+            "campos": [
+                "**Identificação**: Busca por Nome, CPF (com máscara automática) e Matrícula.",
+                "**Vínculo**: Cargo, Local de Trabalho e Tipo de Vínculo (Comissionado, Concurso, Estatutário, etc.).",
+                "**Serviço**: Escolha do motivo do atendimento (Aposentadoria, Licença, etc.).",
+                "**Logística**: Escolha entre atendimento Presencial, Online ou Telefônico.",
+                "**Prioridade**: Definição entre atendimento Normal ou Preferencial.",
+                "**Data e Hora**: Calendário que bloqueia fins de semana e horários passados. Os slots são de 15 em 15 minutos."
+            ],
+            "botoes": [
+                "**Confirmar Agendamento**: Salva os dados no banco. Valida duplicados e conflitos de horário.",
+                "**Limpar Campos**: Reseta o formulário para uma nova inserção."
+            ]
+        },
+        {
+            "id": "atendimento",
+            "nome": "Módulo de Atendimento",
+            "descricao": "Onde o atendente gerencia a fila e realiza os atendimentos ativos.",
+            "elementos_tela": [
+                "**Guichê**: Indica o posto físico onde você está atendendo.",
+                "**Alterar Guichê**: Abre um modal para você definir seu número de guichê atual.",
+                "**Online / Pausa**: Botão de status. 'Online' permite chamar pessoas. 'Pausa' exige um motivo (Almoço, Banheiro, etc.) e bloqueia novas chamadas.",
+                "**Agendados para hoje**: Mostra quantos atendimentos estão marcados para a data atual.",
+                "**Aguardados (Fila)**: Lista de pessoas que já chegaram à recepção e estão esperando serem chamadas.",
+                "**Chamar Próximo**: Aciona automaticamente o próximo da fila no painel de senhas.",
+                "**Confirmar Chegada**: (Na seção de Agendamentos de Hoje) Registra que o servidor chegou à unidade."
+            ],
+            "fluxo_atendimento": [
+                "**Iniciar Atendimento**: Inicia o cronômetro e abre os campos de registro.",
+                "**Observação 1 (Problema)**: O atendente descreve o que o servidor relatou.",
+                "**Observação 2 (Solução)**: O atendente registra o que foi feito ou orientado.",
+                "**Assunto Secundário**: Campo opcional caso o servidor precise tratar de outro tema na mesma sessão.",
+                "**Transferir Atendimento**: Permite enviar o servidor para outro atendente que esteja Online no momento, informando o motivo.",
+                "**Encerrar Atendimento**: Salva tudo e libera o atendente para a próxima senha."
+            ]
+        },
+        {
+            "id": "solicitacoes",
+            "nome": "Central de Solicitações",
+            "descricao": "Canal oficial para suporte técnico e melhorias.",
+            "recursos": [
+                "**Chat Estilo WhatsApp**: Conversa instantânea entre o solicitantes e o suporte/DEV.",
+                "**Anexo de Contexto**: Cada chat é vinculado a um ID de solicitação específico (#123).",
+                "**Fluxo de Status**: Bloqueio de edição de status após rejeição para garantir a integridade do processo.",
+                "**Notificações**: Alertas visuais de 'Chat Ativo' e 'Apenas Leitura' para administradores não proprietários."
+            ]
+        },
+        {
+            "id": "monitor",
+            "nome": "Monitor de Atendimento",
+            "descricao": "Gestão em tempo real da sala de atendimento com visão administrativa.",
+            "recursos": [
+                "**Status Cards**: Contadores coloridos (Agendados, Aguardando, Pendentes, Em Andamento, Concluídos, Cancelados).",
+                "**Filtro por Atendente**: Menu suspenso no topo para isolar a visualização de um colaborador específico.",
+                "**Botão Atualizar**: Ícone de setas (refresh-cw) para recarregar a lista manualmente.",
+                "**Tabela de Atendimentos**: Mostra Nome, Data/Hora, Serviço, Atendente e Guichê de todos.",
+                "**Status Coloridos na Tabela**: Verde (Concluído), Azul (Em Andamento), Laranja (Pendente), Vermelho (Cancelado/Não Compareceu).",
+                "**Ícone de Olho (Ações)**: Botão 'Ver Detalhes' (ícone eye azul) que abre o modal com o histórico completo, incluindo Observação 1 (Problema) e Observação 2 (Solução)."
+            ]
+        },
+        {
+            "id": "relatorios",
+            "nome": "Relatórios e Gráficos",
+            "descricao": "Módulo de inteligência de dados com visualização gráfica e exportação de tabelas.",
+            "recursos": [
+                "**Abas Superiores**: Alternância entre a visão de 'Gráficos' e o 'Relatório Detalhado'.",
+                "**Configuração de Gráficos**: Seleção de Tipo (Barras, Pizza, Rosca, Linha) e Métrica (Por Status, Serviço ou Atendente).",
+                "**Filtros Detalhados**: Busca refinada por 'Data Início', 'Data Fim' e 'Atendente'.",
+                "**Tabela Completa**: Exibição de Data/Hora, Nome, CPF, Matrícula, Cargo, Vínculo, Local, E-mail, Serviço, Nível de Atendimento e Observações.",
+                "**Botão Exportar**: Ícone de download que gera um arquivo Excel (.xlsx) formatado com todos os dados filtrados."
+            ]
+        },
+        {
+            "id": "usuarios",
+            "nome": "Gerenciar Usuários",
+            "descricao": "Administração de perfis, disponibilidade e segurança.",
+            "recursos": [
+                "**Perfis Hierárquicos**: **DEV** (Acesso total), **ADM** (Administrativo) e **Usuário** (Operacional).",
+                "**Monitoramento de Status**: Indica se o atendente está **Online** (Verde), **Pausa** (Vermelho com motivo) ou **Offline** (Cinza).",
+                "**Gestão de Credenciais**: Criação de usuário automático (nome.sobrenome) e definição de senhas seguras.",
+                "**Controle de Acesso**: Ativação/Desativação global por toggle na coluna 'Situação'."
+            ]
+        },
+        {
+            "id": "solicitacoes",
+            "nome": "Central de Solicitações",
+            "descricao": "Portal de suporte e comunicação direta com o desenvolvimento.",
+            "recursos": [
+                "**Chat em Tempo Real**: Interface inspirada no WhatsApp para troca de mensagens.",
+                "**Categorização**: Filtros por status (Análise, Desenvolvimento, Teste, Concluído, Rejeitado).",
+                "**Sistema de Notificações**: Badge visual no menu lateral para mensagens pendentes.",
+                "**Privacidade**: Apenas administradores e o próprio solicitante podem ver o chat interno."
+            ]
+        }
+    ],
+    "glossario": {
+        "licença prêmio": "É um benefício que concede 3 meses de afastamento remunerado ao servidor para cada 5 anos de trabalho efetivo, sem faltas injustificadas.",
+        "procuração": "Documento legal onde uma pessoa (outorgante) dá poderes para outra (outorgado) agir em seu nome para tratar de assuntos específicos.",
+        "estatuto": "Conjunto de regras e deveres que regem a carreira do servidor público. Em Pernambuco, é a base legal para direitos e obrigações.",
+        "pis/pasep": "O PASEP é o programa voltado para servidores públicos. O número é necessário para consultas de abonos e benefícios sociais.",
+        "matrícula": "É o seu número de identificação único central no sistema do estado. Com ela, os atendentes localizam seu histórico e dados funcionais imeditamente.",
+        "vínculo": "Representa a forma jurídica/trabalhista como você foi contratado (seja concurso, contrato temporário, cargo em comissão, etc).",
+        "ppp": "Perfil Profissiográfico Previdenciário. Aquele documento gigantesco que comprova sua exposição a riscos (para embasar o pedido da sua aposentadoria especial!).",
+        "ltcat": "Laudo Técnico das Condições Ambientais de Trabalho. Ao contrário do PPP, o LTCAT foca em comprovar as condições de periculosidade/insalubridade do AMBIENTE/LOCAL onde você atuou.",
+        "estatutário": "Vínculo do servidor efetivo clássico, que passou num Concurso Público e está protegido (tem estabilidade) de acordo com o Estatuto estadual.",
+        "comissionado": "Vínculo de livre nomeação (sem concurso). O colaborador atua temporariamente num cargo de chefia/diretoria a convite do Estado.",
+        "seleção simplificada": "Contrato puramente temporário com termo e validade limitados, para preencher um desfalque imediato no serviço público.",
+        "cedido": "Aquele servidor que foi 'emprestado'. Ele pertence de origem a outro órgão/prefeitura, mas atua temporariamente num setor da Secretaria de Saúde.",
+        "sei": "Sistema Eletrônico de Informações (SEI). É por lá, no governo de Pernambuco, que os processos oficiais e formais se movimentam totalmente digitais hoje em dia."
+    },
+    "slang": {
+        "oq": "o que",
+        "blz": "beleza",
+        "tlgd": "tá ligado",
+        "vlw": "valeu",
+        "obg": "obrigado",
+        "vc": "você",
+        "vcs": "vocês",
+        "tb": "também",
+        "tbm": "também",
+        "hj": "hoje",
+        "pq": "porque",
+        "q": "que",
+        "ctz": "com certeza",
+        "pfv": "por favor",
+        "gnt": "gente",
+        "ngm": "ninguém",
+        "td": "tudo",
+        "mt": "muito",
+        "mto": "muito",
+        "mta": "muita",
+        "msg": "mensagem",
+        "msgs": "mensagens",
+        "doc": "documento",
+        "docs": "documentos",
+        "info": "informação",
+        "att": "atendimento",
+        "istem": "sistema",
+        "pagn": "página",
+        "linça": "licença",
+        "licenca": "licença"
+    },
+    "typos": {
+        "agemdamento": "agendamento",
+        "agenamento": "agendamento",
+        "atendimemto": "atendimento",
+        "atendimenot": "atendimento",
+        "comprimento": "cumprimento",
+        "senia": "senha",
+        "moniotr": "monitor",
+        "istem": "sistema",
+        "peginas": "paginas",
+        "relatrio": "relatórios",
+        "licenca": "licença",
+        "licensa": "licença",
+        "linça": "licença",
+        "eciclopedia": "enciclopédia",
+        "enciclopedia": "enciclopédia"
+    },
+    "casos_reais": [
+        {
+            "id": "aposentadoria_paridade",
+            "tema": "Aposentadoria com Paridade/Integralidade",
+            "variacoes": [
+                "aposentadoria integral paridade",
+                "aposentadoria com salario inteiro",
+                "regra 47 de 2005",
+                "artigo 3 regra 47",
+                "aposentar com paridade"
+            ],
+            "solucao": "Para aposentadoria com integralidade e paridade, seguimos o **Art 3 da Regra 47 de 2005**. É necessário dar entrada no processo informando esta opção específica para garantir o benefício integral."
+        },
+        {
+            "id": "aposentadoria_invalidez",
+            "tema": "Aposentadoria por Invalidez",
+            "variacoes": [
+                "aposentar por invalidez",
+                "invalidez sem tempo",
+                "aposentadoria por doença",
+                "laudo pericia invalidez",
+                "quer parar por saude"
+            ],
+            "solucao": "Caso o servidor precise se aposentar por invalidez (mesmo sem tempo de contribuição), ele deve apresentar o **Laudo da Perícia Médica Oficial**, preencher o **Requerimento A**, o **Termo de Residência** e anexar o laudo com a opção de regra correspondente."
+        },
+        {
+            "id": "saldo_licenca_tela152",
+            "tema": "Saldo de Licença Prêmio (SGP)",
+            "variacoes": [
+                "saldo licenca premio",
+                "quantos meses de licenca tenho",
+                "tela 152 sgp",
+                "opcao 19 requerimento a",
+                "gozo de licenca premio"
+            ],
+            "solucao": "O saldo de licença prêmio é verificado no **SGP (Tela 152)**. Para solicitar o gozo, utilize o **Requerimento A, Opção 19**. Ex: Se houver saldo, o servidor pode solicitar o gozo de períodos acumulados (decênios)."
+        },
+        {
+            "id": "funafin_abono",
+            "tema": "Isenção de FUNAFIN (Abono de Permanência)",
+            "variacoes": [
+                "parar de pagar funafin",
+                "isencao funafin",
+                "abono de permanencia",
+                "codigo 1 requerimento a",
+                "60 anos 35 de estado"
+            ],
+            "solucao": "Servidores que atingiram os requisitos de aposentadoria (ex: 60 anos e 35 de serviço) mas continuam trabalhando, podem parar de pagar o FUNAFIN solicitando o **Abono de Permanência** via **Requerimento A, Código 1**."
+        },
+        {
+            "id": "concessao_licenca_25_anos",
+            "tema": "Concessão de Licença Prêmio (25 anos)",
+            "variacoes": [
+                "dar entrada na licenca premio",
+                "primeiro e segundo decenio",
+                "requerimento a 18",
+                "licenca premio 25 anos estado",
+                "registrar meus decenios"
+            ],
+            "solucao": "Para servidores com 25 anos de estado que nunca registraram suas licenças, a orientação é dar entrada na **Concessão da Licença Prêmio** do 1º e 2º decênio simultaneamente, utilizando o **Requerimento A, número 18**."
+        },
+        {
+            "id": "certidao_ctc",
+            "tema": "Certidão de Tempo de Contribuição (CTC)",
+            "variacoes": [
+                "certidao de tempo de contribuicao",
+                "ctc para inss",
+                "comprovar tempo de estado outro orgao",
+                "o que precisa para ctc",
+                "documentos certidao contribuicao"
+            ],
+            "solucao": "A **CTC (Certidão de Tempo de Contribuição)** é usada para levar o tempo do estado para outros órgãos. O servidor deve preencher o requerimento de CTC, trazer documentos originais e a declaração de residência."
+        },
+        {
+            "id": "certidao_cts_upe",
+            "tema": "Certidão de Tempo de Serviço (CTS)",
+            "variacoes": [
+                "cts para upe",
+                "certidao de tempo de servico",
+                "levar tempo para faculdade",
+                "levar tempo estado para prefeitura",
+                "formulario cts"
+            ],
+            "solucao": "A **CTS (Certidão de Tempo de Serviço)** é geralmente solicitada para averbação em universidades (como UPE) ou prefeituras. Deve-se preencher o formulário CTS, apresentar originais e declaração de residência."
+        },
+        {
+            "id": "dtc_inss_a29",
+            "tema": "Declaração de Tempo de Contribuição (DTC / Req A-29)",
+            "variacoes": [
+                "declaracao para o inss",
+                "dtc requerimento a 29",
+                "averbar tempo no inss",
+                "o que e o requerimento a-29",
+                "declaracao de tempo contribuição"
+            ],
+            "solucao": "Para averbar tempo de estado no INSS, o servidor deve solicitar uma **DTC** através do **Requerimento A, número 29**."
+        },
+        {
+            "id": "ppp_ltcat_risco",
+            "tema": "PPP e LTCAT (Exposição a Riscos)",
+            "variacoes": [
+                "pedir ppp",
+                "pegar meu ltcat",
+                "laudo tecnico contratos anteriores",
+                "provar insalubridade anos atras",
+                "perfil profissiografico previdenciario"
+            ],
+            "solucao": "Para solicitar o **PPP ou LTCAT** de contratos anteriores (comprovando exposição a riscos), o servidor deve preencher o **Requerimento A nº 29** juntamente com o formulário específico de PPP/LTCAT."
+        },
+        {
+            "id": "anotacao_tempo_a8",
+            "tema": "Anotação de Tempo (Insalubridade / Req A-8)",
+            "variacoes": [
+                "anotacao de tempo de contribuicao",
+                "requerimento a numero 8",
+                "anotar tempo insalubre",
+                "registrar tempo especial",
+                "anotar tempo de estado prontuario"
+            ],
+            "solucao": "Caso o servidor tenha trabalhado em ambiente insalubre e queira registrar esse tempo, deve solicitar a **Anotação de Tempo de Contribuição** via **Requerimento A, número 8**."
+        },
+        {
+            "id": "informe_rendimentos_a",
+            "tema": "Informe de Rendimentos (Físico/Manual)",
+            "variacoes": [
+                "informe de rendimentos sem celular",
+                "nao consigo acessar portal nps",
+                "informe de rendimentos requerimento a",
+                "onde pegar comprovante de rendimentos",
+                "pedir informe no balcao"
+            ],
+            "solucao": "Se o servidor não tiver acesso ao portal (NPS) ou celular, a opção mais viável é solicitar o **Informe de Rendimentos** através da abertura de um **Requerimento A** físico."
+        },
+        {
+            "id": "salario_nao_recebido",
+            "tema": "Salário Não Recebido / Erro no Pagamento",
+            "variacoes": [
+                "salario nao caiu na conta",
+                "erro no contracheque pagamento",
+                "nao recebi o salario da secretaria",
+                "reclamacao de pagamento zerado",
+                "corrigir valor do salario"
+            ],
+            "solucao": "Para casos de salário não recebido ou erros nos vencimentos, o servidor deve ser instruído a abrir um **Requerimento A** solicitando esclarecimentos e correções, obrigatoriamente anexando os **contracheques** como prova."
+        },
+        {
+            "id": "auxilio_funeral_lia",
+            "tema": "Auxílio Funeral e Licença Prêmio do Falecido",
+            "variacoes": [
+                "como pedir auxilio funeral",
+                "marido de servidora falecida direitos",
+                "receber licenca premio de quem morreu",
+                "dar entrada no auxilio por morte",
+                "documentos para auxilio funeral"
+            ],
+            "solucao": "Dependentes podem solicitar o **Auxílio Funeral** através de requerimento próprio. Também deve-se verificar se o servidor falecido possuía saldo de **Licença Prêmio (LIA)** não gozada para possível recebimento pelos herdeiros."
+        },
+        {
+            "id": "copia_contrato_a29",
+            "tema": "Cópia de Contrato de Trabalho",
+            "variacoes": [
+                "copia do meu contrato",
+                "segunda via contrato estado",
+                "contrato de trabalho vinculo aberto",
+                "onde pedir copia do contrato",
+                "requerimento a 29 contrato"
+            ],
+            "solucao": "Para obter uma cópia de contrato de trabalho (vínculo aberto no SGP), o servidor deve realizar o pedido formal através do **Requerimento A, número 29**."
+        },
+        {
+            "id": "ficha_funcional_a29",
+            "tema": "Ficha Funcional / Mapa Funcional",
+            "variacoes": [
+                "quero meu mapa funcional",
+                "ficha funcional na sede",
+                "requerimento a 29 ficha funcional",
+                "ficha funcional onde solicitar",
+                "diferenca mapa e ficha funcional"
+            ],
+            "solucao": "O antigo 'Mapa Funcional' não é mais emitido. A **Ficha Funcional** pode ser solicitada na unidade de origem ou na sede administrativa via **Requerimento A, número 29**."
+        },
+        {
+            "id": "atualizacao_cadastral_a29",
+            "tema": "Atualização Cadastral (Alternativa ao E-mail)",
+            "variacoes": [
+                "atualizar meu cadastro",
+                "email atualizacao cadastral erro",
+                "mudar endereco ou telefone",
+                "requerimento a 29 alteracao dados",
+                "atualizacao cadastral sas"
+            ],
+            "solucao": "Caso o servidor não consiga enviar o e-mail oficial de atualização, ele deve dar entrada no pedido via **Requerimento A número 29** no balcão do SAS."
+        },
+        {
+            "id": "afastamento_curso_curto",
+            "tema": "Afastamento para Curso (Curta Duração)",
+            "variacoes": [
+                "afastamento curso curto",
+                "licenca capacitacao rapida",
+                "curso de poucos dias liberação",
+                "treinamento profissional curso",
+                "anexar duracao curso requerimento"
+            ],
+            "solucao": "Para cursos de curta duração, o servidor deve preencher o **Requerimento A** anexando as informações sobre a duração do curso e se o posto ficará vago."
+        },
+        {
+            "id": "afastamento_curso_longo",
+            "tema": "Afastamento para Curso (Longa Duração/Mestrado)",
+            "variacoes": [
+                "afastamento mestrado doutorado",
+                "licenca estudo longo prazo",
+                "assinatura chefia afastamento",
+                "curso longa duracao funafin",
+                "capacitacao de longo prazo"
+            ],
+            "solucao": "No afastamento para cursos longos, é obrigatório verificar a assinatura da chefia imediata, a duração do prazo e como ficará a contribuição para o **FUNAFIN** durante o período."
+        },
+        {
+            "id": "licenca_lip_previdencia",
+            "tema": "Licença Sem Vencimento (LIP / Previdência)",
+            "variacoes": [
+                "pedir licenca sem vencimento",
+                "licença lip",
+                "pagar previdência na licença",
+                "contribuicao funafin na lip",
+                "afastamento sem salario previdencia"
+            ],
+            "solucao": "Ao solicitar a **Licença Sem Vencimento (LIP)** via **Requerimento A**, o servidor deve definir se pagará a contribuição previdenciária diretamente ou se será descontada normalmente."
+        },
+        {
+            "id": "licenca_nojo_falecimento",
+            "tema": "Licença Nojo (Falecimento de Familiar)",
+            "variacoes": [
+                "licenca por morte na familia",
+                "licenca nojo requerimento",
+                "documentos falecimento parente",
+                "quantos dias licenca nojo",
+                "certidao obito licença nojo"
+            ],
+            "solucao": "A **Licença Nojo** deve ser solicitada via **Requerimento A número 29**, apresentando identidade, comprovação do grau de parentesco e certidão de óbito."
+        },
+        {
+            "id": "rescisao_contrato_termo",
+            "tema": "Rescisão de Contrato (Temporários)",
+            "variacoes": [
+                "encerrar contrato de trabalho",
+                "pedir rescisao contrato",
+                "termo de rescisao onde entregar",
+                "rescisao contrato temporario",
+                "finalizar vinculo de contrato"
+            ],
+            "solucao": "Para encerrar um contrato, o servidor deve preencher o requerimento de rescisão e anexar o **Termo de Rescisão** devidamente preenchido."
+        },
+        {
+            "id": "exoneracao_a13",
+            "tema": "Exoneração do Cargo (Req A-13)",
+            "variacoes": [
+                "pedir exoneracao",
+                "sair do estado requerimento",
+                "codigo 13 requerimento a",
+                "exoneracao cargo efetivo",
+                "encerrar vinculo concurso"
+            ],
+            "solucao": "O servidor efetivo que deseja sair do cargo deve solicitar a **Exoneração** através do **Requerimento A, opção 13**."
+        },
+        {
+            "id": "averbacao_tempo_a29",
+            "tema": "Averbação de Tempo de Serviço (A-29)",
+            "variacoes": [
+                "averbar tempo de fora",
+                "declaracao de averbacao de tempo",
+                "computar tempo anterior",
+                "averbacao de tempo requerimento",
+                "trazer tempo do inss para o estado"
+            ],
+            "solucao": "Para trazer tempo de outros órgãos para o estado, deve-se preencher o **Requerimento A, número 29**, solicitando a **Averbação de Tempo**."
+        },
+        {
+            "id": "anotacao_diploma_a8",
+            "tema": "Anotação de Diploma/Especialização (A-8)",
+            "variacoes": [
+                "registrar diploma sistema",
+                "anotar pos graduacao prontuario",
+                "requerimento a 8 diploma",
+                "anotar nivel de escolaridade",
+                "atualizar titulos no estado"
+            ],
+            "solucao": "Para registrar diplomas ou títulos de especialização, o servidor deve utilizar o **Requerimento A, número 8** para solicitar a anotação no prontuário."
+        },
+        {
+            "id": "progressao_carreira_a",
+            "tema": "Progressão de Cargos e Carreiras",
+            "variacoes": [
+                "pedir progressao de carreira",
+                "subir de nivel no cargo",
+                "progressao funcional requerimento",
+                "quando tenho direito a progressao",
+                "promocao por tempo ou grau"
+            ],
+            "solucao": "A **Progressão de Carreira** deve ser solicitada via **Requerimento A**, onde o servidor formaliza o pedido de mudança de nível ou classe conforme a lei do cargo."
+        },
+        {
+            "id": "historico_funcional_remunerado",
+            "tema": "Histórico Funcional / Declaração de Horas",
+            "variacoes": [
+                "historico funcional completo",
+                "declaracao de vinculo com horas",
+                "declaracao de remunerações",
+                "pedir historico via requerimento a",
+                "solicitar ficha de servico"
+            ],
+            "solucao": "Para obter o **Histórico Funcional** ou uma **Declaração de Vínculo com Remunerações e Horas**, o servidor deve preencher o **Requerimento A** anexando a solicitação detalhada."
+        }
+    ]
+}
