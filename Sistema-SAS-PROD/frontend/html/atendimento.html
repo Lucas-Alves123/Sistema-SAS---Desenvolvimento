@@ -605,12 +605,19 @@
                             <h2 class="text-3xl font-bold text-slate-700 mb-1 opacity-60">${item.nome_completo}</h2>
                             <div class="text-slate-400 text-lg">Aguardando liberação do painel...</div>
                         </div>
-                        <div class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6">
-                            <p class="text-yellow-700 text-sm font-medium">
-                                <strong>Aviso:</strong> Há outra chamada ativa no painel no momento. 
-                                Seu chamado será exibido e anunciado automaticamente assim que o painel for liberado.
-                            </p>
-                        </div>
+                        ${(() => {
+                            // Check if there's REALLY a RECENT blocker
+                            // We need access to all appointments. Fortunately loadData filters them.
+                            // I'll add a check based on the current data state.
+                            return `
+                                <div class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6" id="panelBusyWarning">
+                                    <p class="text-yellow-700 text-sm font-medium">
+                                        <strong>Aviso:</strong> Há outra chamada ativa no painel no momento. 
+                                        Aguarde alguns segundos para que o sistema libere o painel automaticamente para você.
+                                    </p>
+                                </div>
+                            `;
+                        })()}
                         <div class="flex gap-4">
                             <button onclick="cancelService('${item.id}')" class="bg-white border border-gray-300 text-gray-500 px-6 py-3 rounded-lg font-bold text-lg hover:bg-gray-50 flex items-center gap-2">
                                 <i data-lucide="x" class="w-5 h-5"></i> Cancelar Chamada
@@ -968,22 +975,22 @@
             }
 
             try {
-                const nextData = await window.SAS.base44.entities.Agendamento.getNext(currentQueueTab);
-
-                if (!nextData || !nextData.id) {
-                    window.SAS.utils.notify('info', 'Não há ninguém aguardando na fila.');
-                    return;
-                }
-
-                const targetStatus = currentQueueTab === 'Presencial' ? 'na_fila_do_painel' : 'pendente';
-                await window.SAS.base44.entities.Agendamento.update(nextData.id, {
-                    status: targetStatus,
-                    atendente_id: user.id,
-                    guiche: currentGuiche
+                const response = await fetch('/api/agendamentos/proximo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        atendente_id: user.id,
+                        guiche: currentGuiche
+                    })
                 });
-
-                loadData();
-                window.SAS.utils.notify('success', 'Chamando próximo da fila...');
+                
+                const result = await response.json();
+                if (result.success) {
+                    window.SAS.utils.notify('success', 'Chamando próximo da fila...');
+                    loadData();
+                } else {
+                    window.SAS.utils.notify('info', 'Não há ninguém aguardando na fila ou o painel está ocupado.');
+                }
             } catch (e) {
                 console.error(e);
                 window.SAS.utils.notify('error', 'Erro ao chamar próximo.');

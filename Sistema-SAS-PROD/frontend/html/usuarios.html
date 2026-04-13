@@ -22,6 +22,11 @@
                 <input type="hidden" id="userId">
 
                 <div class="space-y-2">
+                    <label class="text-sm font-medium">E-mail</label>
+                    <input type="email" id="email" class="w-full border p-2 rounded" placeholder="ex: nome.sobrenome@saude.pe.gov.br">
+                </div>
+
+                <div class="space-y-2">
                     <label class="text-sm font-medium">Nome Completo</label>
                     <input type="text" id="nomeCompleto" class="w-full border p-2 rounded" required>
                 </div>
@@ -29,11 +34,6 @@
                 <div class="space-y-2">
                     <label class="text-sm font-medium">CPF</label>
                     <input type="text" id="cpf" class="w-full border p-2 rounded" maxlength="14">
-                </div>
-
-                <div class="space-y-2">
-                    <label class="text-sm font-medium">E-mail</label>
-                    <input type="email" id="email" class="w-full border p-2 rounded">
                 </div>
 
                 <div class="space-y-2">
@@ -473,6 +473,23 @@
 
         document.getElementById('cpf').addEventListener('input', (e) => {
             e.target.value = window.SAS.utils.formatCPF(e.target.value);
+        });
+
+        document.getElementById('email').addEventListener('input', (e) => {
+            const email = e.target.value;
+            const nomeInput = document.getElementById('nomeCompleto');
+            
+            // Somente preenche se o nome estiver vazio ou se foi preenchido automaticamente anteriormente
+            if (!nomeInput.value || nomeInput.dataset.autoFilled === 'true') {
+                const prefix = email.split('@')[0];
+                nomeInput.value = prefix;
+                nomeInput.dataset.autoFilled = 'true';
+            }
+        });
+
+        document.getElementById('nomeCompleto').addEventListener('input', () => {
+            // Se o usuário editar o nome manualmente, desativa o autopreenchimento automático
+            document.getElementById('nomeCompleto').dataset.autoFilled = 'false';
         });
 
         loadUsers();

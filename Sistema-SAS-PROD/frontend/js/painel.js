@@ -112,7 +112,7 @@ function startRepeatingAnnouncement(name, guiche) {
             if (!isAnnouncing) return;
             console.log("[TTS Cycle] Disparando repetição agendada...");
             announceCall(name, guiche, scheduleNext);
-        }, 5000); // 5 seconds interval AFTER it finishes speaking
+        }, 4000); // 4 seconds interval AFTER it finishes speaking
     };
 
     // First announcement immediate
@@ -141,77 +141,71 @@ function stopRepeatingAnnouncement() {
 // Refined to strictly find and use Brazilian Portuguese voices
 function announceCall(name, guiche, onFinishedCallback = null) {
     if (!window.speechSynthesis) {
-        console.warn("[TTS] Speech Synthesis não suportado.");
+        console.warn("[TTS] Speech Synthesis não suportado neste navegador.");
         return;
     }
 
-    // Check if browser blocked audio automatically
     if (!isAudioUnlocked) {
         showAudioOverlay();
         return;
     }
 
-    // Cancel any current announcement
     window.speechSynthesis.cancel();
 
-    // Block announcement if it's just the waiting state
     const nameLower = (name || "").toLowerCase().trim();
-    if (!name || nameLower === "aguardando..." || nameLower.includes("aguardando")) {
-        console.log("[TTS] Silenciando estado de espera confirmado.");
-        return;
-    }
+    if (!name || nameLower === "aguardando..." || nameLower.includes("aguardando")) return;
 
     if (announcementTimeout) clearTimeout(announcementTimeout);
+    
     announcementTimeout = setTimeout(() => {
-        // Prepare the text (cleaning guiche number for phonetic clarity)
-        const cleanGuiche = String(guiche).replace(/\D/g, '') || guiche; 
+        const cleanGuiche = String(guiche).replace(/\D/g, '') || guiche;
         const phrase = `${name}, dirigir-se ao guichê ${cleanGuiche}.`;
         
-        console.log(`[TTS] Anunciando agora: "${phrase}"`);
-
         const utterance = new SpeechSynthesisUtterance(phrase);
-        utterance.lang = 'pt-BR'; // High priority setting
-        utterance.rate = 0.85;    // Slightly slower for better understanding
+        utterance.lang = 'pt-BR';
+        utterance.rate = 0.82;
         utterance.pitch = 1.0;
 
-        // SELEÇÃO DE VOZ AGRESSIVA
-        let voices = window.speechSynthesis.getVoices();
-        
-        if (voices.length > 0) {
-            // Find the best Portuguese voice available on THIS machine
-            const ptVoice = voices.find(v => v.name.includes('Google') && (v.lang.includes('pt-BR') || v.lang.includes('pt_BR'))) ||
-                            voices.find(v => (v.lang === 'pt-BR' || v.lang === 'pt_BR')) || 
-                            voices.find(v => v.lang.includes('pt-BR')) ||
-                            voices.find(v => v.lang.startsWith('pt'));
+        const performSpeech = () => {
+            const voices = window.speechSynthesis.getVoices();
+            console.log(`[TTS] Total de vozes encontradas: ${voices.length}`);
             
+            // Tenta encontrar a voz ideal (Brasil > Portugal > Qualquer PT)
+            const ptVoice = voices.find(v => v.name.includes('Google') && v.lang.startsWith('pt')) ||
+                           voices.find(v => v.lang.includes('pt-BR') || v.lang.includes('pt_BR')) ||
+                           voices.find(v => v.lang.startsWith('pt'));
+
             if (ptVoice) {
-                console.log(`[TTS] Voz Aplicada: ${ptVoice.name} (${ptVoice.lang})`);
                 utterance.voice = ptVoice;
                 utterance.lang = ptVoice.lang;
+                console.log(`[TTS] EXECUTANDO COM VOZ: ${ptVoice.name} (${ptVoice.lang})`);
             } else {
-                console.warn("[TTS] Nenhuma voz em português encontrada. Usando padrão do navegador com lang=pt-BR.");
+                console.error("[TTS] CRÍTICO: Nenhuma voz em português foi encontrada no sistema!");
+                // Se não achar nada, vamos listar as 3 primeiras vozes apenas para diagnóstico no console
+                console.log("[TTS] Vozes disponíveis para diagnóstico:", voices.slice(0, 3).map(v => `${v.name} (${v.lang})`));
             }
-        }
 
-        utterance.onstart = () => console.log("[TTS] Fala iniciada.");
-        
-        if (onFinishedCallback) {
-            utterance.onend = () => {
-                console.log("[TTS] Fala concluída com sucesso.");
-                onFinishedCallback();
-            };
-            utterance.onerror = (e) => {
-                console.error("[TTS Error] Erro detectado:", e);
-                // Try to continue the cycle even on error
-                onFinishedCallback();
+            if (onFinishedCallback) {
+                utterance.onend = () => onFinishedCallback();
+                utterance.onerror = (e) => {
+                    console.error("[TTS Error]", e);
+                    onFinishedCallback();
+                };
+            }
+
+            window.speechSynthesis.resume();
+            window.speechSynthesis.speak(utterance);
+        };
+
+        if (window.speechSynthesis.getVoices().length === 0) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.onvoiceschanged = null;
+                performSpeech();
             };
         } else {
-            utterance.onerror = (e) => console.error("[TTS Error] Erro detectado:", e);
+            performSpeech();
         }
-
-        window.speechSynthesis.resume();
-        window.speechSynthesis.speak(utterance);
-    }, 250); 
+    }, 280); 
 }
 
 // Interaction Overlay Logic
@@ -259,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 2000);
 
     fetchCurrentCall();
-    setInterval(fetchCurrentCall, 3000);
+    setInterval(fetchCurrentCall, 1000);
 
     // Some browsers need this event to load voices properly
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
