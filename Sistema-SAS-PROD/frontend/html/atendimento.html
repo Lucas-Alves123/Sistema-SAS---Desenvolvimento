@@ -325,7 +325,7 @@
                     } catch (e) {
                         console.error(e);
                         if (e.status === 409) {
-                            window.SAS.utils.notify('warning', 'O painel está chamando outra pessoa. Aguarde 15 seg e tente novamente.');
+                            window.SAS.utils.notify('warning', 'Painel ocupado. Aguarde o início do atendimento anterior ou tente em 3 min.');
                         } else {
                             window.SAS.utils.notify('error', 'Erro ao chamar servidor.');
                         }

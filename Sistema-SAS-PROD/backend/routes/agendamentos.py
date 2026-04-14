@@ -87,7 +87,7 @@ def promote_next_to_panel(atendente_id=None, guiche=None):
             WHERE status = 'pendente' 
             AND DATE(data_agendamento) = CURDATE() 
             AND (tipo_atendimento = 'Presencial' OR tipo_atendimento IS NULL)
-            AND hora_atendimento > (NOW() - INTERVAL 15 SECOND)
+            AND hora_atendimento > (NOW() - INTERVAL 3 MINUTE)
         """, one=True)
 
         if not panel_busy:
@@ -180,7 +180,7 @@ def cleanup_stale_calls():
             WHERE status = 'pendente' 
             AND DATE(data_agendamento) = CURDATE()
             AND hora_atendimento IS NOT NULL 
-            AND hora_atendimento < (NOW() - INTERVAL 2 MINUTE)
+            AND hora_atendimento < (NOW() - INTERVAL 3 MINUTE)
         """)
     except Exception as e:
         print(f"Erro na limpeza de chamados: {e}")
@@ -454,7 +454,7 @@ def update_agendamento(id):
                 AND DATE(data_agendamento) = CURDATE() 
                 AND id != %s
                 AND (tipo_atendimento = 'Presencial' OR tipo_atendimento IS NULL)
-                AND (hora_atendimento > (NOW() - INTERVAL 1 MINUTE) OR hora_atendimento IS NULL)
+                AND (hora_atendimento > (NOW() - INTERVAL 3 MINUTE) OR hora_atendimento IS NULL)
             """, (id,), one=True)
             
             if busy:
