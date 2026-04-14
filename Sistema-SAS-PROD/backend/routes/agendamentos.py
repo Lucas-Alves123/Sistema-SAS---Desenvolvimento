@@ -100,19 +100,11 @@ def promote_next_to_panel(atendente_id=None, guiche=None):
             """, one=True)
             
             if waiting:
-                sql = "UPDATE agendamentos SET status = 'pendente', hora_atendimento = NOW()"
-                params = []
-                if atendente_id:
-                    sql += ", atendente_id = %s"
-                    params.append(atendente_id)
-                if guiche:
-                    sql += ", guiche = %s"
-                    params.append(guiche)
-                sql += " WHERE id = %s"
-                params.append(waiting['id'])
-                
-                query_db(sql, tuple(params))
-                print(f"[QUEUE] Record {waiting['id']} promoted from panel queue.")
+                # IMPORTANT: DO NOT overwrite atendente_id or guiche. 
+                # This record already belongs to the person who manually called them.
+                sql = "UPDATE agendamentos SET status = 'pendente', hora_atendimento = NOW() WHERE id = %s"
+                query_db(sql, (waiting['id'],))
+                print(f"[QUEUE] Record {waiting['id']} promoted from panel queue (keeping original owner).")
                 return True
             
             # 4. Fallback: Promote from normal 'chegou' queue ONLY if we have an attendant_id
