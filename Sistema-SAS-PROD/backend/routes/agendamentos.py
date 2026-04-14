@@ -179,7 +179,8 @@ def cleanup_stale_calls():
             SET status = 'chamada_expirada' 
             WHERE status = 'pendente' 
             AND DATE(data_agendamento) = CURDATE()
-            AND (hora_atendimento < (NOW() - INTERVAL 1 MINUTE) OR hora_atendimento IS NULL)
+            AND hora_atendimento IS NOT NULL 
+            AND hora_atendimento < (NOW() - INTERVAL 2 MINUTE)
         """)
     except Exception as e:
         print(f"Erro na limpeza de chamados: {e}")
@@ -439,7 +440,11 @@ def update_agendamento(id):
     values.append(id)
     
     try:
-        # 3. Final Race Condition Check for panel busy
+        # 1. Update timestamp if moving to a pending/panel status
+        if new_status in ['pendente', 'na_fila_do_painel']:
+            data['hora_atendimento'] = datetime.now()
+
+        # 2. Race Condition Check for panel busy
         if new_status == 'pendente':
             today = datetime.now().strftime('%Y-%m-%d')
             # Check if panel is busy (Agressively)
