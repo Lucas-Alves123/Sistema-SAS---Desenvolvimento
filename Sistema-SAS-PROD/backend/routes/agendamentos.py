@@ -114,15 +114,14 @@ def promote_next_to_panel(atendente_id=None, guiche=None):
                 query_db(sql, tuple(params))
                 print(f"[QUEUE] Record {waiting['id']} promoted from panel queue.")
                 return True
-            else:
-                # 4. Fallback: Promote from normal 'chegou' queue
+            
+            # 4. Fallback: Promote from normal 'chegou' queue ONLY if we have an attendant_id
+            # This prevents the monitor from auto-calling people without an attendant
+            if atendente_id:
                 next_id = get_next_in_queue(today)
                 if next_id:
-                    sql = "UPDATE agendamentos SET status = 'pendente', hora_atendimento = NOW()"
-                    params = []
-                    if atendente_id:
-                        sql += ", atendente_id = %s"
-                        params.append(atendente_id)
+                    sql = "UPDATE agendamentos SET status = 'pendente', hora_atendimento = NOW(), atendente_id = %s"
+                    params = [atendente_id]
                     if guiche:
                         sql += ", guiche = %s"
                         params.append(guiche)
@@ -130,7 +129,7 @@ def promote_next_to_panel(atendente_id=None, guiche=None):
                     params.append(next_id)
                     
                     query_db(sql, tuple(params))
-                    print(f"[QUEUE] Record {next_id} promoted from normal queue.")
+                    print(f"[QUEUE] Record {next_id} promoted from normal queue by attendant {atendente_id}.")
                     return True
         else:
             print(f"[QUEUE] Panel busy with recent call {panel_busy['id']}. Skipping promotion.")
