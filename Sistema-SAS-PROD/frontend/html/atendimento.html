@@ -39,8 +39,8 @@
             </div>
 
             <div class="flex justify-center items-center gap-4 mb-6">
-                <div class="bg-blue-800 text-white px-8 py-2 rounded-lg font-bold text-xl shadow-lg">
-                    Guichê <span id="guicheDisplay">${currentGuiche}</span>
+                <div id="guicheDisplay" class="bg-blue-800 text-white px-8 py-2 rounded-lg font-bold text-xl shadow-lg">
+                    ${currentGuiche === 'Triagem' ? 'Triagem' : 'Guichê ' + currentGuiche}
                 </div>
                 <button id="alterarGuicheBtn" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm">
                     <i data-lucide="settings" class="w-5 h-5"></i>
@@ -345,7 +345,7 @@
             if (newGuiche && newGuiche.trim() !== '') {
                 currentGuiche = newGuiche.trim();
                 localStorage.setItem('sas_guiche', currentGuiche);
-                guicheDisplay.textContent = currentGuiche;
+                guicheDisplay.textContent = currentGuiche === 'Triagem' ? 'Triagem' : `Guichê ${currentGuiche}`;
                 window.SAS.utils.notify('success', `Guichê alterado para ${currentGuiche}`);
                 closeGuicheModal();
             }
