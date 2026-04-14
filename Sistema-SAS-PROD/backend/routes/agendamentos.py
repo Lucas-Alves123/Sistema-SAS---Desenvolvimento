@@ -412,7 +412,7 @@ def update_agendamento(id):
     # 1. Capture dynamic status changes BEFORE building fields
     new_status = data.get('status')
     try:
-        old_record = query_db("SELECT status FROM agendamentos WHERE id = %s", (id,), one=True)
+        old_record = query_db("SELECT * FROM agendamentos WHERE id = %s", (id,), one=True)
         if old_record:
             old_status = old_record['status']
             if new_status and old_status != new_status:
@@ -454,25 +454,26 @@ def update_agendamento(id):
             
             if busy:
                 return jsonify({'error': 'O painel está ocupado no momento. Aguarde o reset automático em 60s ou clique em Reset.'}), 409
-            elif new_status == 'concluido':
-                data['hora_conclusao'] = datetime.now()
-                
-                base_url = request.url_root
-                user_email = old_record.get('email') or data.get('email')
-                nome = old_record.get('nome_completo') or data.get('nome_completo')
-                
-                # Debug logging
-                with open('backend/email_debug.log', 'a') as f:
-                    f.write(f"[{datetime.now()}] Trigger detectado: concluido | ID: {id} | Email: {user_email} | Nome: {nome}\n")
 
-                if user_email:
-                    try:
-                        import threading
-                        threading.Thread(target=send_satisfaction_email, args=(user_email, nome, id, base_url)).start()
-                    except Exception as e:
-                        with open('backend/email_debug.log', 'a') as f:
-                            f.write(f"[{datetime.now()}] ERRO ao iniciar thread: {e}\n")
-                        print(f"Error triggering survey email: {e}")
+        if new_status == 'concluido':
+            data['hora_conclusao'] = datetime.now()
+            
+            base_url = request.url_root
+            user_email = old_record.get('email') or data.get('email')
+            nome = old_record.get('nome_completo') or data.get('nome_completo')
+            
+            # Debug logging
+            with open('backend/email_debug.log', 'a') as f:
+                f.write(f"[{datetime.now()}] Trigger detectado: concluido | ID: {id} | Email: {user_email} | Nome: {nome}\n")
+
+            if user_email:
+                try:
+                    import threading
+                    threading.Thread(target=send_satisfaction_email, args=(user_email, nome, id, base_url)).start()
+                except Exception as e:
+                    with open('backend/email_debug.log', 'a') as f:
+                        f.write(f"[{datetime.now()}] ERRO ao iniciar thread: {e}\n")
+                    print(f"Error triggering survey email: {e}")
 
         # Build update query
         fields = []

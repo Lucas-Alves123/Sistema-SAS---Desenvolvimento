@@ -194,11 +194,13 @@
                                     <th class="px-3 py-3 border-r border-slate-200">Local</th>
                                     <th class="px-3 py-3 border-r border-slate-200">E-mail</th>
                                     <th class="px-3 py-3 border-r border-slate-200">Serviço</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">Assuntos Extras</th>
                                     <th class="px-3 py-3 border-r border-slate-200">Atendimento</th>
                                     <th class="px-3 py-3 border-r border-slate-200">Nível de Atendimento</th>
                                     <th class="px-3 py-3 border-r border-slate-200">Status</th>
                                     <th class="px-3 py-3 border-r border-slate-200">Obs 1 (Prob)</th>
-                                    <th class="px-3 py-3">Obs 2 (Sol)</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">Obs 2 (Sol)</th>
+                                    <th class="px-3 py-3">Obs Extras</th>
                                 </tr>
                             </thead>
                             <tbody id="reportTableBody" class="divide-y divide-slate-200">
@@ -440,6 +442,39 @@
                 else if (item.status === 'cancelado' || item.status === 'nao_compareceu' || item.status === 'cancelado_pelo_servidor') statusColor = 'text-red-600 font-bold';
                 else if (item.status === 'em_atendimento') statusColor = 'text-blue-600 font-bold';
 
+                let extrasServHtml = '-';
+                let extrasObsHtml = '-';
+                let extrasServText = '';
+                let extrasObsText = '';
+
+                if (item.assuntos_adicionais) {
+                    try {
+                        const parsed = JSON.parse(item.assuntos_adicionais);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            extrasServHtml = '<div class="space-y-1">';
+                            extrasObsHtml = '<div class="space-y-2">';
+                            
+                            parsed.forEach(a => {
+                                // Service names column (tags style)
+                                extrasServHtml += `<span class="block px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[9px] font-bold border border-blue-100 mb-1 last:mb-0">${a.categoria}</span>`;
+                                extrasServText += (extrasServText ? ', ' : '') + a.categoria;
+
+                                // Observations column (Obs 1/2 style)
+                                extrasObsHtml += `
+                                    <div class="border-b border-slate-100 last:border-0 pb-1 last:pb-0">
+                                        <span class="block font-bold text-blue-800 text-[8px] uppercase tracking-tighter">${a.categoria}</span>
+                                        <p class="text-[10px] text-gray-500 italic">${a.descricao}</p>
+                                    </div>
+                                `;
+                                extrasObsText += (extrasObsText ? '\n' : '') + `[${a.categoria}] ${a.descricao}`;
+                            });
+                            
+                            extrasServHtml += '</div>';
+                            extrasObsHtml += '</div>';
+                        }
+                    } catch (e) { console.error('Error parsing extras:', e); }
+                }
+
                 tr.innerHTML = `
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600 whitespace-nowrap">${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio ? item.hora_inicio.substring(0, 5) : ''}</td>
                     <td class="px-2 py-3 border-r border-slate-100 font-medium text-gray-800">${item.nome_completo || '-'}</td>
@@ -450,11 +485,13 @@
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.local_trabalho || '-'}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.email || '-'}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.tipo_servico || '-'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-800 font-medium min-w-[150px]">${extrasServHtml}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600 capitalize">${item.tipo_atendimento || '-'}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.prioridade || 'Normal'}</td>
                     <td class="px-2 py-3 border-r border-slate-100 ${statusColor} capitalize">${item.status.replace(/_/g, ' ')}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-500 text-[10px] italic min-w-[250px] whitespace-normal text-left">${item.observacao_problema || '-'}</td>
-                    <td class="px-2 py-3 text-gray-500 text-[10px] italic min-w-[250px] whitespace-normal text-left">${item.observacao_solucao || '-'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${item.observacao_problema || '-'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${item.observacao_solucao || '-'}</td>
+                    <td class="px-2 py-3 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${extrasObsHtml}</td>
                 `;
                 reportTableBody.appendChild(tr);
             });
@@ -483,22 +520,38 @@
                     return;
                 }
 
-                const dataToExport = data.map(a => ({
-                    'Data/Hora': `${window.SAS.utils.formatDate(a.data_agendamento)} ${a.hora_inicio || ''}`,
-                    'Nome Completo': a.nome_completo,
-                    'CPF': a.cpf,
-                    'Matrícula': a.matricula,
-                    'Cargo': a.cargo,
-                    'Tipo de Vínculo': a.vinculo,
-                    'Local de Trabalho': a.local_trabalho,
-                    'E-mail': a.email,
-                    'Serviço': a.tipo_servico,
-                    'Atendimento': a.tipo_atendimento,
-                    'Nível de Atendimento': a.prioridade,
-                    'Status': a.status.replace(/_/g, ' ').toUpperCase(),
-                    'Obsservação 1 - Problema': a.observacao_problema,
-                    'Observação 2 - Solução': a.observacao_solucao
-                }));
+                const dataToExport = data.map(a => {
+                    let extrasServ = '';
+                    let extrasObs = '';
+                    if (a.assuntos_adicionais) {
+                        try {
+                            const parsed = JSON.parse(a.assuntos_adicionais);
+                            if (Array.isArray(parsed)) {
+                                extrasServ = parsed.map(i => i.categoria).join(', ');
+                                extrasObs = parsed.map(i => `[${i.categoria}] ${i.descricao}`).join('\n');
+                            }
+                        } catch (e) {}
+                    }
+                    
+                    return {
+                        'Data/Hora': `${window.SAS.utils.formatDate(a.data_agendamento)} ${a.hora_inicio || ''}`,
+                        'Nome Completo': a.nome_completo,
+                        'CPF': a.cpf,
+                        'Matrícula': a.matricula,
+                        'Cargo': a.cargo,
+                        'Tipo de Vínculo': a.vinculo,
+                        'Local de Trabalho': a.local_trabalho,
+                        'E-mail': a.email,
+                        'Serviço Principal': a.tipo_servico,
+                        'Serviços Adicionais': extrasServ,
+                        'Atendimento': a.tipo_atendimento,
+                        'Nível de Atendimento': a.prioridade,
+                        'Status': a.status.replace(/_/g, ' ').toUpperCase(),
+                        'Obsservação 1 - Problema': a.observacao_problema,
+                        'Observação 2 - Solução': a.observacao_solucao,
+                        'Observações Adicionais': extrasObs
+                    };
+                });
 
                 const ws = XLSX.utils.json_to_sheet(dataToExport);
                 const wb = XLSX.utils.book_new();
