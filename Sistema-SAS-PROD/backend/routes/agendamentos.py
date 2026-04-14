@@ -445,7 +445,7 @@ def update_agendamento(id):
             data['hora_atendimento'] = datetime.now()
 
         # 2. Race Condition Check for panel busy
-        if new_status == 'pendente':
+        if new_status in ['pendente', 'na_fila_do_painel']:
             today = datetime.now().strftime('%Y-%m-%d')
             # Check if panel is busy (Agressively)
             busy = query_db("""
