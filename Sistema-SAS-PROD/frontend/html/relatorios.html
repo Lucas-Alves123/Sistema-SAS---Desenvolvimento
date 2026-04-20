@@ -167,6 +167,7 @@
                                             <option value="Whatsapp">Whatsapp</option>
                                             <option value="E-mail">E-mail</option>
                                             <option value="Telefônico">Telefônico</option>
+                                            <option value="Online">Online</option>
                                         </select>
                                     </div>
                                 </div>
@@ -180,9 +181,12 @@
                         </div>
                     </div>
 
+                    <!-- Pagination (Top) -->
+                    <div id="paginationTop" class="flex justify-center mb-6"></div>
+
                     <!-- Table Container -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left border-collapse">
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm bg-white mb-6">
+                        <table class="w-full text-[11px] text-left border-collapse">
                             <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
                                 <tr>
                                     <th class="px-3 py-3 border-r border-slate-200">Data/Hora</th>
@@ -208,6 +212,8 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Pagination (Bottom) -->
+                    <div id="paginationBottom" class="flex justify-center mt-2"></div>
                 </div>
 
                 <!-- Evaluations View -->
@@ -281,6 +287,11 @@
         const viewDetailed = document.getElementById('viewDetailed');
         const viewEvaluations = document.getElementById('viewEvaluations');
 
+        // Pagination State
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let fullFilteredData = [];
+
         function switchReportTab(target) {
             // Reset all buttons
             [tabCharts, tabDetailed, tabEvaluations].forEach(btn => {
@@ -308,7 +319,10 @@
         }
 
         tabCharts.addEventListener('click', () => switchReportTab('charts'));
-        tabDetailed.addEventListener('click', () => switchReportTab('detailed'));
+        tabDetailed.addEventListener('click', () => {
+            currentPage = 1; // Reset to page 1 when switching to tab
+            switchReportTab('detailed');
+        });
         tabEvaluations.addEventListener('click', () => switchReportTab('evaluations'));
 
         // Chart Logic
@@ -426,14 +440,25 @@
                 data = data.filter(d => (d.tipo_atendimento || 'Presencial') === typeValue);
             }
 
+            fullFilteredData = data;
+            renderPagination();
+            renderTablePage(currentPage);
+        };
+
+        const renderTablePage = (page) => {
+            currentPage = page;
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const dataToDisplay = fullFilteredData.slice(start, end);
+
             reportTableBody.innerHTML = '';
 
-            if (data.length === 0) {
-                reportTableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Nenhum registro encontrado para os filtros selecionados.</td></tr>';
+            if (dataToDisplay.length === 0) {
+                reportTableBody.innerHTML = '<tr><td colspan="16" class="px-4 py-8 text-center text-gray-500 font-medium">Nenhum registro encontrado para os filtros selecionados.</td></tr>';
                 return;
             }
 
-            data.forEach(item => {
+            dataToDisplay.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-50 transition-colors text-xs text-center';
 
@@ -495,6 +520,66 @@
                 `;
                 reportTableBody.appendChild(tr);
             });
+
+            // Update pagination UI state (active buttons)
+            renderPagination();
+        };
+
+        const renderPagination = () => {
+            const totalPages = Math.ceil(fullFilteredData.length / itemsPerPage);
+            const containers = [document.getElementById('paginationTop'), document.getElementById('paginationBottom')];
+
+            containers.forEach(container => {
+                if (!container) return;
+                container.innerHTML = '';
+
+                if (fullFilteredData.length === 0) {
+                    container.classList.add('hidden');
+                    return;
+                }
+                container.classList.remove('hidden');
+
+                const nav = document.createElement('div');
+                nav.className = 'flex items-center gap-1 select-none';
+
+                // First and Prev
+                const createPageBtn = (label, targetPage, isActive = false, isDisabled = false) => {
+                    const btn = document.createElement('button');
+                    btn.className = `min-w-[32px] h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all border
+                        ${isActive ? 'bg-blue-600 text-white border-blue-600 shadow-md scale-110 z-10' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400 hover:text-blue-600 shadow-sm'}
+                        ${isDisabled ? 'opacity-30 cursor-not-allowed grayscale' : 'cursor-pointer'}`;
+                    btn.innerHTML = label;
+                    if (!isDisabled) {
+                        btn.onclick = (e) => {
+                            e.preventDefault();
+                            renderTablePage(targetPage);
+                            // Scroll to top of table
+                            document.getElementById('viewDetailed').scrollIntoView({ behavior: 'smooth' });
+                        };
+                    }
+                    return btn;
+                };
+
+                // Navigation buttons style: << < 1 2 3 > >>
+                nav.appendChild(createPageBtn('<i data-lucide="chevrons-left" class="w-3.5 h-3.5"></i>', 1, false, currentPage === 1));
+                nav.appendChild(createPageBtn('<i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>', currentPage - 1, false, currentPage === 1));
+
+                // Page numbers (smart range: current +/- 2)
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(totalPages, startPage + 4);
+                if (endPage === totalPages) startPage = Math.max(1, endPage - 4);
+
+                for (let i = startPage; i <= endPage; i++) {
+                    nav.appendChild(createPageBtn(i, i, i === currentPage));
+                }
+
+                nav.appendChild(createPageBtn('<i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>', currentPage + 1, false, currentPage === totalPages));
+                nav.appendChild(createPageBtn('<i data-lucide="chevrons-right" class="w-3.5 h-3.5"></i>', totalPages, false, currentPage === totalPages));
+
+                container.appendChild(nav);
+            });
+            
+            if (window.lucide) lucide.createIcons();
         };
 
         const exportDetailedBtn = document.getElementById('exportDetailedBtn');
@@ -564,7 +649,10 @@
             }
         });
 
-        filterBtn.addEventListener('click', loadReportTable);
+        filterBtn.addEventListener('click', () => {
+            currentPage = 1; // Reset to page 1 on new filter
+            loadReportTable();
+        });
 
         // Evaluations Logic
         let evalChart = null;

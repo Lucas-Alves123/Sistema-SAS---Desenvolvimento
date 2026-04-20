@@ -205,7 +205,8 @@ def get_online_users():
                     # 120 seconds grace period
                     is_online = diff < 120
 
-            if not is_online:
+            u['is_online'] = is_online
+            if not is_online and u.get('status_atendimento') != 'pausa':
                 u['status_atendimento'] = 'offline'
             
             final_users.append(serialize_user(u))

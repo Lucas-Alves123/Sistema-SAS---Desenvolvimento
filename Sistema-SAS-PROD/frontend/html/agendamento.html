@@ -66,18 +66,23 @@
                         </div>
                         <div class="space-y-2">
                             <label class="text-sm font-semibold text-gray-700">Tipo de Vínculo</label>
-                            <select id="vinculo" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600">
-                                <option value="">Selecione...</option>
-                                <option value="Comissionado">Comissionado</option>
-                                <option value="Concurso (Nomeado)">Concurso (Nomeado)</option>
-                                <option value="CTD (Contrato)">CTD (Contrato)</option>
-                                <option value="Estatutário">Estatutário</option>
-                                <option value="Extraquadro">Extraquadro</option>
-                                <option value="Ex-servidor">Ex-servidor</option>
-                                <option value="Extra – Sem vínculo">Extra – Sem vínculo</option>
-                                <option value="Seleção (Convocado)">Seleção (Convocado)</option>
-                                <option value="Outros">Outros</option>
-                            </select>
+                            <div class="relative">
+                                <select id="vinculo" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600 appearance-none">
+                                    <option value="">Selecione...</option>
+                                    <option value="Comissionado">Comissionado</option>
+                                    <option value="Concurso (Nomeado)">Concurso (Nomeado)</option>
+                                    <option value="CTD (Contrato)">CTD (Contrato)</option>
+                                    <option value="Estatutário">Estatutário</option>
+                                    <option value="Extraquadro">Extraquadro</option>
+                                    <option value="Ex-servidor">Ex-servidor</option>
+                                    <option value="Extra – Sem vínculo">Extra – Sem vínculo</option>
+                                    <option value="Seleção (Convocado)">Seleção (Convocado)</option>
+                                    <option value="Outros">Outros</option>
+                                </select>
+                                <div class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-600">
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                </div>
+                            </div>
                         </div>
                         <div class="space-y-2">
                             <label class="text-sm font-semibold text-gray-700">Local de trabalho</label>
@@ -93,26 +98,37 @@
                         </div>
                         <div class="space-y-2">
                             <label class="text-sm font-semibold text-gray-700">Tipo de serviço</label>
-                            <select id="servico" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600">
-                                <option value="">Selecione...</option>
-                                <option value="Aposentadoria">Aposentadoria</option>
-                                <option value="Atendimento Geral">Atendimento Geral</option>
-                                <option value="Seleção Pública Simplificada">Seleção Pública Simplificada</option>
-                                <option value="Certidão">Certidão</option>
-                                <option value="Licença">Licença</option>
-                                <option value="Pagamento">Pagamento</option>
-                                <option value="Plantão Extraordinário">Plantão Extraordinário</option>
-                            </select>
+                            <div class="relative">
+                                <select id="servico" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600 appearance-none">
+                                    <option value="">Selecione...</option>
+                                    <option value="Aposentadoria">Aposentadoria</option>
+                                    <option value="Atendimento Geral">Atendimento Geral</option>
+                                    <option value="Seleção Pública Simplificada">Seleção Pública Simplificada</option>
+                                    <option value="Certidão">Certidão</option>
+                                    <option value="Licença">Licença</option>
+                                    <option value="Pagamento">Pagamento</option>
+                                    <option value="Plantão Extraordinário">Plantão Extraordinário</option>
+                                </select>
+                                <div class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-600">
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                </div>
+                            </div>
                         </div>
                         <div class="space-y-2">
                             <label class="text-sm font-semibold text-gray-700">Tipo de atendimento</label>
-                            <select id="tipo_atendimento" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600">
-                                <option value="">Selecione...</option>
-                                <option value="Presencial">Presencial</option>
-                                <option value="Whatsapp">Whatsapp</option>
-                                <option value="E-mail">E-mail</option>
-                                <option value="Telefônico">Telefônico</option>
-                            </select>
+                            <div class="relative">
+                                <select id="tipo_atendimento" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600 appearance-none">
+                                    <option value="">Selecione...</option>
+                                    <option value="Presencial">Presencial</option>
+                                    <option value="Whatsapp">Whatsapp</option>
+                                    <option value="E-mail">E-mail</option>
+                                    <option value="Telefônico">Telefônico</option>
+                                    <option value="Online">Online</option>
+                                </select>
+                                <div class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-600">
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -120,10 +136,15 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="space-y-2">
                             <label class="text-sm font-semibold text-gray-700">Nível de Atendimento</label>
-                            <select id="prioridade" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600">
-                                <option value="Normal">Normal</option>
-                                <option value="Preferencial">Preferencial</option>
-                            </select>
+                            <div class="relative">
+                                <select id="prioridade" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600 appearance-none">
+                                    <option value="Normal">Normal</option>
+                                    <option value="Preferencial">Preferencial</option>
+                                </select>
+                                <div class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-700">
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                </div>
+                            </div>
                         </div>
                         <div class="space-y-2">
                             <label class="text-sm font-semibold text-gray-700">Data do agendamento</label>
@@ -131,9 +152,19 @@
                         </div>
                         <div class="space-y-2">
                             <label class="text-sm font-semibold text-gray-700">Hora de inicio</label>
-                            <select id="hora" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600">
-                                <option value="">--:--</option>
-                            </select>
+                            <div class="relative" id="horaContainer">
+                                <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 bg-white">
+                                    <input type="text" id="hora" placeholder="00:00" maxlength="5" autocomplete="off"
+                                        class="flex-1 p-2.5 outline-none text-gray-600 border-none">
+                                    <div id="horaChevron" class="pr-4 pl-1 flex items-center justify-center text-gray-600 cursor-pointer hover:text-gray-900 transition-colors">
+                                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                    </div>
+                                </div>
+                                <!-- Custom Dropdown List - Positioned Above -->
+                                <div id="horaCustomList" class="hidden absolute left-0 right-0 bottom-full mb-1 bg-white border border-gray-200 rounded-lg shadow-xl z-[100] max-h-60 overflow-y-auto animate-fade-in custom-scrollbar">
+                                    <!-- Options populated via JS -->
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -222,15 +253,49 @@
             }
         };
 
-        window.selecionarVinculo = (index) => {
+        window.selecionarVinculo = async (index) => {
             const dados = searchResults[index];
             preencherForm(dados);
             fecharModalVinculos();
             window.SAS.utils.notify('success', 'Dados preenchidos com sucesso!');
+            await buscarAgendamentosFuturos(dados.cpf, dados.matricula);
         };
 
         window.fecharModalVinculos = () => {
             modalVinculos.classList.add('hidden');
+        };
+
+        const buscarAgendamentosFuturos = async (cpf, matricula) => {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const queryParam = cpf ? `cpf=${encodeURIComponent(cpf)}` : `matricula=${encodeURIComponent(matricula)}`;
+                const res = await fetch(`/api/agendamentos?${queryParam}`);
+                if (res.ok) {
+                    const appointments = await res.json();
+                    const futureAppt = appointments.find(a => 
+                        a.data_agendamento >= today && 
+                        ['agendado', 'chegou', 'pendente', 'em_andamento'].includes(a.status)
+                    );
+
+                    if (futureAppt) {
+                        const dateFmt = new Date(futureAppt.data_agendamento + 'T12:00:00').toLocaleDateString('pt-BR');
+                        const timeFmt = futureAppt.hora_inicio ? futureAppt.hora_inicio.substring(0, 5) : '--:--';
+                        const detailMsg = `Este servidor já possui um agendamento ativo:<br><br>
+                                          <b>Data:</b> ${dateFmt}<br>
+                                          <b>Horário:</b> ${timeFmt}<br>
+                                          <b>Serviço:</b> ${futureAppt.tipo_servico}<br><br>
+                                          Deseja realizar um novo agendamento mesmo assim?`;
+
+                        // Since agendamento.html is internal, we just warn. 
+                        // If they say no, should we clear? Usually not, they just might want to know.
+                        window.SAS.utils.modal.confirm('Agendamento Já Existente', detailMsg, () => {
+                            // Proceed (do nothing, just close modal)
+                        }, 'warning');
+                    }
+                }
+            } catch (err) {
+                console.error('Error checking future appointments:', err);
+            }
         };
 
         const buscarServidor = async () => {
@@ -253,8 +318,10 @@
                     if (results.length === 1) {
                         preencherForm(results[0]);
                         window.SAS.utils.notify('success', 'Dados carregados automaticamente!');
+                        // Check for future appointments
+                        await buscarAgendamentosFuturos(results[0].cpf, results[0].matricula);
                     } else if (results.length > 1) {
-                        // Show Modal
+                        // Modal selection will handle preencherForm which should check future appts too
                         listaVinculos.innerHTML = '';
                         results.forEach((item, index) => {
                             const div = document.createElement('div');
@@ -296,30 +363,44 @@
         const today = new Date().toISOString().split('T')[0];
         dataInput.min = today;
 
+        const populateSlots = (filterTerm = '') => {
+            const list = document.getElementById('horaCustomList');
+            if (!list) return;
+            list.innerHTML = '';
+            
+            const startTime = 8 * 60; // 08:00
+            const endTime = 16 * 60 + 45; // 16:45
+
+            let hasMatches = false;
+            for (let time = startTime; time <= endTime; time += 15) {
+                const hours = Math.floor(time / 60);
+                const minutes = time % 60;
+                const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+
+                if (filterTerm && !timeString.includes(filterTerm)) continue;
+
+                hasMatches = true;
+                const item = document.createElement('div');
+                item.className = 'px-4 py-2.5 hover:bg-blue-600 hover:text-white cursor-pointer transition-colors text-sm text-gray-700';
+                item.textContent = timeString;
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    horaSelect.value = timeString;
+                    toggleHoraList(false);
+                };
+                list.appendChild(item);
+            }
+
+            if (!hasMatches && filterTerm) {
+                const item = document.createElement('div');
+                item.className = 'px-4 py-2.5 text-sm text-gray-500 italic';
+                item.textContent = 'Nenhum horário sugerido';
+                list.appendChild(item);
+            }
+        };
+
         const updateTimeSlots = (showAlert = false) => {
             const dateValue = dataInput.value;
-
-            const populateSlots = () => {
-                const currentSelection = horaSelect.value;
-                horaSelect.innerHTML = '<option value="">--:--</option>';
-                const startTime = 8 * 60; // 08:00
-                const endTime = 16 * 60 + 45; // 16:45
-
-                for (let time = startTime; time <= endTime; time += 15) {
-                    const hours = Math.floor(time / 60);
-                    const minutes = time % 60;
-                    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-
-                    const opt = document.createElement('option');
-                    opt.value = timeString;
-                    opt.textContent = timeString;
-                    horaSelect.appendChild(opt);
-                }
-
-                if (currentSelection) {
-                    horaSelect.value = currentSelection;
-                }
-            };
 
             // Only validate if date is complete (YYYY-MM-DD has 10 chars)
             if (!dateValue || dateValue.length < 10) {
@@ -329,7 +410,6 @@
 
             const [year, month, day] = dateValue.split('-').map(Number);
             
-            // Check literal today to bypass weekend check if it IS today (Friday 10/04/2026 example)
             const todayObj = new Date();
             const isToday = year === todayObj.getFullYear() && (month - 1) === todayObj.getMonth() && day === todayObj.getDate();
 
@@ -341,12 +421,11 @@
 
             const dayOfWeek = date.getDay();
 
-            // Allow today even if system gets confused, but generally check weekends
             if (!isToday && (dayOfWeek === 0 || dayOfWeek === 6)) {
                 if (showAlert) {
                     window.SAS.utils.modal.alert('Dia Não Útil', 'Agendamentos não podem ser realizados aos finais de semana ou feriados.', 'info');
                     dataInput.value = '';
-                    horaSelect.innerHTML = '<option value="">--:--</option>';
+                    horaSelect.value = '';
                 }
                 return;
             }
@@ -362,6 +441,51 @@
         dataInput.addEventListener('input', (e) => {
             if (e.target.value.length === 10) {
                 updateTimeSlots(false);
+            }
+            if (window.lucide) window.lucide.createIcons();
+        });
+
+        // Custom Dropdown Logic
+        const horaCustomList = document.getElementById('horaCustomList');
+        const horaChevron = document.getElementById('horaChevron');
+
+        const toggleHoraList = (show) => {
+            if (show) {
+                populateSlots();
+                horaCustomList.classList.remove('hidden');
+            } else {
+                horaCustomList.classList.add('hidden');
+            }
+        };
+
+        horaSelect.addEventListener('focus', () => toggleHoraList(true));
+        horaChevron.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isHidden = horaCustomList.classList.contains('hidden');
+            toggleHoraList(isHidden);
+        });
+
+        document.addEventListener('click', (e) => {
+            const container = document.getElementById('horaContainer');
+            if (container && !container.contains(e.target)) {
+                toggleHoraList(false);
+            }
+        });
+
+        // Time Input Mask and Filtering
+        horaSelect.addEventListener('input', (e) => {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length > 4) val = val.substring(0, 4);
+            if (val.length > 2) {
+                val = val.substring(0, 2) + ':' + val.substring(2);
+            }
+            e.target.value = val;
+            
+            // Re-filter list based on what user typed
+            populateSlots(e.target.value);
+            // Show list if it was hidden
+            if (val.length > 0) {
+                horaCustomList.classList.remove('hidden');
             }
         });
 
@@ -428,10 +552,8 @@
                     const errorMessage = err.message || '';
 
                     if (errorData.code === 'DUPLICATE_APPOINTMENT' || errorMessage.includes('Duplicate appointment')) {
-                        window.SAS.utils.modal.confirm('Agendamento Duplicado', 'Já existe um agendamento para este servidor nesta data. Deseja agendar mesmo assim?', async () => {
-                            data.force_duplicate = true;
-                            await submitAppointment(data);
-                        });
+                        const d = errorData.details || {}; const dateFormatted = d.data ? new Date(d.data + "T12:00:00").toLocaleDateString("pt-BR") : "Data desconhecida"; const detailMsg = `Este servidor já possui um agendamento ativo:<br><br><b>Data:</b> ${dateFormatted}<br><b>Horário:</b> ${d.hora || "--:--"}<br><b>Serviço:</b> ${d.tipo_servico || "-"}<br><b>Atendente:</b> ${d.atendente || "-"}<br><br>Deseja realizar este novo agendamento mesmo assim?`; window.SAS.utils.modal.confirm("Agendamento Já Existente", detailMsg, async () => {
+                            data.force_duplicate = true; await submitAppointment(data); }, "warning");
                     } else if (errorData.code === 'SLOT_CONFLICT' || errorMessage.includes('Slot conflict')) {
                         window.SAS.utils.modal.alert('Horário Ocupado', 'Este horário já está ocupado. Por favor, escolha outro horário.', 'danger');
                     } else {

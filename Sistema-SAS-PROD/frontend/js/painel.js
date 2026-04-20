@@ -2,6 +2,7 @@
 // Desenvolvido para Secretaria de Saúde de Pernambuco
 
 let lastCallId = null;
+let lastCallCount = null;
 let isFirstRun = true;
 let isAudioUnlocked = false;
 let announcementInterval = null;
@@ -32,8 +33,8 @@ async function fetchCurrentCall() {
 
         console.log("[API] Dados recebidos:", data);
 
-        // Check if the call is different from the last one (using ID)
-        if (data.id && data.id !== lastCallId) {
+        // Check if the call is different from the last one (using ID OR Counter)
+        if (data.id && (data.id !== lastCallId || data.chamada_count !== lastCallCount)) {
             console.log(`[PAINEL] Novo chamado detectado: ID ${data.id} - ${data.nome_completo}`);
             updateUI(data.nome_completo, data.guiche);
 
@@ -48,17 +49,16 @@ async function fetchCurrentCall() {
             }
 
             lastCallId = data.id;
+            lastCallCount = data.chamada_count;
         } 
         // Logic to CLEAR the panel if no active call is found or if name is "Aguardando..."
         else if (!data.id || data.nome_completo === "Aguardando...") {
-            console.log("[PAINEL] Limpando e silenciando: Nenhum chamado ativo.");
-            stopRepeatingAnnouncement(); // AGGRESSIVE STOP
-            
-            if (lastCallId !== null || data.nome_completo === "Aguardando...") {
-                if (nameEl && nameEl.textContent !== "Aguardando...") {
-                    updateUI("Aguardando...", "-");
-                    lastCallId = null;
-                }
+            if (lastCallId !== null) {
+                console.log("[PAINEL] Limpando monitor: Voltando para estado Aguardando.");
+                updateUI("Aguardando...", "-");
+                stopRepeatingAnnouncement();
+                lastCallId = null;
+                lastCallCount = null;
             }
         }
 
@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 2000);
 
     fetchCurrentCall();
-    setInterval(fetchCurrentCall, 1000);
+    setInterval(fetchCurrentCall, 800); // Polling slightly faster (800ms) for better responsiveness
 
     // Some browsers need this event to load voices properly
     if (window.speechSynthesis.onvoiceschanged !== undefined) {

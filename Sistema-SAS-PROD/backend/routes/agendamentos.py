@@ -86,7 +86,7 @@ def promote_next_to_panel(atendente_id=None, guiche=None):
             SELECT id FROM agendamentos 
             WHERE status = 'pendente' 
             AND DATE(data_agendamento) = CURDATE() 
-            AND (tipo_atendimento = 'Presencial' OR tipo_atendimento IS NULL)
+            AND (tipo_atendimento IN ('Presencial', 'Online') OR tipo_atendimento IS NULL)
             AND hora_atendimento > (NOW() - INTERVAL 3 MINUTE)
         """, one=True)
 
@@ -102,7 +102,7 @@ def promote_next_to_panel(atendente_id=None, guiche=None):
             if waiting:
                 # IMPORTANT: DO NOT overwrite atendente_id or guiche. 
                 # This record already belongs to the person who manually called them.
-                sql = "UPDATE agendamentos SET status = 'pendente', hora_atendimento = NOW() WHERE id = %s"
+                sql = "UPDATE agendamentos SET status = 'pendente', hora_atendimento = NOW(), chamada_count = chamada_count + 1 WHERE id = %s"
                 query_db(sql, (waiting['id'],))
                 print(f"[QUEUE] Record {waiting['id']} promoted from panel queue (keeping original owner).")
                 return True
@@ -112,7 +112,7 @@ def promote_next_to_panel(atendente_id=None, guiche=None):
             if atendente_id:
                 next_id = get_next_in_queue(today)
                 if next_id:
-                    sql = "UPDATE agendamentos SET status = 'pendente', hora_atendimento = NOW(), atendente_id = %s"
+                    sql = "UPDATE agendamentos SET status = 'pendente', hora_atendimento = NOW(), atendente_id = %s, chamada_count = chamada_count + 1"
                     params = [atendente_id]
                     if guiche:
                         sql += ", guiche = %s"
@@ -263,7 +263,7 @@ def create_agendamento():
 
         duplicate_query = """
             SELECT * FROM agendamentos 
-            WHERE data_agendamento = %s 
+            WHERE data_agendamento >= CURDATE() 
             AND status IN ('agendado', 'chegou', 'pendente', 'em_andamento')
             AND (
                 (cpf IS NOT NULL AND cpf != '' AND cpf = %s) OR 
@@ -272,7 +272,7 @@ def create_agendamento():
             )
         """
         
-        existing_appt = query_db(duplicate_query, (data_agendamento, cpf, matricula, nome), one=True)
+        existing_appt = query_db(duplicate_query, (cpf, matricula, nome), one=True)
         
         if existing_appt:
             # If forcing duplicate, we MUST ensure the time is different
@@ -434,6 +434,8 @@ def update_agendamento(id):
         # 1. Update timestamp if moving to a pending/panel status
         if new_status in ['pendente', 'na_fila_do_painel']:
             data['hora_atendimento'] = datetime.now()
+            # AGGRESSIVE: Increment call count so the panel detects it even if it's the same ID
+            query_db("UPDATE agendamentos SET chamada_count = chamada_count + 1 WHERE id = %s", (id,))
 
         # 2. Race Condition Check for panel busy
         if new_status in ['pendente', 'na_fila_do_painel']:
@@ -444,7 +446,7 @@ def update_agendamento(id):
                 WHERE status = 'pendente' 
                 AND DATE(data_agendamento) = CURDATE() 
                 AND id != %s
-                AND (tipo_atendimento = 'Presencial' OR tipo_atendimento IS NULL)
+                AND (tipo_atendimento IN ('Presencial', 'Online') OR tipo_atendimento IS NULL)
                 AND (hora_atendimento > (NOW() - INTERVAL 3 MINUTE) OR hora_atendimento IS NULL)
             """, (id,), one=True)
             
@@ -660,11 +662,12 @@ def get_current_call():
         today = datetime.now().strftime('%Y-%m-%d')
         
         query = """
-            SELECT id, nome_completo, guiche 
+            SELECT id, nome_completo, guiche, chamada_count 
             FROM agendamentos 
             WHERE status = 'pendente' AND data_agendamento = %s
-            AND (tipo_atendimento = 'Presencial' OR tipo_atendimento IS NULL)
-            ORDER BY id DESC 
+            AND (tipo_atendimento IN ('Presencial', 'Online') OR tipo_atendimento IS NULL)
+            AND (hora_atendimento > (NOW() - INTERVAL 3 MINUTE) OR hora_atendimento IS NULL)
+            ORDER BY hora_atendimento DESC, id DESC 
             LIMIT 1
         """
         result = query_db(query, (today,), one=True)

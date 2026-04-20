@@ -213,117 +213,107 @@
 
                 const html = `
                     <div class="space-y-6">
-                        <!-- Section 1: Identificação do Servidor -->
+                    <div class="space-y-5">
+                        <!-- Section 1: Identificação -->
                         <div>
-                            <div class="flex items-center gap-2 mb-4 pb-1 border-b border-slate-100">
-                                <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
-                                <h4 class="text-xs font-bold text-blue-900 uppercase tracking-widest">Identificação do Servidor</h4>
+                            <div class="flex items-center gap-2 mb-2 pb-0.5 border-b border-slate-100">
+                                <i data-lucide="user" class="w-3.5 h-3.5 text-blue-600"></i>
+                                <h4 class="text-[10px] font-bold text-blue-900 uppercase tracking-widest">Identificação</h4>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="md:col-span-2 text-center">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">Nome Completo</label>
-                                    <div class="text-sm text-gray-800 font-bold">${item.nome_completo}</div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
+                                <div class="col-span-2">
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Nome Completo</label>
+                                    <div class="text-[11px] text-gray-800 font-bold">${item.nome_completo}</div>
                                 </div>
-                                <div class="text-center">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">CPF</label>
-                                    <div class="text-sm text-gray-800 font-medium">${window.SAS.utils.formatCPF(item.cpf || '') || '-'}</div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">CPF</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${window.SAS.utils.formatCPF(item.cpf || '') || '-'}</div>
                                 </div>
-                                <div class="text-center">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">Matrícula</label>
-                                    <div class="text-sm text-gray-800 font-medium">${item.matricula || '-'}</div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Matrícula</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${item.matricula || '-'}</div>
                                 </div>
-                                <div class="md:col-span-2 text-center">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">E-mail</label>
-                                    <div class="text-sm text-gray-800 font-medium">${item.email || '-'}</div>
+                                <div class="col-span-2">
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">E-mail</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${item.email || '-'}</div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Section 2: Vínculo Profissional -->
+                        <!-- Section 2: Vínculo -->
                         <div>
-                            <div class="flex items-center gap-2 mb-4 pb-1 border-b border-slate-100">
-                                <i data-lucide="briefcase" class="w-4 h-4 text-blue-600"></i>
-                                <h4 class="text-xs font-bold text-blue-900 uppercase tracking-widest">Vínculo Profissional</h4>
+                            <div class="flex items-center gap-2 mb-2 pb-0.5 border-b border-slate-100">
+                                <i data-lucide="briefcase" class="w-3.5 h-3.5 text-blue-600"></i>
+                                <h4 class="text-[10px] font-bold text-blue-900 uppercase tracking-widest">Vínculo</h4>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="text-center">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">Cargo</label>
-                                    <div class="text-sm text-gray-800 font-medium">${item.cargo || '-'}</div>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Cargo</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${item.cargo || '-'}</div>
                                 </div>
-                                <div class="text-center">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">Tipo de Vínculo</label>
-                                    <div class="text-sm text-gray-800 font-medium capitalize">${item.vinculo || '-'}</div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Tipo</label>
+                                    <div class="text-[11px] text-gray-800 font-medium capitalize">${item.vinculo || '-'}</div>
                                 </div>
-                                <div class="text-center">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">Local de Trabalho</label>
-                                    <div class="text-sm text-gray-800 font-medium">${item.local_trabalho || '-'}</div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Local</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${item.local_trabalho || '-'}</div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Section 3: Dados do Atendimento -->
                         <div>
-                            <div class="flex items-center gap-2 mb-4 pb-1 border-b border-slate-100">
-                                <i data-lucide="calendar" class="w-4 h-4 text-blue-600"></i>
-                                <h4 class="text-xs font-bold text-blue-900 uppercase tracking-widest">Dados do Atendimento</h4>
+                            <div class="flex items-center gap-2 mb-2 pb-0.5 border-b border-slate-100">
+                                <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-600"></i>
+                                <h4 class="text-[10px] font-bold text-blue-900 uppercase tracking-widest">Atendimento</h4>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="text-center">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">Serviço Principal</label>
-                                    <div class="text-sm text-blue-700 font-bold">${item.tipo_servico}</div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Serviço</label>
+                                    <div class="text-[11px] text-blue-700 font-bold">${item.tipo_servico}</div>
                                 </div>
-                                ${item.assuntos_adicionais ? `
-                                <div class="text-center">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">Assuntos Extras</label>
-                                    <div class="text-xs text-blue-600 font-bold">Sim (Ver no Requerimento)</div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Atendimento</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${item.tipo_atendimento || '-'}</div>
                                 </div>
-                                ` : ''}
-                                <div class="text-center">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">Atendimento</label>
-                                    <div class="text-sm text-gray-800 font-medium">${item.tipo_atendimento || '-'}</div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Nível</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${item.prioridade || 'Normal'}</div>
                                 </div>
-                                <div class="text-center">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">Nível de Atendimento</label>
-                                    <div class="text-sm text-gray-800 font-medium">${item.prioridade || 'Normal'}</div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Atendente</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${item.atendente_nome || '-'}</div>
                                 </div>
-                                <div class="text-center">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">Atendente</label>
-                                    <div class="text-sm text-gray-800 font-medium">${item.atendente_nome || '-'}</div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Data/Hora</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${window.SAS.utils.formatDate(item.data_agendamento)} às ${item.hora_inicio ? item.hora_inicio.substring(0, 5) : '-'}</div>
                                 </div>
-                                <div class="text-center">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">Data/Hora</label>
-                                    <div class="text-sm text-gray-800 font-medium">${window.SAS.utils.formatDate(item.data_agendamento)} às ${item.hora_inicio ? item.hora_inicio.substring(0, 5) : '-'}</div>
-                                </div>
-                                <div class="text-center">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">Status</label>
-                                    <div class="text-sm font-bold capitalize ${item.status === 'concluido' ? 'text-green-600' : 'text-blue-600'}">${item.status.replace('_', ' ')}</div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Status</label>
+                                    <div class="text-[11px] font-bold capitalize ${item.status === 'concluido' ? 'text-green-600' : 'text-blue-600'}">${item.status.replace('_', ' ')}</div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Observations -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-6 rounded-2xl border border-slate-100 shadow-sm">
-                            <div class="space-y-2">
-                                <label class="block text-[10px] font-bold text-blue-700 uppercase tracking-widest">Observação 1 — Problema</label>
-                                <p class="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">${item.observacao_problema || 'Nenhuma observação registrada.'}</p>
+                        <div class="space-y-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <!-- Obs 1 -->
+                            <div class="space-y-1.5 border-b border-slate-200/60 pb-4">
+                                <label class="block text-[9px] font-bold text-blue-700 uppercase tracking-widest px-1">Obs 1 — Problema</label>
+                                <div class="bg-white/60 p-2.5 rounded-lg border border-slate-200/60 max-h-24 overflow-y-auto custom-scrollbar shadow-sm">
+                                    <p class="text-[11px] text-gray-600 whitespace-pre-wrap leading-relaxed">${item.observacao_problema || 'Nenhuma registrada.'}</p>
+                                </div>
                             </div>
-                            <div class="space-y-2 md:border-l md:border-slate-200/60 md:pl-6">
-                                <label class="block text-[10px] font-bold text-green-700 uppercase tracking-widest">Observação 2 — Solução</label>
-                                <p class="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">${item.observacao_solucao || 'Nenhuma solução registrada.'}</p>
+                            <!-- Obs 2 -->
+                            <div class="space-y-1.5">
+                                <label class="block text-[9px] font-bold text-green-700 uppercase tracking-widest px-1">Obs 2 — Solução</label>
+                                <div class="bg-white/60 p-2.5 rounded-lg border border-slate-200/60 max-h-24 overflow-y-auto custom-scrollbar shadow-sm">
+                                    <p class="text-[11px] text-gray-600 whitespace-pre-wrap leading-relaxed">${item.observacao_solucao || 'Nenhuma registrada.'}</p>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Actions (Download) -->
-                        ${item.status === 'concluido' ? `
-                        <div class="flex flex-col sm:flex-row gap-3 mt-8">
-                            <button onclick="downloadComprovante('${item.id}')" class="flex-1 bg-emerald-50 text-emerald-700 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-100 transition-all border border-emerald-100">
-                                <i data-lucide="file-text" class="w-5 h-5"></i> Baixar Comprovante
-                            </button>
-                            <button onclick="downloadRequerimento('${item.id}')" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">
-                                <i data-lucide="clipboard-list" class="w-5 h-5"></i> Baixar Requerimento A
-                            </button>
-                        </div>
-                        ` : ''}
                     </div>
                 `;
 

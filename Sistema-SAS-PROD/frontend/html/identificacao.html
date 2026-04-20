@@ -239,6 +239,7 @@
                         </div>
                     </div>
 
+
                     <button type="submit" id="btnContinuarStep2"
                         class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg mt-8">
                         <span>Ver Disponibilidade</span>
@@ -618,14 +619,51 @@
 
                 const data = await response.json();
                 if (data.success) {
-                    currentServidor = Array.isArray(data.data) ? data.data[0] : data.data;
-                    nomeServidor.textContent = currentServidor.nome_completo;
-                    dadosServidor.textContent = `CPF: ${currentServidor.cpf || '-'} | Matrícula: ${currentServidor.matricula || '-'} | Vínculo: ${currentServidor.vinculo || '-'}`;
-                    successState.classList.remove('hidden');
-                    btnBuscar.classList.add('hidden');
-                    btnContinuar.classList.remove('hidden');
-                    btnContinuar.disabled = false;
-                    window.SAS.utils.notify('success', 'Servidor identificado com sucesso!');
+                    const identifiedServidor = Array.isArray(data.data) ? data.data[0] : data.data;
+
+                    const showSuccess = () => {
+                        currentServidor = identifiedServidor;
+                        nomeServidor.textContent = currentServidor.nome_completo;
+                        dadosServidor.textContent = `CPF: ${currentServidor.cpf || '-'} | Matrícula: ${currentServidor.matricula || '-'} | Vínculo: ${currentServidor.vinculo || '-'}`;
+                        successState.classList.remove('hidden');
+                        btnBuscar.classList.add('hidden');
+                        btnContinuar.classList.remove('hidden');
+                        btnContinuar.disabled = false;
+                        window.SAS.utils.notify('success', 'Servidor identificado com sucesso!');
+                    };
+
+                    // Verificação antecipada de agendamentos futuros
+                    const today = new Date().toISOString().split('T')[0];
+                    const cpf = identifiedServidor.cpf || '';
+                    const matricula = identifiedServidor.matricula || '';
+                    const queryParam = cpf ? `cpf=${encodeURIComponent(cpf)}` : `matricula=${encodeURIComponent(matricula)}`;
+                    const apptResp = await fetch(`/api/agendamentos?${queryParam}`);
+
+                    if (apptResp.ok) {
+                        const appointments = await apptResp.json();
+                        const futureAppt = appointments.find(a =>
+                            a.data_agendamento >= today &&
+                            ['agendado', 'chegou', 'pendente', 'em_andamento'].includes(a.status)
+                        );
+
+                        if (futureAppt) {
+                            const dateFmt = new Date(futureAppt.data_agendamento + 'T12:00:00').toLocaleDateString('pt-BR');
+                            const timeFmt = futureAppt.hora_inicio ? futureAppt.hora_inicio.substring(0, 5) : '--:--';
+                            const detailMsg = `Este servidor já possui um agendamento ativo:<br><br>
+                                              <b>Data:</b> ${dateFmt}<br>
+                                              <b>Horário:</b> ${timeFmt}<br>
+                                              <b>Serviço:</b> ${futureAppt.tipo_servico}<br><br>
+                                              Deseja prosseguir com um novo agendamento mesmo assim?`;
+
+                            window.SAS.utils.modal.confirm('Agendamento Já Existente', detailMsg, () => {
+                                showSuccess();
+                            }, 'warning');
+                        } else {
+                            showSuccess();
+                        }
+                    } else {
+                        showSuccess();
+                    }
                 } else {
                     throw new Error(data.message || 'Servidor não encontrado');
                 }
@@ -736,7 +774,7 @@
             try {
                 const response = await fetch('/api/usuarios');
                 const users = await response.json();
-                const attendants = users.filter(u => u.tipo === 'usuario' && u.situacao === 'ativo');
+                const attendants = users.filter(u => u.tipo === 'usuario' && u.situacao === 'ativo' && u.usuario !== 'rayssa.sousa');
                 atendenteSelect.innerHTML = '<option value="">Selecione um atendente...</option>';
                 attendants.forEach(att => {
                     const opt = document.createElement('option');
@@ -816,58 +854,84 @@
             }
 
 
-            const payload = {
-                nome_completo: currentServidor.nome_completo,
-                cpf: currentServidor.cpf,
-                matricula: currentServidor.matricula,
-                cargo: currentServidor.cargo,
-                vinculo: currentServidor.vinculo,
-                local_trabalho: currentServidor.local_trabalho,
-                tipo_servico: servicoSelect.value,
-                tipo_atendimento: 'Presencial',
-                prioridade: 'Normal',
-                data_agendamento: dataInput.value,
-                hora_inicio: selectedTimeSlot,
-                status: 'agendado',
-                atendente_id: atendenteSelect.value,
-                created_by: null,
-                force_duplicate: isDuplicateConfirmed
+            const submitAgendamento = async (force = false) => {
+                const payload = {
+                    nome_completo: currentServidor.nome_completo,
+                    cpf: currentServidor.cpf,
+                    matricula: currentServidor.matricula,
+                    cargo: currentServidor.cargo,
+                    vinculo: currentServidor.vinculo,
+                    local_trabalho: currentServidor.local_trabalho,
+                    tipo_servico: servicoSelect.value,
+                    tipo_atendimento: 'Online',
+                    prioridade: 'Normal',
+                    data_agendamento: dataInput.value,
+                    hora_inicio: selectedTimeSlot,
+                    status: 'agendado',
+                    atendente_id: atendenteSelect.value,
+                    created_by: null,
+                    force_duplicate: force
+                };
+
+                try {
+                    const response = await fetch('/api/agendamentos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        if (errorData.code === 'DUPLICATE_APPOINTMENT') {
+                            const d = errorData.details || {};
+                            const dateFormatted = d.data ? new Date(d.data + 'T12:00:00').toLocaleDateString('pt-BR') : 'Data desconhecida';
+                            const detailMsg = `Este servidor já possui um agendamento ativo:<br><br>
+                                              <b>Data:</b> ${dateFormatted}<br>
+                                              <b>Horário:</b> ${d.hora || '--:--'}<br>
+                                              <b>Serviço:</b> ${d.tipo_servico || '-'}<br>
+                                              <b>Atendente:</b> ${d.atendente || '-'}<br><br>
+                                              Deseja realizar este novo agendamento mesmo assim?`;
+
+                            window.SAS.utils.modal.confirm('Agendamento Já Existente', detailMsg, async () => {
+                                await submitAgendamento(true);
+                            }, 'warning');
+                            return;
+                        }
+                        throw new Error(errorData.error || 'Erro no servidor');
+                    }
+
+                    window.SAS.utils.notify('success', 'Agendamento realizado com sucesso!');
+                    step3Content.classList.add('hidden');
+                    step4Content.classList.remove('hidden');
+                    updateStepper(4);
+                    step4Content.innerHTML = `
+                        <div class="text-center space-y-6 animate-fade-in">
+                            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                                <i data-lucide="check" class="w-12 h-12 text-green-600"></i>
+                            </div>
+                            <div class="space-y-2">
+                                <h2 class="text-3xl font-bold text-slate-800">Agendamento Confirmado!</h2>
+                                <p class="text-slate-500 text-lg">O atendimento foi agendado com sucesso.</p>
+                            </div>
+                            <div class="flex flex-col gap-3 mt-12 max-w-sm mx-auto">
+                                <button onclick="location.reload()" class="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-200 flex items-center justify-center gap-2 text-lg">
+                                    <span>Realizar Novo Agendamento</span>
+                                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                } catch (err) {
+                    window.SAS.utils.notify('error', 'Erro: ' + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+                    lucide.createIcons();
+                }
             };
 
-            try {
-                await fetch('/api/agendamentos', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                window.SAS.utils.notify('success', 'Agendamento realizado com sucesso!');
-                step3Content.classList.add('hidden');
-                step4Content.classList.remove('hidden');
-                updateStepper(4);
-                step4Content.innerHTML = `
-                    <div class="text-center space-y-6 animate-fade-in">
-                        <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-                            <i data-lucide="check" class="w-12 h-12 text-green-600"></i>
-                        </div>
-                        <div class="space-y-2">
-                            <h2 class="text-3xl font-bold text-slate-800">Agendamento Confirmado!</h2>
-                            <p class="text-slate-500 text-lg">O atendimento foi agendado com sucesso.</p>
-                        </div>
-                        <div class="flex flex-col gap-3 mt-12 max-w-sm mx-auto">
-                            <button onclick="location.reload()" class="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-200 flex items-center justify-center gap-2 text-lg">
-                                <span>Realizar Novo Agendamento</span>
-                                <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-                lucide.createIcons();
-            } catch (err) {
-                window.SAS.utils.notify('error', 'Erro ao realizar agendamento.');
-                btn.disabled = false;
-                btn.innerHTML = originalContent;
-                lucide.createIcons();
-            }
+            await submitAgendamento(false);
         });
 
         // Online Attendants Widget Logic Removed

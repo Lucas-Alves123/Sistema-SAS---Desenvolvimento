@@ -140,20 +140,22 @@
         const existingContent = app.innerHTML;
         app.innerHTML = layoutHTML + `
             <!-- Global Modal System -->
-            <div id="globalModalContainer" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-[9999] p-4">
-                <div id="globalModal" class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fade-in">
-                    <div class="px-8 pt-8">
+            <div id="globalModalContainer" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[9999] p-4 backdrop-blur-sm">
+                <div id="globalModal" class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-fade-in">
+                    <!-- Modal Body (Scrollable) -->
+                    <div class="px-8 pt-8 pb-6 overflow-y-auto flex-1 custom-scrollbar">
                         <div class="flex flex-col items-center text-center">
                             <div id="globalModalIconContainer" class="bg-blue-100 p-3 rounded-full mb-4 hidden">
                                 <i id="globalModalIcon" data-lucide="alert-circle" class="w-6 h-6 text-blue-600"></i>
                             </div>
-                            <div class="flex-1">
+                            <div class="flex-1 w-full">
                                 <h3 id="globalModalTitle" class="text-2xl font-bold text-slate-800 mb-2">Confirmar Ação</h3>
-                                <div id="globalModalMessage" class="text-slate-600">Tem certeza que deseja prosseguir?</div>
+                                <div id="globalModalMessage" class="text-slate-600 leading-relaxed">Tem certeza que deseja prosseguir?</div>
                             </div>
                         </div>
                     </div>
-                    <div id="globalModalFooter" class="bg-slate-50 p-4 flex justify-end gap-3">
+                    <!-- Modal Footer (Fixed) -->
+                    <div id="globalModalFooter" class="bg-slate-50 p-4 flex justify-end gap-3 border-t border-slate-200/60">
                         <button id="globalModalCancelBtn" class="bg-white border border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-lg hover:bg-slate-50 transition-colors">
                             Cancelar
                         </button>
