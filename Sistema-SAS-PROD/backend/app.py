@@ -96,6 +96,10 @@ def create_app():
     def solicitacoes_page():
         return app.send_static_file('html/solicitacoes.html')
 
+    @app.route('/chat')
+    def chat_page():
+        return app.send_static_file('html/chat.html')
+
     @app.route('/health')
     def health_check():
         return jsonify({'status': 'online', 'system': 'SAS Backend'})

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat SAS — Protótipo Interno</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .chat-container { height: calc(100vh - 180px); }
+        .message-bubble { max-width: 75%; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .chat-bg { background: #f8fafc url("https://www.transparenttextures.com/patterns/cubes.png"); }
+        
+        #previewView {
+            display: none; position: absolute; inset: 0; background: #ffffff; z-index: 50; flex-direction: column;
+        }
+        .drawing-canvas { position: absolute; top: 0; left: 0; cursor: crosshair; z-index: 10; }
+        .tool-btn.active { background-color: #3b82f6; color: white; }
+        .color-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 1px #cbd5e1; cursor: pointer; transition: transform 0.2s; }
+        .color-dot:hover { transform: scale(1.2); }
+        .color-dot.selected { box-shadow: 0 0 0 2px #3b82f6; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans overflow-hidden">
+    <div id="app"></div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/layout.js"></script>
+
+    <script>
+        const auth = window.SAS.utils.checkAuth();
+        if (!auth || auth.tipo !== 'dev') { window.location.href = 'home'; throw new Error('Acesso restrito'); }
+        window.SAS.layout.renderLayout('Chat');
+
+        function getNowTime() {
+            const now = new Date();
+            return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        }
+
+        const content = document.getElementById('page-content');
+        content.innerHTML = `
+            <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex chat-container animate-fade-in relative">
+                
+                <!-- Sidebar -->
+                <div class="w-80 border-r border-slate-100 flex flex-col bg-slate-50/30">
+                    <div class="p-5 border-b border-slate-100 bg-white">
+                        <h2 class="text-xl font-black text-slate-800 mb-4 tracking-tight">Conversas</h2>
+                        <div class="relative">
+                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                            <input type="text" placeholder="Buscar servidor..." class="w-full pl-10 pr-4 py-2.5 bg-slate-100 border-none rounded-2xl text-sm outline-none">
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
+                        <div class="flex items-center gap-3 p-3.5 rounded-2xl bg-blue-600 text-white shadow-xl shadow-blue-100 cursor-pointer">
+                            <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white font-black">ML</div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-baseline mb-0.5">
+                                    <h4 class="text-sm font-bold truncate">Marcus Luna</h4>
+                                    <span class="text-[9px] font-bold opacity-80">${getNowTime()}</span>
+                                </div>
+                                <p class="text-xs opacity-90 truncate font-medium">Arquivos recebidos...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Pane -->
+                <div class="flex-1 flex flex-col bg-white relative">
+                    
+                    <!-- ADVANCED PREVIEW EDITOR -->
+                    <div id="previewView" class="flex flex-col">
+                        <div class="px-6 py-4 flex items-center justify-between border-b border-slate-100">
+                            <div class="flex items-center gap-6">
+                                <button id="closePreview" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-all"><i data-lucide="x" class="w-6 h-6"></i></button>
+                                <div class="flex items-center gap-3 text-slate-400">
+                                    <button id="btnCrop" class="p-2 hover:bg-slate-50 rounded-lg status-tool" title="Recortar"><i data-lucide="crop" class="w-5 h-5"></i></button>
+                                    <button id="btnPencil" class="p-2 hover:bg-slate-50 rounded-lg status-tool" title="Lápis"><i data-lucide="pencil" class="w-5 h-5"></i></button>
+                                    <button id="btnText" class="p-2 hover:bg-slate-50 rounded-lg status-tool" title="Texto"><i data-lucide="type" class="w-5 h-5"></i></button>
+                                </div>
+                                <!-- Color Picker (Visible when Pencil/Text active) -->
+                                <div id="colorPicker" class="hidden flex items-center gap-2 pl-4 border-l border-slate-100">
+                                    <div class="color-dot bg-red-500 selected" data-color="#ef4444"></div>
+                                    <div class="color-dot bg-green-500" data-color="#22c55e"></div>
+                                    <div class="color-dot bg-blue-500" data-color="#3b82f6"></div>
+                                    <div class="color-dot bg-yellow-500" data-color="#eab308"></div>
+                                    <div class="color-dot bg-black" data-color="#000000"></div>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-black text-slate-400 tracking-widest uppercase">Editor de Imagem</span>
+                        </div>
+
+                        <div class="flex-1 flex flex-col items-center justify-center bg-slate-50/70 p-4 overflow-hidden relative">
+                            <div id="editorWorkspace" class="relative max-w-full max-h-full flex items-center justify-center">
+                                <img id="editorImg" src="" class="max-w-full max-h-[55vh] object-contain shadow-2xl rounded-lg border-2 border-white">
+                                <canvas id="editorCanvas" class="drawing-canvas hidden"></canvas>
+                                
+                                <div id="docPlaceholder" class="hidden flex flex-col items-center gap-6">
+                                    <div class="bg-blue-600 p-12 rounded-[2.5rem] shadow-2xl shadow-blue-100"><i data-lucide="file-text" class="w-20 h-20 text-white"></i></div>
+                                    <div class="text-center px-4">
+                                        <h2 id="docTitle" class="text-lg font-black text-slate-800">filename.pdf</h2>
+                                        <p id="docInfo" class="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">0.0 MB</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-6 bg-white border-t border-slate-100">
+                            <div class="max-w-3xl mx-auto flex flex-col gap-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="flex-1">
+                                        <input type="text" id="editorCaption" placeholder="Adicione uma legenda..." 
+                                            class="w-full bg-slate-100 border-none rounded-2xl py-4 px-6 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-400 transition-all">
+                                    </div>
+                                    <!-- BLUE SEND BUTTON (Squared) -->
+                                    <button id="finalSend" class="w-16 h-16 bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center rounded-[1.5rem] shadow-xl shadow-blue-200 transform transition-all active:scale-90">
+                                        <i data-lucide="send" class="w-7 h-7 ml-1"></i>
+                                    </button>
+                                </div>
+                                <div class="flex items-center justify-center sm:justify-start gap-4">
+                                    <button id="btnAddFiles" class="w-14 h-14 rounded-2xl bg-white border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 hover:border-blue-300 hover:text-blue-400 transition-all">
+                                        <i data-lucide="plus" class="w-6 h-6"></i>
+                                    </button>
+                                    <div id="thumbStrip" class="flex items-center gap-3"></div>
+                                    <span id="fileSummary" class="text-[9px] font-black text-slate-300 uppercase tracking-widest ml-2">1 Selecionado</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Header -->
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white z-10">
+                        <div class="flex items-center gap-4">
+                            <div class="relative">
+                                <div class="w-11 h-11 rounded-full bg-blue-600 flex items-center justify-center text-white font-black shadow-lg">ML</div>
+                                <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-black text-slate-800 leading-none">Marcus Luna</h3>
+                                <div class="flex items-center gap-1.5 mt-1.5"><span class="text-[10px] text-green-600 font-black uppercase tracking-widest">Online agora</span></div>
+                            </div>
+                        </div>
+                        <i data-lucide="more-vertical" class="w-5 h-5 text-slate-400 cursor-pointer"></i>
+                    </div>
+
+                    <!-- History -->
+                    <div id="chatHistory" class="flex-1 overflow-y-auto p-6 chat-bg space-y-6 custom-scrollbar">
+                        <div class="flex justify-center mb-8"><span class="bg-blue-100 text-blue-700 text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">Hoje</span></div>
+                    </div>
+
+                    <!-- Bottom Input -->
+                    <div class="p-6 bg-white border-t border-slate-100">
+                        <input type="file" id="mainFileInput" class="hidden" multiple>
+                        <input type="file" id="mainImgInput" class="hidden" accept="image/*" multiple>
+                        <div class="flex items-center gap-4 bg-slate-100/60 p-2 rounded-[2.5rem] border border-slate-200 focus-within:bg-white focus-within:border-blue-300 transition-all shadow-inner">
+                            <div class="flex items-center gap-1 pl-2 border-r border-slate-200 pr-2">
+                                <button id="atClip" class="p-3 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all"><i data-lucide="paperclip" class="w-5 h-5"></i></button>
+                                <button id="atCam" class="p-3 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all"><i data-lucide="camera" class="w-5 h-5"></i></button>
+                            </div>
+                            <input type="text" id="mainInput" placeholder="Escreva uma mensagem..." class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-3 px-2 text-slate-700">
+                            <button id="mainSend" class="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-2xl transition-all active:scale-95"><i data-lucide="send" class="w-5 h-5"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        lucide.createIcons();
+
+        // System Core
+        const chatHistory = document.getElementById('chatHistory');
+        const mainInput = document.getElementById('mainInput');
+        const mainSend = document.getElementById('mainSend');
+        const atClip = document.getElementById('atClip');
+        const atCam = document.getElementById('atCam');
+        const mainFileInput = document.getElementById('mainFileInput');
+        const mainImgInput = document.getElementById('mainImgInput');
+
+        const previewView = document.getElementById('previewView');
+        const closePreview = document.getElementById('closePreview');
+        const finalSend = document.getElementById('finalSend');
+        const editorImg = document.getElementById('editorImg');
+        const canvas = document.getElementById('editorCanvas');
+        const ctx = canvas.getContext('2d');
+        const colorPicker = document.getElementById('colorPicker');
+        const thumbStrip = document.getElementById('thumbStrip');
+        const btnAddFiles = document.getElementById('btnAddFiles');
+        const editorCaption = document.getElementById('editorCaption');
+
+        const btnPencil = document.getElementById('btnPencil');
+        const btnText = document.getElementById('btnText');
+        const btnCrop = document.getElementById('btnCrop');
+
+        let pendingFiles = [];
+        let currIdx = 0;
+        let drawing = false;
+        let mode = 'none'; // 'pencil', 'text', 'crop'
+        let strokeColor = '#ef4444';
+
+        const scrollEnd = () => { chatHistory.scrollTop = chatHistory.scrollHeight; };
+        window.SAS.chat = { scrollEnd, down: (u,n) => { let a=document.createElement('a'); a.href=u; a.download=n; a.click(); }};
+
+        // UI Appenders
+        const logText = (t) => {
+            const d = document.createElement('div'); d.className='flex flex-col items-end animate-fade-in-up';
+            d.innerHTML = `<div class="message-bubble bg-blue-600 text-white p-4 rounded-3xl rounded-tr-none shadow-xl border border-blue-500">
+                <p class="text-sm font-medium">${t}</p>
+                <div class="flex justify-end gap-1.5 mt-2"><span class="text-[9px] text-blue-100 font-bold uppercase">${getNowTime()}</span><i data-lucide="check" class="w-3.5 h-3.5"></i></div>
+            </div>`;
+            chatHistory.appendChild(d); lucide.createIcons(); scrollEnd();
+        };
+        const logImg = (src, cap) => {
+            const d = document.createElement('div'); d.className='flex flex-col items-end animate-fade-in-up cursor-pointer';
+            d.onclick = () => window.SAS.chat.down(src, 'edit.png');
+            d.innerHTML = `<div class="message-bubble bg-blue-600 p-1.5 rounded-3xl rounded-tr-none shadow-xl border border-blue-500 overflow-hidden">
+                <img src="${src}" class="max-w-full rounded-2xl" onload="window.SAS.chat.scrollEnd()">
+                ${cap ? `<p class="px-2 py-2 text-sm text-white font-medium">${cap}</p>` : ''}
+                <div class="flex justify-end mt-1 px-2 pb-1 relative z-10"><span class="text-[9px] text-blue-100 font-bold uppercase">${getNowTime()}</span><i data-lucide="check" class="w-3.5 h-3.5"></i></div>
+            </div>`;
+            chatHistory.appendChild(d); lucide.createIcons(); scrollEnd();
+        };
+
+        // Editor Logic
+        const refreshEditor = (i) => {
+            currIdx = i; const pf = pendingFiles[i];
+            editorImg.classList.add('hidden'); document.getElementById('docPlaceholder').classList.add('hidden'); canvas.classList.add('hidden');
+            editorCaption.value = pf.cap || '';
+            if (pf.file.type.startsWith('image/')) {
+                editorImg.src = URL.createObjectURL(pf.file); editorImg.classList.remove('hidden');
+                editorImg.onload = () => {
+                    canvas.width = editorImg.clientWidth; canvas.height = editorImg.clientHeight;
+                    canvas.style.top = editorImg.offsetTop + 'px'; canvas.style.left = editorImg.offsetLeft + 'px';
+                    canvas.classList.remove('hidden'); 
+                    // Clear canvas for new file
+                    ctx.clearRect(0,0,canvas.width,canvas.height);
+                };
+            } else {
+                document.getElementById('docTitle').textContent = pf.file.name;
+                document.getElementById('docInfo').textContent = (pf.file.size/1024/1024).toFixed(1)+' MB';
+                document.getElementById('docPlaceholder').classList.remove('hidden');
+            }
+            renderThumbs();
+        };
+        const renderThumbs = () => {
+            thumbStrip.innerHTML = '';
+            pendingFiles.forEach((pf, i) => {
+                const dv = document.createElement('div');
+                dv.className = `w-14 h-14 rounded-xl border-2 overflow-hidden shadow-sm cursor-pointer transition-all ${i===currIdx?'border-blue-500 ring-2 ring-blue-50 scale-105':'border-transparent opacity-60'}`;
+                if (pf.file.type.startsWith('image/')) dv.innerHTML = `<img src="${URL.createObjectURL(pf.file)}" class="w-full h-full object-cover">`;
+                else dv.innerHTML = `<div class="w-full h-full bg-blue-600 flex items-center justify-center text-white"><i data-lucide="file-text" class="w-5 h-5"></i></div>`;
+                dv.onclick = () => { pendingFiles[currIdx].cap = editorCaption.value; refreshEditor(i); };
+                thumbStrip.appendChild(dv);
+            });
+            document.getElementById('fileSummary').textContent = `${pendingFiles.length} Selecionado${pendingFiles.length>1?'s':''}`;
+            lucide.createIcons();
+        };
+
+        // Tool Handlers
+        btnPencil.onclick = () => { mode = (mode==='pencil'?'none':'pencil'); updateTools(); };
+        btnText.onclick = () => { 
+            const txt = prompt("Digite o texto:"); 
+            if(txt) {
+                ctx.font = "bold 24px Arial"; ctx.fillStyle = strokeColor;
+                ctx.fillText(txt, 50, 50);
+            }
+        };
+        btnCrop.onclick = () => alert("Ferramenta de recorte ativa. (Mock)");
+
+        const updateTools = () => {
+            colorPicker.classList.toggle('hidden', mode !== 'pencil');
+            btnPencil.classList.toggle('active', mode === 'pencil');
+        };
+
+        document.querySelectorAll('.color-dot').forEach(dot => {
+            dot.onclick = () => {
+                document.querySelector('.color-dot.selected').classList.remove('selected');
+                dot.classList.add('selected'); strokeColor = dot.dataset.color;
+            };
+        });
+
+        canvas.onmousedown = (e) => { if(mode!=='pencil') return; drawing=true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); ctx.strokeStyle=strokeColor; ctx.lineWidth=5; ctx.lineCap='round'; };
+        canvas.onmousemove = (e) => { if(!drawing) return; ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke(); };
+        canvas.onmouseup = () => drawing=false;
+
+        // Integration
+        const openSelection = (fs) => { Array.from(fs).forEach(f => pendingFiles.push({file:f, cap:''})); previewView.style.display='flex'; refreshEditor(pendingFiles.length-1); };
+        atClip.onclick = () => mainFileInput.click();
+        atCam.onclick = () => mainImgInput.click();
+        mainFileInput.onchange = (e) => openSelection(e.target.files);
+        mainImgInput.onchange = (e) => openSelection(e.target.files);
+        btnAddFiles.onclick = () => mainImgInput.click();
+
+        closePreview.onclick = () => { previewView.style.display='none'; pendingFiles=[]; };
+        finalSend.onclick = () => {
+            pendingFiles[currIdx].cap = editorCaption.value;
+            pendingFiles.forEach((pf, i) => {
+                if (pf.file.type.startsWith('image/')) {
+                    const finalC = document.createElement('canvas');
+                    finalC.width = editorImg.naturalWidth; finalC.height = editorImg.naturalHeight;
+                    const fctx = finalC.getContext('2d');
+                    fctx.drawImage(editorImg, 0, 0);
+                    // Overlay drawing (scaled to original image size)
+                    fctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, finalC.width, finalC.height);
+                    logImg(finalC.toDataURL('image/png'), pf.cap);
+                } else {
+                    const d=document.createElement('div'); d.className='flex flex-col items-end';
+                    const u=URL.createObjectURL(pf.file); const s=(pf.file.size/1024/1024).toFixed(1)+' MB';
+                    d.innerHTML=`<div class="message-bubble bg-blue-600 text-white p-4 rounded-3xl rounded-tr-none shadow-xl border border-blue-500">
+                        <div class="bg-blue-700/50 rounded-2xl p-4 flex items-center gap-4 mb-2 cursor-pointer" onclick="window.SAS.chat.down('${u}','${pf.file.name}')">
+                            <i data-lucide="file-text" class="w-6 h-6"></i>
+                            <div class="text-xs font-black truncate">${pf.file.name}</div>
+                        </div>
+                        ${pf.cap ? `<p class="mb-2 text-sm font-medium">${pf.cap}</p>` : ''}
+                    </div>`;
+                    chatHistory.appendChild(d); lucide.createIcons();
+                }
+            });
+            previewView.style.display='none'; pendingFiles=[];
+        };
+
+        mainSend.onclick = () => { if(mainInput.value.trim()){ logText(mainInput.value.trim()); mainInput.value=''; } };
+
+    </script>
+</body>
+</html>

@@ -80,8 +80,9 @@
                                 ${renderMenuItem('Agendamento', 'agendamento', 'Calendar', activePage)}
                                 ${renderMenuItem('Atendimento', 'atendimento', 'Headphones', activePage)}
                                 ${renderMenuItem('Monitor', 'monitor', 'Monitor', activePage)}
-                                ${renderMenuItem('Relatórios', 'relatorios', 'FileText', activePage)}
+                                ${renderMenuItem('Relatórios', 'relatorios', 'file-text', activePage)}
                                 ${['adm', 'dev', 'usuario'].includes(user.tipo) ? renderMenuItem('Usuários', 'usuarios', 'Users', activePage) : ''}
+                                ${user.tipo === 'dev' ? renderMenuItem('Chat', 'chat', 'message-square', activePage) : ''}
                             </nav>
 
                             <!-- Central de Solicitações Icon -->
