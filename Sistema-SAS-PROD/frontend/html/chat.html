@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <style>
         .chat-container { height: calc(100vh - 180px); }
         .message-bubble { max-width: 75%; }
@@ -47,42 +49,46 @@
             <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex chat-container animate-fade-in relative">
                 
                 <!-- Sidebar -->
-                <div class="w-80 border-r border-slate-100 flex flex-col bg-slate-50/30">
+                <div class="w-80 border-r border-slate-100 flex flex-col bg-slate-50/30 shrink-0">
                     <div class="p-5 border-b border-slate-100 bg-white">
                         <h2 class="text-xl font-black text-slate-800 mb-4 tracking-tight">Conversas</h2>
                         <div class="relative">
                             <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                            <input type="text" placeholder="Buscar servidor..." class="w-full pl-10 pr-4 py-2.5 bg-slate-100 border-none rounded-2xl text-sm outline-none">
+                            <input type="text" id="sidebarSearch" placeholder="Buscar servidor..." class="w-full pl-10 pr-4 py-2.5 bg-slate-100 border-none rounded-2xl text-sm outline-none">
                         </div>
                     </div>
-                    <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
-                        <div class="flex items-center gap-3 p-3.5 rounded-2xl bg-blue-600 text-white shadow-xl shadow-blue-100 cursor-pointer">
-                            <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white font-black">ML</div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex justify-between items-baseline mb-0.5">
-                                    <h4 class="text-sm font-bold truncate">Marcus Luna</h4>
-                                    <span class="text-[9px] font-bold opacity-80">${getNowTime()}</span>
-                                </div>
-                                <p class="text-xs opacity-90 truncate font-medium">Arquivos recebidos...</p>
-                            </div>
-                        </div>
+                    <div id="sessionList" class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
+                        <!-- Dynamic Sessions Load Here -->
+                        <div class="flex items-center justify-center p-8 opacity-50"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
                     </div>
                 </div>
 
                 <!-- Chat Pane -->
-                <div class="flex-1 flex flex-col bg-white relative">
+                <div class="flex-1 flex flex-col bg-white relative min-w-0">
                     
                     <!-- ADVANCED PREVIEW EDITOR -->
                     <div id="previewView" class="flex flex-col">
                         <div class="px-6 py-4 flex items-center justify-between border-b border-slate-100">
                             <div class="flex items-center gap-6">
                                 <button id="closePreview" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-all"><i data-lucide="x" class="w-6 h-6"></i></button>
-                                <div class="flex items-center gap-3 text-slate-400">
+                                <!-- Tool Group -->
+                                <div id="mainTools" class="flex items-center gap-3 text-slate-400">
                                     <button id="btnCrop" class="p-2 hover:bg-slate-50 rounded-lg status-tool" title="Recortar"><i data-lucide="crop" class="w-5 h-5"></i></button>
                                     <button id="btnPencil" class="p-2 hover:bg-slate-50 rounded-lg status-tool" title="Lápis"><i data-lucide="pencil" class="w-5 h-5"></i></button>
-                                    <button id="btnText" class="p-2 hover:bg-slate-50 rounded-lg status-tool" title="Texto"><i data-lucide="type" class="w-5 h-5"></i></button>
+                                    <button id="btnEraser" class="p-2 hover:bg-slate-50 rounded-lg status-tool" title="Borracha"><i data-lucide="eraser" class="w-5 h-5"></i></button>
                                 </div>
-                                <!-- Color Picker (Visible when Pencil/Text active) -->
+
+                                <!-- Crop Specific Toolbar -->
+                                <div id="cropTools" class="hidden flex items-center gap-2 border-l border-slate-100 pl-4">
+                                    <button id="btnResetCrop" class="p-2 hover:bg-slate-100 rounded-lg text-slate-500" title="Resetar Tamanho"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+                                    <button id="btnRotateLeft" class="p-2 hover:bg-slate-100 rounded-lg text-slate-500" title="Girar para Esquerda"><i data-lucide="rotate-ccw" class="w-5 h-5"></i></button>
+                                    <button id="btnRotateRight" class="p-2 hover:bg-slate-100 rounded-lg text-slate-500" title="Girar para Direita"><i data-lucide="rotate-cw" class="w-5 h-5"></i></button>
+                                    <button id="btnConfirmCrop" class="ml-2 flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-full font-bold text-xs shadow-lg shadow-green-100">
+                                        <i data-lucide="check" class="w-4 h-4"></i> OK
+                                    </button>
+                                </div>
+
+                                <!-- Color Picker (Visible when Pencil active) -->
                                 <div id="colorPicker" class="hidden flex items-center gap-2 pl-4 border-l border-slate-100">
                                     <div class="color-dot bg-red-500 selected" data-color="#ef4444"></div>
                                     <div class="color-dot bg-green-500" data-color="#22c55e"></div>
@@ -94,9 +100,9 @@
                             <span class="text-[10px] font-black text-slate-400 tracking-widest uppercase">Editor de Imagem</span>
                         </div>
 
-                        <div class="flex-1 flex flex-col items-center justify-center bg-slate-50/70 p-4 overflow-hidden relative">
+                        <div class="flex-1 flex flex-col items-center justify-center bg-slate-50/70 p-12 overflow-hidden relative">
                             <div id="editorWorkspace" class="relative max-w-full max-h-full flex items-center justify-center">
-                                <img id="editorImg" src="" class="max-w-full max-h-[55vh] object-contain shadow-2xl rounded-lg border-2 border-white">
+                                <img id="editorImg" src="" class="max-w-full max-h-[45vh] object-contain shadow-2xl rounded-lg border-2 border-white">
                                 <canvas id="editorCanvas" class="drawing-canvas hidden"></canvas>
                                 
                                 <div id="docPlaceholder" class="hidden flex flex-col items-center gap-6">
@@ -116,9 +122,8 @@
                                         <input type="text" id="editorCaption" placeholder="Adicione uma legenda..." 
                                             class="w-full bg-slate-100 border-none rounded-2xl py-4 px-6 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-400 transition-all">
                                     </div>
-                                    <!-- BLUE SEND BUTTON (Squared) -->
-                                    <button id="finalSend" class="w-16 h-16 bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center rounded-[1.5rem] shadow-xl shadow-blue-200 transform transition-all active:scale-90">
-                                        <i data-lucide="send" class="w-7 h-7 ml-1"></i>
+                                    <button id="finalSend" class="w-16 h-16 bg-blue-600 hover:bg-blue-700 text-white grid place-items-center rounded-[1.5rem] shadow-xl shadow-blue-200 transform transition-all active:scale-90">
+                                        <i data-lucide="send" class="w-7 h-7 -translate-x-1 translate-y-1"></i>
                                     </button>
                                 </div>
                                 <div class="flex items-center justify-center sm:justify-start gap-4">
@@ -133,18 +138,24 @@
                     </div>
 
                     <!-- Chat Header -->
-                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white z-10">
+                    <div id="chatHeader" class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white z-10">
                         <div class="flex items-center gap-4">
                             <div class="relative">
-                                <div class="w-11 h-11 rounded-full bg-blue-600 flex items-center justify-center text-white font-black shadow-lg">ML</div>
-                                <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+                                <div id="hdrAvatar" class="w-11 h-11 rounded-full bg-blue-600 flex items-center justify-center text-white font-black shadow-lg">?</div>
+                                <div id="hdrStatus" class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-slate-400 border-2 border-white rounded-full"></div>
                             </div>
                             <div>
-                                <h3 class="text-base font-black text-slate-800 leading-none">Marcus Luna</h3>
-                                <div class="flex items-center gap-1.5 mt-1.5"><span class="text-[10px] text-green-600 font-black uppercase tracking-widest">Online agora</span></div>
+                                <h3 id="hdrName" class="text-base font-black text-slate-800 leading-none">Selecione um chat</h3>
+                                <div class="flex items-center gap-1.5 mt-1.5"><span id="hdrStatusText" class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Offline</span></div>
                             </div>
                         </div>
-                        <i data-lucide="more-vertical" class="w-5 h-5 text-slate-400 cursor-pointer"></i>
+                        <div class="flex items-center gap-2">
+                             <button id="btnOpenAction" class="p-2.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all flex items-center gap-2 font-black text-xs border border-blue-100">
+                                <i data-lucide="user-check" class="w-4 h-4"></i>
+                                ATENDER
+                             </button>
+                             <i data-lucide="more-vertical" class="w-5 h-5 text-slate-400 cursor-pointer"></i>
+                        </div>
                     </div>
 
                     <!-- History -->
@@ -164,6 +175,121 @@
                             <input type="text" id="mainInput" placeholder="Escreva uma mensagem..." class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-3 px-2 text-slate-700">
                             <button id="mainSend" class="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-2xl transition-all active:scale-95"><i data-lucide="send" class="w-5 h-5"></i></button>
                         </div>
+                    </div>
+                </div>
+
+                <div id="actionPanel" class="w-80 border-l border-slate-100 flex flex-col bg-slate-50/50 hidden animate-fade-in-right">
+                    <div class="p-6 border-b border-slate-100 bg-white">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-100">
+                                <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                            </div>
+                            <h2 class="text-xs font-black text-slate-800 uppercase tracking-widest">Painel de Ação</h2>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto custom-scrollbar">
+                        <div id="panelUserInfo" class="p-4 space-y-3">
+                            
+                            <!-- Grupo 1: Identificação -->
+                            <div class="border border-slate-100 rounded-2xl overflow-hidden shadow-sm bg-white">
+                                <button class="w-full flex items-center justify-between p-4 bg-slate-50/50 hover:bg-slate-50 transition-all group" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
+                                        <span class="text-[10px] font-black text-slate-700 uppercase tracking-widest">Identificação</span>
+                                    </div>
+                                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-300 group-hover:text-blue-400 transition-colors"></i>
+                                </button>
+                                <div class="p-4 space-y-4 border-t border-slate-50">
+                                    <input type="text" id="panelName" placeholder="Nome Completo" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <input type="text" id="panelCPF" placeholder="CPF" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                                        <input type="text" id="panelMatricula" placeholder="Matrícula" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                                    </div>
+                                    <input type="email" id="panelEmail" placeholder="E-mail" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                                </div>
+                            </div>
+
+                            <!-- Grupo 2: Vínculo e Trabalho -->
+                            <div class="border border-slate-100 rounded-2xl overflow-hidden shadow-sm bg-white">
+                                <button class="w-full flex items-center justify-between p-4 bg-slate-50/50 hover:bg-slate-50 transition-all group" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="briefcase" class="w-4 h-4 text-blue-600"></i>
+                                        <span class="text-[10px] font-black text-slate-700 uppercase tracking-widest">Vínculo Profissional</span>
+                                    </div>
+                                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-300 group-hover:text-blue-400 transition-colors"></i>
+                                </button>
+                                <div class="p-4 space-y-4 border-t border-slate-50 hidden">
+                                    <input type="text" id="panelCargo" placeholder="Cargo / Função" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                                    <select id="panelVinculo" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                                        <option value="">Selecione...</option>
+                                        <option value="Comissionado">Comissionado</option>
+                                        <option value="Concurso (Nomeado)">Concurso (Nomeado)</option>
+                                        <option value="CTD (Contrato)">CTD (Contrato)</option>
+                                        <option value="Estatutário">Estatutário</option>
+                                        <option value="Extraquadro">Extraquadro</option>
+                                        <option value="Ex-servidor">Ex-servidor</option>
+                                        <option value="Extra – Sem vínculo">Extra – Sem vínculo</option>
+                                        <option value="Seleção (Convocado)">Seleção (Convocado)</option>
+                                        <option value="Outros">Outros</option>
+                                    </select>
+                                    <input type="text" id="panelLocal" placeholder="Local de Trabalho" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                                </div>
+                            </div>
+
+                            <!-- Grupo 3: Detalhes do Serviço -->
+                            <div class="border border-slate-100 rounded-2xl overflow-hidden shadow-sm bg-white">
+                                <button class="w-full flex items-center justify-between p-4 bg-slate-50/50 hover:bg-slate-50 transition-all group" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="calendar" class="w-4 h-4 text-blue-600"></i>
+                                        <span class="text-[10px] font-black text-slate-700 uppercase tracking-widest">Agendamento</span>
+                                    </div>
+                                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-300 group-hover:text-blue-400 transition-colors"></i>
+                                </button>
+                                <div class="p-4 space-y-4 border-t border-slate-50">
+                                    <select id="panelService" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                                        <option value="">Tipo de Serviço...</option>
+                                        <option value="Aposentadoria">Aposentadoria</option>
+                                        <option value="Pensão">Pensão</option>
+                                        <option value="Auxílio Saúde">Auxílio Saúde</option>
+                                        <option value="Informações">Informações Gerais</option>
+                                    </select>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <select id="panelTypeAt" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                                            <option value="Online">Online</option>
+                                            <option value="Presencial">Presencial</option>
+                                        </select>
+                                        <select id="panelPriority" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                                            <option value="Normal">Normal</option>
+                                            <option value="Preferencial">Preferencial</option>
+                                        </select>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <input type="date" id="panelDate" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                                        <input type="time" id="panelTime" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-4 px-2">
+                                <button id="btnCreateAppointment" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl text-[11px] font-black shadow-xl shadow-blue-100 transition-all active:scale-95 flex items-center justify-center gap-2">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    CONFIRMAR AGENDAMENTO
+                                </button>
+                                <p class="text-[9px] text-slate-400 mt-4 text-center font-bold uppercase tracking-tight">O servidor será notificado no chat.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6 bg-white border-t border-slate-100 flex flex-col gap-2">
+                         <button id="btnStandbyChat" class="w-full h-11 border-2 border-blue-50 text-blue-500 hover:bg-blue-50 hover:border-blue-100 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="pause-circle" class="w-4 h-4"></i>
+                            Colocar em Espera
+                        </button>
+                         <button id="btnEndChat" class="w-full h-11 border-2 border-red-50 text-red-500 hover:bg-red-50 hover:border-red-100 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                            Encerrar Sessão
+                        </button>
                     </div>
                 </div>
             </div>
@@ -192,52 +318,250 @@
         const editorCaption = document.getElementById('editorCaption');
 
         const btnPencil = document.getElementById('btnPencil');
-        const btnText = document.getElementById('btnText');
+        const btnEraser = document.getElementById('btnEraser');
         const btnCrop = document.getElementById('btnCrop');
+
+        const btnConfirmCrop = document.getElementById('btnConfirmCrop');
+        const btnResetCrop = document.getElementById('btnResetCrop');
+        const btnRotateLeft = document.getElementById('btnRotateLeft');
+        const btnRotateRight = document.getElementById('btnRotateRight');
+        const mainTools = document.getElementById('mainTools');
+        const cropTools = document.getElementById('cropTools');
 
         let pendingFiles = [];
         let currIdx = 0;
         let drawing = false;
-        let mode = 'none'; // 'pencil', 'text', 'crop'
+        let mode = 'none'; // 'pencil', 'eraser', 'crop'
         let strokeColor = '#ef4444';
+        let cropper = null;
+        let currentSessionId = null;
+        let sessions = [];
 
         const scrollEnd = () => { chatHistory.scrollTop = chatHistory.scrollHeight; };
         window.SAS.chat = { scrollEnd, down: (u,n) => { let a=document.createElement('a'); a.href=u; a.download=n; a.click(); }};
 
-        // UI Appenders
-        const logText = (t) => {
-            const d = document.createElement('div'); d.className='flex flex-col items-end animate-fade-in-up';
-            d.innerHTML = `<div class="message-bubble bg-blue-600 text-white p-4 rounded-3xl rounded-tr-none shadow-xl border border-blue-500">
-                <p class="text-sm font-medium">${t}</p>
-                <div class="flex justify-end gap-1.5 mt-2"><span class="text-[9px] text-blue-100 font-bold uppercase">${getNowTime()}</span><i data-lucide="check" class="w-3.5 h-3.5"></i></div>
-            </div>`;
-            chatHistory.appendChild(d); lucide.createIcons(); scrollEnd();
+        // Utility: Input Masking
+        const maskCPF = (v) => {
+            v = v.replace(/\D/g, "");
+            if (v.length > 11) v = v.substring(0, 11);
+            v = v.replace(/(\d{3})(\d)/, "$1.$2");
+            v = v.replace(/(\d{3})(\d)/, "$1.$2");
+            v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+            return v;
         };
-        const logImg = (src, cap) => {
-            const d = document.createElement('div'); d.className='flex flex-col items-end animate-fade-in-up cursor-pointer';
-            d.onclick = () => window.SAS.chat.down(src, 'edit.png');
-            d.innerHTML = `<div class="message-bubble bg-blue-600 p-1.5 rounded-3xl rounded-tr-none shadow-xl border border-blue-500 overflow-hidden">
-                <img src="${src}" class="max-w-full rounded-2xl" onload="window.SAS.chat.scrollEnd()">
-                ${cap ? `<p class="px-2 py-2 text-sm text-white font-medium">${cap}</p>` : ''}
-                <div class="flex justify-end mt-1 px-2 pb-1 relative z-10"><span class="text-[9px] text-blue-100 font-bold uppercase">${getNowTime()}</span><i data-lucide="check" class="w-3.5 h-3.5"></i></div>
-            </div>`;
-            chatHistory.appendChild(d); lucide.createIcons(); scrollEnd();
+
+        // UI Appenders
+        const addMessage = (msg, align='right', meta={}) => {
+            const isAttendant = align === 'right';
+            const d = document.createElement('div'); 
+            d.className = `flex flex-col ${isAttendant ? 'items-end' : 'items-start'} animate-fade-in-up`;
+            
+            const time = meta.time || getNowTime();
+            const bubbleClass = isAttendant 
+                ? 'bg-blue-600 text-white rounded-tr-none border-blue-500 shadow-blue-100' 
+                : 'bg-white text-slate-700 rounded-tl-none border-slate-100 shadow-slate-100';
+            const textClass = isAttendant ? 'text-blue-100' : 'text-slate-400';
+
+            if (msg.startsWith('data:image') || meta.midia_url) {
+                const src = meta.midia_url || msg;
+                d.innerHTML = `
+                    <div class="message-bubble p-1.5 rounded-3xl ${bubbleClass} shadow-xl border overflow-hidden cursor-pointer" onclick="window.SAS.chat.down('${src}', 'midia.png')">
+                        <img src="${src}" class="max-w-full rounded-2xl" onload="window.SAS.chat.scrollEnd()">
+                        ${meta.caption ? `<p class="px-2 py-2 text-sm font-medium">${meta.caption}</p>` : ''}
+                        <div class="flex ${isAttendant ? 'justify-end' : 'justify-start'} mt-1 px-2 pb-1 relative z-10">
+                            <span class="text-[9px] ${textClass} font-bold uppercase">${time}</span>
+                            ${isAttendant ? '<i data-lucide="check" class="w-3.5 h-3.5 ml-1"></i>' : ''}
+                        </div>
+                    </div>`;
+            } else {
+                d.innerHTML = `
+                    <div class="message-bubble ${bubbleClass} p-4 rounded-3xl shadow-xl border">
+                        <p class="text-sm font-medium">${msg}</p>
+                        <div class="flex ${isAttendant ? 'justify-end' : 'justify-start'} gap-1.5 mt-2">
+                            <span class="text-[9px] ${textClass} font-bold uppercase">${time}</span>
+                            ${isAttendant ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>' : ''}
+                        </div>
+                    </div>`;
+            }
+            chatHistory.appendChild(d); 
+            if (window.lucide) lucide.createIcons(); 
+            scrollEnd();
+        };
+
+        // API Integration
+        const loadSessions = async () => {
+            try {
+                const res = await fetch('/api/chat/sessoes');
+                sessions = await res.json();
+                renderSessionList();
+            } catch (err) { console.error('Erro ao carregar sessões:', err); }
+        };
+
+        const renderSessionList = () => {
+            const list = document.getElementById('sessionList');
+            const search = document.getElementById('sidebarSearch').value.toLowerCase();
+            list.innerHTML = '';
+            
+            const filtered = sessions.filter(s => s.participante_nome.toLowerCase().includes(search));
+            
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="text-center p-8 text-xs font-bold text-slate-400 uppercase tracking-widest">Nenhum chat ativo</div>';
+                return;
+            }
+
+            filtered.forEach(s => {
+                const initials = s.participante_nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+                const isActive = currentSessionId === s.id;
+                const lastTime = s.ultima_msg_time ? s.ultima_msg_time.split(' ')[1].substring(0,5) : '';
+                
+                let statusColor = 'bg-orange-400';
+                if (s.status === 'em_atendimento') statusColor = 'bg-green-500';
+                if (s.status === 'standby') statusColor = 'bg-blue-400';
+
+                const item = document.createElement('div');
+                item.className = `flex items-center gap-3 p-3.5 rounded-2xl cursor-pointer transition-all ${isActive ? 'bg-blue-600 text-white shadow-xl shadow-blue-100' : 'hover:bg-white hover:shadow-md text-slate-600'}`;
+                item.onclick = () => selectSession(s);
+                
+                item.innerHTML = `
+                    <div class="relative shrink-0">
+                        <div class="w-12 h-12 rounded-full ${isActive ? 'bg-white/20' : 'bg-blue-100 text-blue-600'} flex items-center justify-center font-black">${initials}</div>
+                        <div class="absolute -bottom-1 -right-1 w-4 h-4 ${statusColor} border-2 border-white rounded-full"></div>
+                        ${s.notificacao_pendente ? '<div class="absolute -top-1 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full animate-pulse shadow-sm"></div>' : ''}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-baseline mb-0.5">
+                            <h4 class="text-sm font-bold truncate">${s.participante_nome}</h4>
+                            <span class="text-[9px] font-bold ${isActive ? 'opacity-80' : 'text-slate-400'}">${lastTime}</span>
+                        </div>
+                        <p class="text-xs ${isActive ? 'opacity-90' : 'text-slate-400'} truncate font-medium">${s.status === 'standby' ? '⏱️ EM ESPERA - ' : ''}${s.ultima_msg || s.assunto || 'Iniciando conversa...'}</p>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        };
+
+        const selectSession = async (sessao) => {
+            currentSessionId = sessao.id;
+            renderSessionList();
+            
+            // Update Header
+            const initials = sessao.participante_nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+            document.getElementById('hdrAvatar').textContent = initials;
+            document.getElementById('hdrName').textContent = sessao.participante_nome;
+            
+            const statusLabel = { 'aguardando': 'Aguardando', 'em_atendimento': 'Em Atendimento', 'standby': 'Em Espera' };
+            const statusColor = { 'aguardando': 'bg-orange-400', 'em_atendimento': 'bg-green-500', 'standby': 'bg-blue-400' };
+            
+            document.getElementById('hdrStatusText').textContent = statusLabel[sessao.status] || 'Offline';
+            document.getElementById('hdrStatus').className = `absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 border-2 border-white rounded-full ${statusColor[sessao.status] || 'bg-slate-400'}`;
+            
+            // Fill Action Panel
+            document.getElementById('panelName').value = sessao.participante_nome || '';
+            document.getElementById('panelCPF').value = sessao.participante_cpf || '';
+            document.getElementById('panelDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('panelTime').value = getNowTime();
+            
+            // Load History
+            chatHistory.innerHTML = '<div class="flex justify-center p-8 opacity-50"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>';
+            try {
+                const res = await fetch(`/api/chat/mensagens/${sessao.id}`);
+                const history = await res.json();
+                chatHistory.innerHTML = '';
+                history.forEach(m => {
+                    const align = m.remetente_tipo === 'atendente' ? 'right' : 'left';
+                    const time = m.created_at.split(' ')[1].substring(0,5);
+                    addMessage(m.mensagem, align, { time, midia_url: m.midia_url });
+                });
+                
+                // If status is 'aguardando', take it
+                if (sessao.status === 'aguardando') {
+                    fetch(`/api/chat/atribuir/${sessao.id}`, {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ atendente_id: auth.id })
+                    }).then(() => loadSessions());
+                }
+            } catch (err) { console.error('Erro ao buscar mensagens:', err); }
+        };
+
+        const sendMessage = async (text, midiaUrl = null) => {
+            if (!currentSessionId) {
+                alert('Selecione uma conversa na barra lateral antes de enviar.');
+                return;
+            }
+            try {
+                await fetch('/api/chat/mensagem', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        sessao_id: currentSessionId,
+                        remetente_tipo: 'atendente',
+                        atendente_id: auth.id,
+                        mensagem: text,
+                        midia_url: midiaUrl
+                    })
+                });
+                if (!midiaUrl) addMessage(text, 'right');
+                loadSessions(); // Update last message in sidebar
+            } catch (err) { console.error('Erro ao enviar mensagem:', err); }
         };
 
         // Editor Logic
+        const saveCurrentState = (targetIdx = currIdx) => {
+            if (pendingFiles.length === 0 || targetIdx < 0 || targetIdx >= pendingFiles.length) return;
+            const pf = pendingFiles[targetIdx];
+            if (!pf || !pf.file.type.startsWith('image/')) return;
+            
+            // Only save if the image is actually loaded and visible
+            if (editorImg.complete && editorImg.naturalWidth > 0 && !editorImg.classList.contains('hidden')) {
+                const drawingData = canvas.toDataURL('image/png');
+                pf.drawingsData = drawingData;
+
+                const finalC = document.createElement('canvas');
+                // Use a reliable source for the merge
+                const targetImg = (mode === 'crop' && cropper) ? cropper.getCroppedCanvas() : editorImg;
+                
+                finalC.width = targetImg.naturalWidth || targetImg.width;
+                finalC.height = targetImg.naturalHeight || targetImg.height;
+                const fctx = finalC.getContext('2d');
+                fctx.drawImage(targetImg, 0, 0, finalC.width, finalC.height);
+                if (mode !== 'crop') {
+                    fctx.drawImage(canvas, 0, 0, finalC.width, finalC.height);
+                }
+                pf.editedData = finalC.toDataURL('image/png');
+            }
+        };
+
+        const defaultOnLoad = () => {
+            canvas.width = editorImg.clientWidth; canvas.height = editorImg.clientHeight;
+            canvas.style.top = editorImg.offsetTop + 'px'; canvas.style.left = editorImg.offsetLeft + 'px';
+            canvas.classList.remove('hidden'); 
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.globalCompositeOperation = 'source-over';
+            
+            const pf = pendingFiles[currIdx];
+            if (pf && pf.drawingsData) {
+                const img = new Image();
+                img.src = pf.drawingsData;
+                img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            }
+        };
+
         const refreshEditor = (i) => {
-            currIdx = i; const pf = pendingFiles[i];
-            editorImg.classList.add('hidden'); document.getElementById('docPlaceholder').classList.add('hidden'); canvas.classList.add('hidden');
+            if (currIdx !== i) saveCurrentState(currIdx);
+            currIdx = i; 
+            const pf = pendingFiles[i];
+            if (!pf) return;
+
+            editorImg.classList.add('hidden'); 
+            document.getElementById('docPlaceholder').classList.add('hidden'); 
+            canvas.classList.add('hidden');
             editorCaption.value = pf.cap || '';
+            
             if (pf.file.type.startsWith('image/')) {
-                editorImg.src = URL.createObjectURL(pf.file); editorImg.classList.remove('hidden');
-                editorImg.onload = () => {
-                    canvas.width = editorImg.clientWidth; canvas.height = editorImg.clientHeight;
-                    canvas.style.top = editorImg.offsetTop + 'px'; canvas.style.left = editorImg.offsetLeft + 'px';
-                    canvas.classList.remove('hidden'); 
-                    // Clear canvas for new file
-                    ctx.clearRect(0,0,canvas.width,canvas.height);
-                };
+                editorImg.src = pf.editedData || pf.url; 
+                editorImg.classList.remove('hidden');
+                editorImg.onload = defaultOnLoad;
             } else {
                 document.getElementById('docTitle').textContent = pf.file.name;
                 document.getElementById('docInfo').textContent = (pf.file.size/1024/1024).toFixed(1)+' MB';
@@ -245,14 +569,39 @@
             }
             renderThumbs();
         };
+
+        const removeFile = (i) => {
+            pendingFiles.splice(i, 1);
+            if (pendingFiles.length === 0) {
+                previewView.style.display = 'none';
+                currIdx = -1;
+            } else {
+                const next = (i >= pendingFiles.length) ? pendingFiles.length - 1 : i;
+                refreshEditor(next);
+            }
+        };
+
         const renderThumbs = () => {
             thumbStrip.innerHTML = '';
             pendingFiles.forEach((pf, i) => {
                 const dv = document.createElement('div');
-                dv.className = `w-14 h-14 rounded-xl border-2 overflow-hidden shadow-sm cursor-pointer transition-all ${i===currIdx?'border-blue-500 ring-2 ring-blue-50 scale-105':'border-transparent opacity-60'}`;
-                if (pf.file.type.startsWith('image/')) dv.innerHTML = `<img src="${URL.createObjectURL(pf.file)}" class="w-full h-full object-cover">`;
-                else dv.innerHTML = `<div class="w-full h-full bg-blue-600 flex items-center justify-center text-white"><i data-lucide="file-text" class="w-5 h-5"></i></div>`;
-                dv.onclick = () => { pendingFiles[currIdx].cap = editorCaption.value; refreshEditor(i); };
+                dv.className = `group relative w-14 h-14 rounded-xl border-2 overflow-hidden shadow-sm cursor-pointer transition-all ${i===currIdx?'border-blue-500 ring-2 ring-blue-50 scale-105':'border-transparent opacity-60'}`;
+                
+                let content = '';
+                if (pf.file.type.startsWith('image/')) {
+                    content = `<img src="${pf.editedData || pf.url}" class="w-full h-full object-cover">`;
+                } else {
+                    content = `<div class="w-full h-full bg-blue-600 flex items-center justify-center text-white"><i data-lucide="file-text" class="w-5 h-5"></i></div>`;
+                }
+                
+                dv.innerHTML = `
+                    ${content}
+                    <div class="remove-file absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-600" onclick="event.stopPropagation(); removeFile(${i})">
+                        <i data-lucide="x" class="w-2.5 h-2.5"></i>
+                    </div>
+                `;
+                
+                dv.onclick = () => { if(currIdx!==-1) pendingFiles[currIdx].cap = editorCaption.value; refreshEditor(i); };
                 thumbStrip.appendChild(dv);
             });
             document.getElementById('fileSummary').textContent = `${pendingFiles.length} Selecionado${pendingFiles.length>1?'s':''}`;
@@ -260,69 +609,291 @@
         };
 
         // Tool Handlers
-        btnPencil.onclick = () => { mode = (mode==='pencil'?'none':'pencil'); updateTools(); };
-        btnText.onclick = () => { 
-            const txt = prompt("Digite o texto:"); 
-            if(txt) {
-                ctx.font = "bold 24px Arial"; ctx.fillStyle = strokeColor;
-                ctx.fillText(txt, 50, 50);
+        const applyCrop = () => {
+            if (cropper) {
+                const pf = pendingFiles[currIdx];
+                pf.lastCropData = cropper.getData();
+                const croppedCanvas = cropper.getCroppedCanvas();
+                pf.editedData = croppedCanvas.toDataURL();
+                
+                // Restore default onload before updating src
+                editorImg.onload = defaultOnLoad;
+                editorImg.src = pf.editedData;
+                
+                editorImg.classList.add('rounded-lg', 'border-2', 'border-white', 'shadow-2xl');
+                cropper.destroy();
+                cropper = null;
+                setTimeout(() => {
+                    canvas.width = editorImg.clientWidth;
+                    canvas.height = editorImg.clientHeight;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    if (pf.drawingsData) {
+                        const img = new Image();
+                        img.src = pf.drawingsData;
+                        img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    }
+                }, 100);
             }
         };
-        btnCrop.onclick = () => alert("Ferramenta de recorte ativa. (Mock)");
+
+        btnPencil.onclick = () => { 
+            applyCrop();
+            mode = (mode === 'pencil' ? 'none' : 'pencil'); 
+            updateTools(); 
+        };
+        
+        btnEraser.onclick = () => { 
+            applyCrop();
+            mode = (mode === 'eraser' ? 'none' : 'eraser'); 
+            updateTools(); 
+        };
+
+        btnCrop.onclick = () => {
+            if (mode === 'crop') {
+                applyCrop();
+                mode = 'none';
+            } else {
+                const pf = pendingFiles[currIdx];
+                mode = 'crop';
+                saveCurrentState(); // Save sketches before entering crop mode
+                canvas.classList.add('hidden');
+                
+                // Always load ORIGINAL file for cropping
+                editorImg.src = URL.createObjectURL(pf.file);
+                // Remove decorative styles that might interfere with cropper bounds
+                editorImg.classList.remove('rounded-lg', 'border-2', 'border-white', 'shadow-2xl');
+                
+                editorImg.onload = () => {
+                    cropper = new Cropper(editorImg, {
+                        autoCropArea: 1,
+                        viewMode: 0,
+                        movable: true,
+                        zoomable: true,
+                        scalable: true,
+                        rotatable: true,
+                        background: false,
+                        data: pf.lastCropData || null,
+                        ready() {
+                            if (pf.lastCropData && pf.lastCropData.rotate) {
+                                cropper.rotateTo(pf.lastCropData.rotate);
+                            }
+                        }
+                    });
+                };
+            }
+            updateTools();
+        };
+
+        btnConfirmCrop.onclick = () => {
+            applyCrop();
+            mode = 'none';
+            updateTools();
+        };
+
+        btnResetCrop.onclick = () => cropper && cropper.reset();
+        btnRotateLeft.onclick = () => cropper && cropper.rotate(-90);
+        btnRotateRight.onclick = () => cropper && cropper.rotate(90);
 
         const updateTools = () => {
+            // Toggle Toolbars
+            mainTools.classList.toggle('hidden', mode === 'crop');
+            cropTools.classList.toggle('hidden', mode !== 'crop');
+
             colorPicker.classList.toggle('hidden', mode !== 'pencil');
             btnPencil.classList.toggle('active', mode === 'pencil');
+            btnEraser.classList.toggle('active', mode === 'eraser');
+            btnCrop.classList.toggle('active', mode === 'crop');
+            
+            if (mode === 'pencil' || mode === 'eraser') {
+                canvas.classList.remove('hidden');
+                ctx.globalCompositeOperation = mode === 'eraser' ? 'destination-out' : 'source-over';
+            }
         };
 
         document.querySelectorAll('.color-dot').forEach(dot => {
             dot.onclick = () => {
                 document.querySelector('.color-dot.selected').classList.remove('selected');
-                dot.classList.add('selected'); strokeColor = dot.dataset.color;
+                dot.classList.add('selected'); 
+                strokeColor = dot.dataset.color;
             };
         });
 
-        canvas.onmousedown = (e) => { if(mode!=='pencil') return; drawing=true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); ctx.strokeStyle=strokeColor; ctx.lineWidth=5; ctx.lineCap='round'; };
-        canvas.onmousemove = (e) => { if(!drawing) return; ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke(); };
-        canvas.onmouseup = () => drawing=false;
+        canvas.onmousedown = (e) => { 
+            if (mode !== 'pencil' && mode !== 'eraser') return; 
+            drawing = true; 
+            ctx.beginPath(); 
+            ctx.moveTo(e.offsetX, e.offsetY); 
+            ctx.strokeStyle = strokeColor; 
+            ctx.lineWidth = mode === 'eraser' ? 20 : 5; 
+            ctx.lineCap = 'round'; 
+        };
+        canvas.onmousemove = (e) => { if (!drawing) return; ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke(); };
+        canvas.onmouseup = () => drawing = false;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Delete' && previewView.style.display === 'flex' && mode === 'none') {
+                if (currIdx !== -1) removeFile(currIdx);
+            }
+        });
 
         // Integration
-        const openSelection = (fs) => { Array.from(fs).forEach(f => pendingFiles.push({file:f, cap:''})); previewView.style.display='flex'; refreshEditor(pendingFiles.length-1); };
+        const openSelection = (fs) => { 
+            const isFirst = pendingFiles.length === 0;
+            Array.from(fs).forEach(f => {
+                const pf = {file:f, cap:'', editedData: null, drawingsData: null, lastCropData: null};
+                if (f.type.startsWith('image/')) pf.url = URL.createObjectURL(f);
+                pendingFiles.push(pf);
+            }); 
+            previewView.style.display='flex'; 
+            refreshEditor(isFirst ? 0 : pendingFiles.length - fs.length); 
+            mainFileInput.value = '';
+            mainImgInput.value = '';
+        };
         atClip.onclick = () => mainFileInput.click();
         atCam.onclick = () => mainImgInput.click();
         mainFileInput.onchange = (e) => openSelection(e.target.files);
         mainImgInput.onchange = (e) => openSelection(e.target.files);
-        btnAddFiles.onclick = () => mainImgInput.click();
+        btnAddFiles.onclick = () => mainFileInput.click(); // Now allows all files
 
         closePreview.onclick = () => { previewView.style.display='none'; pendingFiles=[]; };
-        finalSend.onclick = () => {
-            pendingFiles[currIdx].cap = editorCaption.value;
-            pendingFiles.forEach((pf, i) => {
-                if (pf.file.type.startsWith('image/')) {
-                    const finalC = document.createElement('canvas');
-                    finalC.width = editorImg.naturalWidth; finalC.height = editorImg.naturalHeight;
-                    const fctx = finalC.getContext('2d');
-                    fctx.drawImage(editorImg, 0, 0);
-                    // Overlay drawing (scaled to original image size)
-                    fctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, finalC.width, finalC.height);
-                    logImg(finalC.toDataURL('image/png'), pf.cap);
-                } else {
-                    const d=document.createElement('div'); d.className='flex flex-col items-end';
-                    const u=URL.createObjectURL(pf.file); const s=(pf.file.size/1024/1024).toFixed(1)+' MB';
-                    d.innerHTML=`<div class="message-bubble bg-blue-600 text-white p-4 rounded-3xl rounded-tr-none shadow-xl border border-blue-500">
-                        <div class="bg-blue-700/50 rounded-2xl p-4 flex items-center gap-4 mb-2 cursor-pointer" onclick="window.SAS.chat.down('${u}','${pf.file.name}')">
-                            <i data-lucide="file-text" class="w-6 h-6"></i>
-                            <div class="text-xs font-black truncate">${pf.file.name}</div>
-                        </div>
-                        ${pf.cap ? `<p class="mb-2 text-sm font-medium">${pf.cap}</p>` : ''}
-                    </div>`;
-                    chatHistory.appendChild(d); lucide.createIcons();
-                }
-            });
+        finalSend.onclick = async () => {
+            saveCurrentState();
+            const pf = pendingFiles[currIdx];
+            pf.cap = editorCaption.value;
+            
+            // In a production app, we would upload these files first.
+            // For now, we use the base64/blob as 'midia_url'
+            for (const pf of pendingFiles) {
+                const content = pf.file.type.startsWith('image/') ? (pf.editedData || pf.url) : 'Arquivo enviado';
+                const midia = pf.file.type.startsWith('image/') ? (pf.editedData || pf.url) : null;
+                await sendMessage(pf.cap || 'Mídia enviada', midia);
+                addMessage(pf.cap || 'Mídia enviada', 'right', { midia_url: midia });
+            }
             previewView.style.display='none'; pendingFiles=[];
         };
 
-        mainSend.onclick = () => { if(mainInput.value.trim()){ logText(mainInput.value.trim()); mainInput.value=''; } };
+        mainSend.onclick = () => { 
+            if(mainInput.value.trim()){ 
+                sendMessage(mainInput.value.trim()); 
+                mainInput.value=''; 
+            } 
+        };
+
+        // Right Panel Handlers
+        document.getElementById('btnOpenAction').onclick = () => {
+            const panel = document.getElementById('actionPanel');
+            panel.classList.toggle('hidden');
+        };
+
+        document.getElementById('btnCreateAppointment').onclick = async () => {
+            if (!currentSessionId) return;
+            const nome = document.getElementById('panelName').value;
+            const cpf = document.getElementById('panelCPF').value;
+            const matricula = document.getElementById('panelMatricula').value;
+            const email = document.getElementById('panelEmail').value;
+            const cargo = document.getElementById('panelCargo').value;
+            const vinculo = document.getElementById('panelVinculo').value;
+            const local = document.getElementById('panelLocal').value;
+            const servico = document.getElementById('panelService').value;
+            const tipo_at = document.getElementById('panelTypeAt').value;
+            const prioridade = document.getElementById('panelPriority').value;
+            const data_ag = document.getElementById('panelDate').value;
+            const hora_ag = document.getElementById('panelTime').value;
+
+            if (!nome || !cpf || !servico || !data_ag || !hora_ag) {
+                alert('Preencha os campos obrigatórios (Nome, CPF, Serviço, Data e Hora).');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/agendamentos', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        nome_completo: nome,
+                        cpf: cpf,
+                        matricula: matricula,
+                        cargo: cargo,
+                        vinculo: vinculo,
+                        local_trabalho: local,
+                        email: email,
+                        tipo_servico: servico,
+                        data_agendamento: data_ag,
+                        hora_inicio: hora_ag,
+                        status: 'chegou', 
+                        tipo_atendimento: tipo_at,
+                        prioridade: prioridade,
+                        atendente_id: auth.id
+                    })
+                });
+                const data = await res.json();
+                if (data.id) {
+                    alert('Agendamento criado com sucesso! O servidor já está na fila do monitor.');
+                    sendMessage(`✅ Seu agendamento para ${servico} foi realizado com sucesso! Aguarde ser chamado no painel.`);
+                }
+            } catch (err) { alert('Erro ao criar agendamento.'); }
+        };
+
+        document.getElementById('btnEndChat').onclick = async () => {
+            if (!currentSessionId) return;
+            if (confirm('Deseja finalizar esta conversa?')) {
+                await fetch(`/api/chat/finalizar/${currentSessionId}`, { method: 'PUT' });
+                currentSessionId = null;
+                document.getElementById('chatHeader').innerHTML = '<div class="p-4 text-slate-400 font-bold">Conversa finalizada</div>';
+                chatHistory.innerHTML = '';
+                loadSessions();
+            }
+        };
+
+        document.getElementById('btnStandbyChat').onclick = async () => {
+            if (!currentSessionId) return;
+            if (confirm('Deseja colocar este atendimento em espera?')) {
+                await fetch(`/api/chat/standby/${currentSessionId}`, { method: 'PUT' });
+                sendMessage('⚠️ Este atendimento foi colocado em espera. Assim que possível retornaremos o contato.');
+                currentSessionId = null;
+                chatHistory.innerHTML = '';
+                loadSessions();
+                alert('Atendimento movido para Standby.');
+            }
+        };
+
+        document.getElementById('sidebarSearch').oninput = renderSessionList;
+
+        // Auto-fill logic
+        const panelCPF = document.getElementById('panelCPF');
+        const panelMatricula = document.getElementById('panelMatricula');
+
+        const lookupServer = async (val) => {
+            if (!val || (val.length < 11 && isNaN(val))) return;
+            try {
+                const res = await fetch(`/api/identificacao/validar?valor=${val}`);
+                const json = await res.json();
+                if (json.success && json.data.length > 0) {
+                    const d = json.data[0];
+                    document.getElementById('panelName').value = d.nome_completo || '';
+                    document.getElementById('panelCPF').value = maskCPF(d.cpf || '');
+                    document.getElementById('panelMatricula').value = d.matricula || '';
+                    document.getElementById('panelEmail').value = d.email || '';
+                    document.getElementById('panelCargo').value = d.cargo || '';
+                    document.getElementById('panelVinculo').value = d.vinculo || '';
+                    document.getElementById('panelLocal').value = d.local_trabalho || '';
+                    
+                    // Open sections to show data
+                    document.querySelectorAll('#panelUserInfo > div > div').forEach(div => div.classList.remove('hidden'));
+                }
+            } catch (err) { console.error('Erro na busca:', err); }
+        };
+
+        panelCPF.oninput = (e) => {
+            e.target.value = maskCPF(e.target.value);
+            if (e.target.value.length === 14) lookupServer(e.target.value);
+        };
+
+        panelMatricula.onblur = (e) => { if(e.target.value) lookupServer(e.target.value); };
+
+        // Startup
+        loadSessions();
+        setInterval(loadSessions, 5000); // Poll for new messages every 5s
 
     </script>
 </body>

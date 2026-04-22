@@ -165,11 +165,13 @@ def cleanup_stale_calls():
     """Converte chamados pendentes com mais de 60 segundos para 'chamada_expirada' usando SQL nativo."""
     try:
         # Using MySQL native functions to avoid timezone issues between Python and MySQL
+        # Only expire Presencial (or NULL) calls. Digital channels (WhatsApp, etc.) should NOT expire.
         query_db("""
             UPDATE agendamentos 
             SET status = 'chamada_expirada' 
             WHERE status = 'pendente' 
             AND DATE(data_agendamento) = CURDATE()
+            AND (tipo_atendimento IS NULL OR tipo_atendimento = 'Presencial')
             AND hora_atendimento IS NOT NULL 
             AND hora_atendimento < (NOW() - INTERVAL 3 MINUTE)
         """)

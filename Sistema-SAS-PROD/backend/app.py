@@ -14,6 +14,7 @@ from backend.routes.identificacao import identificacao_bp
 from backend.routes.solicitacoes import solicitacoes_bp
 from backend.routes.ai import ai_bp
 from backend.routes.avaliacoes import avaliacoes_bp
+from backend.routes.chat import chat_bp
 
 def create_app():
     # Configure Flask to serve static files from the frontend directory
@@ -42,6 +43,7 @@ def create_app():
     app.register_blueprint(solicitacoes_bp, url_prefix='/api/solicitacoes')
     app.register_blueprint(ai_bp, url_prefix='/api/ai')
     app.register_blueprint(avaliacoes_bp, url_prefix='/api/avaliacoes')
+    app.register_blueprint(chat_bp, url_prefix='/api/chat')
     
     @app.route('/')
     def index():
@@ -99,6 +101,14 @@ def create_app():
     @app.route('/chat')
     def chat_page():
         return app.send_static_file('html/chat.html')
+
+    @app.route('/solicitar')
+    def solicitar_page():
+        return app.send_static_file('html/solicitar.html')
+
+    @app.route('/chat_cliente')
+    def chat_cliente_page():
+        return app.send_static_file('html/chat_cliente.html')
 
     @app.route('/health')
     def health_check():

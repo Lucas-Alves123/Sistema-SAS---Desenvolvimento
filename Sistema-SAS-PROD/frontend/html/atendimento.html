@@ -92,6 +92,14 @@
                     </div>
                 </div>
 
+                <div id="standbySection" class="bg-white rounded-xl shadow-sm border border-orange-200 p-6 hidden">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="timer" class="w-5 h-5 text-orange-600"></i>
+                        <h2 class="text-xl font-bold text-gray-800">Atendimentos Aguardando Resposta</h2>
+                    </div>
+                    <div id="standbyList" class="space-y-2"></div>
+                </div>
+
                 <div id="queueSection" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hidden">
                     <div class="flex justify-between items-center mb-4">
                         <div class="flex items-center gap-4">
@@ -537,6 +545,11 @@
                 String(a.atendente_id) === String(user.id)
             );
 
+            const waitingResponse = all.filter(a => 
+                a.status === 'pendente_resposta' && 
+                String(a.atendente_id) === String(user.id)
+            ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
             totalAguardandoEl.textContent = queue.length;
 
             // Atualiza contadores das abas (Agendados + Chegou)
@@ -552,6 +565,7 @@
 
             renderArrivals(arrivals);
             renderQueue(queue);
+            renderStandby(waitingResponse);
             renderActiveCall(active);
         };
 
@@ -594,6 +608,42 @@
                     </div>
                 `;
                 arrivalsList.appendChild(div);
+            });
+            lucide.createIcons();
+        };
+
+        const renderStandby = (items) => {
+            const standbySection = document.getElementById('standbySection');
+            const standbyList = document.getElementById('standbyList');
+            
+            if (items.length === 0) {
+                standbySection.classList.add('hidden');
+                return;
+            }
+            
+            standbySection.classList.remove('hidden');
+            standbyList.innerHTML = '';
+            
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-4 border border-orange-100 rounded-lg bg-orange-50/30 hover:bg-orange-50 transition-colors';
+                div.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="bg-orange-100 p-2 rounded-full text-orange-600">
+                            <i data-lucide="${item.tipo_atendimento === 'Whatsapp' ? 'message-circle' : (item.tipo_atendimento === 'E-mail' ? 'mail' : 'phone')}" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-gray-800">${item.nome_completo}</div>
+                            <div class="text-xs text-orange-700 font-medium uppercase tracking-wider">${item.tipo_atendimento} • ${item.tipo_servico}</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="resumeService('${item.id}')" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 transition-all shadow-sm">
+                            <i data-lucide="play" class="w-4 h-4"></i> Retomar
+                        </button>
+                    </div>
+                `;
+                standbyList.appendChild(div);
             });
             lucide.createIcons();
         };
@@ -763,12 +813,21 @@
                                 <textarea id="obs2" oninput="saveServiceDraft('${item.id}')" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Descreva a solução fornecida...">${item.observacao_solucao || ''}</textarea>
                             </div>
 
-                            <button onclick="finishService('${item.id}')" class="w-full bg-gray-300 hover:bg-blue-600 hover:text-white text-gray-700 font-bold py-4 rounded-lg transition-all flex justify-center items-center gap-2 mt-4" id="finishBtn">
-                                <i data-lucide="check-circle" class="w-5 h-5"></i> Encerrar Atendimento
-                            </button>
-                            <button onclick="openTransferModal('${item.id}')" class="w-full bg-white border-2 border-blue-100 hover:bg-blue-50 text-blue-700 font-bold py-3 rounded-lg transition-all flex justify-center items-center gap-2">
-                                <i data-lucide="arrow-right-left" class="w-5 h-5"></i> Transferir Atendimento
-                            </button>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <button onclick="finishService('${item.id}')" class="w-full bg-gray-300 hover:bg-blue-600 hover:text-white text-gray-700 font-bold py-4 rounded-lg transition-all flex justify-center items-center gap-2" id="finishBtn">
+                                    <i data-lucide="check-circle" class="w-5 h-5"></i> Encerrar Atendimento
+                                </button>
+                                
+                                ${['Whatsapp', 'E-mail', 'Telefônico'].includes(item.tipo_atendimento) ? `
+                                    <button onclick="pauseService('${item.id}')" class="w-full bg-white border-2 border-orange-200 hover:bg-orange-50 text-orange-700 font-bold py-4 rounded-lg transition-all flex justify-center items-center gap-2 shadow-sm">
+                                        <i data-lucide="timer" class="w-5 h-5"></i> Aguardar Resposta
+                                    </button>
+                                ` : ''}
+
+                                <button onclick="openTransferModal('${item.id}')" class="w-full bg-white border-2 border-blue-100 hover:bg-blue-50 text-blue-700 font-bold py-3 rounded-lg transition-all flex justify-center items-center gap-2 md:col-span-2">
+                                    <i data-lucide="arrow-right-left" class="w-5 h-5"></i> Transferir Atendimento
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1089,6 +1148,55 @@
         window.closeTransferModal = () => {
             transferModal.classList.add('hidden');
             itemToTransferId = null;
+        };
+
+        window.pauseService = async (id) => {
+            const obs1 = document.getElementById('obs1').value;
+            const obs2 = document.getElementById('obs2').value;
+            const servico = document.getElementById('servicoCorrigido').value;
+
+            try {
+                // Get additional subjects if any
+                const assuntos = [];
+                const rows = document.querySelectorAll('.assunto-row');
+                rows.forEach(row => {
+                    const cat = row.querySelector('.assunto-cat').value;
+                    const desc = row.querySelector('.assunto-desc').value;
+                    if (cat && desc) assuntos.push({ categoria: cat, descricao: desc });
+                });
+
+                await window.SAS.base44.entities.Agendamento.update(id, {
+                    status: 'pendente_resposta',
+                    observacao_problema: obs1,
+                    observacao_solucao: obs2,
+                    tipo_servico: servico,
+                    assuntos_adicionais: JSON.stringify(assuntos)
+                });
+
+                window.SAS.utils.notify('success', 'Atendimento colocado em aguardo.');
+                loadData();
+            } catch (e) {
+                console.error(e);
+                window.SAS.utils.notify('error', 'Erro ao colocar em standby.');
+            }
+        };
+
+        window.resumeService = async (id) => {
+            if (currentActiveItem) {
+                window.SAS.utils.notify('warning', 'Você já possui um atendimento ativo. Pause ou encerre-o antes de retomar outro.');
+                return;
+            }
+
+            try {
+                await window.SAS.base44.entities.Agendamento.update(id, {
+                    status: 'em_andamento'
+                });
+                window.SAS.utils.notify('success', 'Atendimento retomado!');
+                loadData();
+            } catch (e) {
+                console.error(e);
+                window.SAS.utils.notify('error', 'Erro ao retomar atendimento.');
+            }
         };
 
         window.confirmTransfer = async () => {

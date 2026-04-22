@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atendimento SAS - Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .chat-bg { background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 20px 20px; }
+        .message-bubble { max-width: 85%; animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between shadow-sm z-10">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-100">
+                <i data-lucide="message-circle" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-sm font-black text-slate-800 uppercase tracking-tight">Atendimento SAS</h1>
+                <div class="flex items-center gap-1.5">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">Online</span>
+                </div>
+            </div>
+        </div>
+        <button onclick="window.location.reload()" class="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+            <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+        </button>
+    </header>
+
+    <!-- Chat Area -->
+    <main id="chatWindow" class="flex-1 overflow-y-auto p-6 chat-bg custom-scrollbar space-y-6">
+        <!-- Messages Load Here -->
+        <div id="loading" class="flex flex-col items-center justify-center h-full opacity-50 space-y-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Iniciando conversa...</span>
+        </div>
+    </main>
+
+    <!-- Input Area -->
+    <footer class="bg-white p-4 border-t border-slate-100 pb-8 md:pb-4">
+        <div class="max-w-4xl mx-auto flex items-center gap-3">
+            <div class="relative flex-1">
+                <input type="text" id="msgInput" placeholder="Digite sua mensagem..." 
+                    class="w-full pl-4 pr-12 py-4 bg-slate-100 border-none rounded-2xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                <button id="sendBtn" class="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-2.5 rounded-xl hover:bg-blue-700 transition-all active:scale-90">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+        const chatWindow = document.getElementById('chatWindow');
+        const msgInput = document.getElementById('msgInput');
+        const sendBtn = document.getElementById('sendBtn');
+        
+        let sessaoId = localStorage.getItem('sas_chat_sessao_id');
+        let pollingInterval = null;
+
+        const getParams = () => {
+            const p = new URLSearchParams(window.location.search);
+            return { nome: p.get('nome'), cpf: p.get('cpf'), assunto: p.get('assunto') || 'Atendimento Geral' };
+        };
+
+        const addMessage = (text, align='right', time = null) => {
+            if (!time) time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const isBot = align === 'left';
+            const d = document.createElement('div');
+            d.className = `flex flex-col ${isBot ? 'items-start' : 'items-end'}`;
+            
+            d.innerHTML = `
+                <div class="message-bubble p-4 rounded-2xl shadow-sm border ${isBot ? 'bg-white border-slate-100 text-slate-700 rounded-tl-none' : 'bg-blue-600 border-blue-500 text-white rounded-tr-none'}">
+                    <p class="text-sm font-medium">${text}</p>
+                    <span class="text-[9px] block mt-2 font-bold uppercase ${isBot ? 'text-slate-300' : 'text-blue-100'}">${time}</span>
+                </div>
+            `;
+            chatWindow.appendChild(d);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        };
+
+        const startSession = async () => {
+            const params = getParams();
+            if (!params.nome && !sessaoId) {
+                chatWindow.innerHTML = '<div class="text-center p-8 text-slate-400 font-bold uppercase text-xs">Acesse pelo link enviado pelo SAS</div>';
+                return;
+            }
+
+            if (!sessaoId) {
+                try {
+                    const res = await fetch('/api/chat/sessao', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(params)
+                    });
+                    const data = await res.json();
+                    if (data.sessao_id) {
+                        sessaoId = data.sessao_id;
+                        localStorage.setItem('sas_chat_sessao_id', sessaoId);
+                    }
+                } catch (e) { console.error(e); }
+            }
+            
+            loadMessages();
+            pollingInterval = setInterval(loadMessages, 3000);
+        };
+
+        const loadMessages = async () => {
+            if (!sessaoId) return;
+            try {
+                const res = await fetch(`/api/chat/mensagens/${sessaoId}`);
+                const msgs = await res.json();
+                
+                document.getElementById('loading')?.remove();
+                
+                const currentCount = chatWindow.querySelectorAll('.message-bubble').length;
+                if (msgs.length > currentCount) {
+                    chatWindow.innerHTML = '';
+                    msgs.forEach(m => {
+                        const align = (m.remetente_tipo === 'sistema' || m.remetente_tipo === 'atendente') ? 'left' : 'right';
+                        const time = m.created_at.split(' ')[1].substring(0,5);
+                        addMessage(m.mensagem, align, time);
+                    });
+                }
+            } catch (e) { console.error(e); }
+        };
+
+        const sendMessage = async () => {
+            const val = msgInput.value.trim();
+            if (!val || !sessaoId) return;
+            
+            msgInput.value = '';
+            try {
+                await fetch('/api/chat/mensagem', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sessao_id: sessaoId,
+                        remetente_tipo: 'servidor',
+                        mensagem: val
+                    })
+                });
+                loadMessages();
+            } catch (e) { console.error(e); }
+        };
+
+        sendBtn.onclick = sendMessage;
+        msgInput.onkeydown = (e) => { if(e.key === 'Enter') sendMessage(); };
+
+        startSession();
+    </script>
+</body>
+</html>

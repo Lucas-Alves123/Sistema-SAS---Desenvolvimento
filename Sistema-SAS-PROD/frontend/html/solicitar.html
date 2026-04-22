@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitar Atendimento — SAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            background: #2563eb; /* Blue primary */
+            font-family: 'Inter', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-lg glass-card rounded-[2.5rem] shadow-2xl overflow-hidden animate-fade-in">
+        <!-- Header -->
+        <div class="bg-blue-700 p-8 text-center relative overflow-hidden">
+            <div class="absolute inset-0 opacity-10">
+                <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <path d="M0 0 L100 0 L100 100 Z" fill="white"></path>
+                </svg>
+            </div>
+            <div class="relative z-10">
+                <div class="w-20 h-20 bg-white rounded-3xl mx-auto flex items-center justify-center shadow-lg mb-4 transform rotate-3 hover:rotate-0 transition-transform">
+                    <i data-lucide="message-square" class="w-10 h-10 text-blue-700"></i>
+                </div>
+                <h1 class="text-3xl font-black text-white tracking-tighter">Portal de Atendimento</h1>
+                <p class="text-blue-100 text-sm font-medium mt-1 uppercase tracking-widest opacity-80">Identifique-se para começar</p>
+            </div>
+        </div>
+
+        <!-- Form Area -->
+        <div class="p-8 md:p-10">
+            <form id="solicitarForm" class="space-y-6">
+                <!-- CPF -->
+                <div class="space-y-2">
+                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Seu CPF</label>
+                    <div class="relative">
+                        <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300"></i>
+                        <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" required
+                            class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700 font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none">
+                    </div>
+                </div>
+
+                <!-- NOME (Hidden initially or editable) -->
+                <div id="nameGroup" class="space-y-2 opacity-100 transition-all duration-500">
+                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Seu Nome Completo</label>
+                    <div class="relative">
+                        <i data-lucide="type" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300"></i>
+                        <input type="text" id="nome" placeholder="Como devemos te chamar?" required
+                            class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700 font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none">
+                    </div>
+                </div>
+
+                <!-- ASSUNTO -->
+                <div class="space-y-2">
+                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">O que você precisa?</label>
+                    <div class="relative">
+                        <i data-lucide="help-circle" class="absolute left-4 top-4 w-5 h-5 text-slate-300"></i>
+                        <textarea id="assunto" rows="3" placeholder="Descreva brevemente o motivo do contato..." required
+                            class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700 font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none resize-none"></textarea>
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-[1.5rem] font-black shadow-xl shadow-blue-200 transition-all active:scale-95 flex items-center justify-center gap-3">
+                        INICIAR CHAT
+                        <i data-lucide="arrow-right" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-slate-50/50 p-6 text-center border-t border-slate-100">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] select-none">© 2025 SAS — Governo de Pernambuco</p>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        lucide.createIcons();
+        const cpfInput = document.getElementById('cpf');
+        const nomeInput = document.getElementById('nome');
+        const form = document.getElementById('solicitarForm');
+
+        // CPF Mask and Auto-lookup
+        cpfInput.addEventListener('input', async (e) => {
+            const val = window.SAS.utils.formatCPF(e.target.value);
+            e.target.value = val;
+
+            if (val.length === 14) {
+                try {
+                    const raw = val.replace(/\D/g, '');
+                    const res = await fetch(`/api/identificacao/validar?valor=${raw}`);
+                    const data = await res.json();
+                    if (data.success && data.data) {
+                        const servidor = Array.isArray(data.data) ? data.data[0] : data.data;
+                        nomeInput.value = servidor.nome_completo;
+                        nomeInput.classList.add('text-blue-600');
+                    }
+                } catch (err) {
+                    console.log('CPF not found in DB, standard flow.');
+                }
+            }
+        });
+
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            const payload = {
+                cpf: cpfInput.value,
+                nome: nomeInput.value,
+                assunto: document.getElementById('assunto').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            // For now, let's simulate the redirection to chat with params
+            // In a real scenario, this would create a session in the DB
+            const params = new URLSearchParams(payload).toString();
+            window.location.href = `chat_cliente?${params}`;
+        };
+    </script>
+</body>
+</html>
