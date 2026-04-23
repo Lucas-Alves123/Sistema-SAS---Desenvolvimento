@@ -84,6 +84,9 @@
                                 </tbody>
                             </table>
                         </div>
+                        <div id="paginationContainer" class="bg-slate-50 border-t border-slate-100 flex justify-center">
+                            <!-- Pagination buttons here -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -109,6 +112,10 @@
         const attendantFilter = document.getElementById('attendantFilter');
         const refreshBtn = document.getElementById('refreshBtn');
         const tableBody = document.getElementById('tableBody');
+
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let fullFilteredData = [];
 
         // Filter Logic
         if (attendantFilter) {
@@ -145,6 +152,15 @@
                 const el = document.getElementById(`count-${key}`);
                 if (el) el.textContent = counts[key];
             });
+
+            fullFilteredData = atendimentos;
+            renderTable();
+        };
+
+        const renderTable = () => {
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const atendimentos = fullFilteredData.slice(start, end);
 
             tableBody.innerHTML = '';
             if (atendimentos.length === 0) {
@@ -201,7 +217,47 @@
                     tableBody.appendChild(tr);
                 });
                 lucide.createIcons();
+                renderPagination();
             }
+        };
+
+        const renderPagination = () => {
+            const container = document.getElementById('paginationContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            const totalPages = Math.ceil(fullFilteredData.length / itemsPerPage);
+            if (totalPages <= 1) return;
+
+            const nav = document.createElement('div');
+            nav.className = 'flex items-center justify-center gap-1 mt-4 py-4';
+
+            const createBtn = (label, page, disabled = false, active = false) => {
+                const btn = document.createElement('button');
+                btn.className = `min-w-[32px] h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all border
+                    ${active ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400 hover:text-blue-600 shadow-sm'}
+                    ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}`;
+                btn.innerHTML = label;
+                if (!disabled) btn.onclick = () => { currentPage = page; renderTable(); };
+                return btn;
+            };
+
+            nav.appendChild(createBtn('<i data-lucide="chevron-left" class="w-4 h-4"></i>', currentPage - 1, currentPage === 1));
+            
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    nav.appendChild(createBtn(i, i, false, i === currentPage));
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    const span = document.createElement('span');
+                    span.className = 'px-1 text-slate-400';
+                    span.textContent = '...';
+                    nav.appendChild(span);
+                }
+            }
+
+            nav.appendChild(createBtn('<i data-lucide="chevron-right" class="w-4 h-4"></i>', currentPage + 1, currentPage === totalPages));
+            container.appendChild(nav);
+            lucide.createIcons();
         };
 
         window.openDetailsModal = async (id) => {
