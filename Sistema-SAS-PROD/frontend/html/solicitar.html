@@ -3,88 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solicitar Atendimento — SAS</title>
+    <title>Início de Atendimento — SAS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/styles.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
         body {
-            background: #2563eb; /* Blue primary */
+            background-color: #f1f5f9;
             font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
         }
+        .sas-blue { background-color: #2563eb; }
         .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
-        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .field-label { 
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 8px;
+            margin-left: 4px;
+        }
+        .input-base { 
+            width: 100%;
+            padding: 12px 16px;
+            background-color: #ffffff;
+            border: 1.5px solid #cbd5e1 !important;
+            border-radius: 8px;
+            color: #475569;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .input-base:focus {
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+        .input-base::placeholder {
+            color: #cbd5e1;
+        }
+        .grid-custom { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 20px; 
+            margin-bottom: 20px;
+        }
+        @media (max-width: 768px) { 
+            .grid-custom { grid-template-columns: 1fr; } 
+            .glass-card { padding: 24px; }
+        }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen py-10 px-4">
 
-    <div class="w-full max-w-lg glass-card rounded-[2.5rem] shadow-2xl overflow-hidden animate-fade-in">
-        <!-- Header -->
-        <div class="bg-blue-700 p-8 text-center relative overflow-hidden">
-            <div class="absolute inset-0 opacity-10">
-                <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <path d="M0 0 L100 0 L100 100 Z" fill="white"></path>
-                </svg>
-            </div>
-            <div class="relative z-10">
-                <div class="w-20 h-20 bg-white rounded-3xl mx-auto flex items-center justify-center shadow-lg mb-4 transform rotate-3 hover:rotate-0 transition-transform">
-                    <i data-lucide="message-square" class="w-10 h-10 text-blue-700"></i>
+    <div class="max-w-2xl mx-auto space-y-6">
+        
+        <!-- Header / Welcome -->
+        <div class="sas-blue rounded-[2.5rem] p-10 text-white shadow-lg relative overflow-hidden">
+            <div class="relative z-10 flex border-b border-white/20 pb-8 mb-8 items-center gap-6">
+                <div class="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-xl shrink-0">
+                    <img src="images/sas_logo_white_bg.png" alt="SAS" class="w-14">
                 </div>
-                <h1 class="text-3xl font-black text-white tracking-tighter">Portal de Atendimento</h1>
-                <p class="text-blue-100 text-sm font-medium mt-1 uppercase tracking-widest opacity-80">Identifique-se para começar</p>
+                <div>
+                    <h1 class="text-2xl font-black tracking-tight leading-tight">Secretaria Estadual de Saúde</h1>
+                    <p class="text-blue-100 mt-1 font-medium">Bom dia! Este canal é destinado ao Atendimento ao Servidor da SES-PE.</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white/10 p-4 rounded-2xl border border-white/10 flex flex-col items-center text-center justify-center gap-2">
+                    <i data-lucide="phone-off" class="w-5 h-5 text-white opacity-80"></i>
+                    <p class="text-[11px] font-bold">Não realizamos ligações por este canal.</p>
+                </div>
+                <div class="bg-white/10 p-4 rounded-2xl border border-white/10 flex flex-col items-center text-center justify-center gap-2">
+                    <i data-lucide="mic-off" class="w-5 h-5 text-white opacity-80"></i>
+                    <p class="text-[11px] font-bold">Não é possível ouvir áudios enviados por aqui.</p>
+                </div>
             </div>
         </div>
 
-        <!-- Form Area -->
-        <div class="p-8 md:p-10">
-            <form id="solicitarForm" class="space-y-6">
-                <!-- CPF -->
-                <div class="space-y-2">
-                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Seu CPF</label>
-                    <div class="relative">
-                        <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300"></i>
-                        <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" required
-                            class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700 font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none">
+        <!-- Form Content -->
+        <div class="glass-card rounded-[2.5rem] p-8 md:p-10 shadow-lg">
+            <form id="onboardingForm" class="space-y-8">
+                <div class="space-y-6">
+                    <!-- Row 1 -->
+                    <div class="grid-custom">
+                        <div class="space-y-1">
+                            <label class="field-label">Nome</label>
+                            <input type="text" id="nome" placeholder="Ex.: Maria" required class="input-base">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="field-label">CPF</label>
+                            <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" required class="input-base">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="field-label">Matrícula</label>
+                            <input type="text" id="matricula" placeholder="Apenas números" required class="input-base">
+                        </div>
+                    </div>
+
+                    <!-- Row 2 -->
+                    <div class="grid-custom">
+                        <div class="space-y-1">
+                            <label class="field-label">Cargo</label>
+                            <input type="text" id="cargo" placeholder="Ex.: Analista Administrativo" required class="input-base">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="field-label">Tipo de Vínculo</label>
+                            <select id="vinculo" required class="input-base appearance-none cursor-pointer">
+                                <option value="">Selecione...</option>
+                                <option value="Efetivo">Efetivo</option>
+                                <option value="Contrato Temporário">Contrato Temporário</option>
+                                <option value="Comissionado">Comissionado</option>
+                                <option value="Cedido">Cedido</option>
+                                <option value="Bolsista">Bolsista</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="field-label">Local de trabalho</label>
+                            <input type="text" id="local" placeholder="Ex.: Sede - Boa Vista" required class="input-base">
+                        </div>
+                    </div>
+
+                    <!-- Row 3 -->
+                    <div class="grid-custom">
+                        <div class="space-y-1">
+                            <label class="field-label">E-mail</label>
+                            <input type="email" id="email" placeholder="seuemail@dominio.pe.gov.br" required class="input-base">
+                        </div>
                     </div>
                 </div>
 
-                <!-- NOME (Hidden initially or editable) -->
-                <div id="nameGroup" class="space-y-2 opacity-100 transition-all duration-500">
-                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Seu Nome Completo</label>
-                    <div class="relative">
-                        <i data-lucide="type" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300"></i>
-                        <input type="text" id="nome" placeholder="Como devemos te chamar?" required
-                            class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700 font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none">
-                    </div>
+                <!-- Section: Demanda -->
+                <div class="pt-6 border-t border-slate-100">
+                    <label class="text-sm font-bold text-blue-700 mb-3 block">Observação - Sua Demanda</label>
+                    <textarea id="demanda" placeholder="Descreva o problema relatado..." required 
+                        class="input-base resize-none h-40 focus:ring-1 focus:ring-slate-300"></textarea>
                 </div>
 
-                <!-- ASSUNTO -->
-                <div class="space-y-2">
-                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">O que você precisa?</label>
-                    <div class="relative">
-                        <i data-lucide="help-circle" class="absolute left-4 top-4 w-5 h-5 text-slate-300"></i>
-                        <textarea id="assunto" rows="3" placeholder="Descreva brevemente o motivo do contato..." required
-                            class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700 font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none resize-none"></textarea>
-                    </div>
-                </div>
-
-                <div class="pt-4">
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-[1.5rem] font-black shadow-xl shadow-blue-200 transition-all active:scale-95 flex items-center justify-center gap-3">
-                        INICIAR CHAT
+                <div class="pt-6">
+                    <button type="submit" id="btnSubmit" 
+                        class="w-full sas-blue hover:bg-blue-700 text-white py-6 rounded-[2rem] font-black shadow-2xl shadow-blue-200 transition-all active:scale-95 flex items-center justify-center gap-3">
+                        SOLICITAR ATENDIMENTO
                         <i data-lucide="arrow-right" class="w-6 h-6"></i>
                     </button>
+                    
+                    <div id="loadingState" class="hidden flex flex-col items-center justify-center space-y-4 py-4 animate-fade-in text-center">
+                        <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        <p class="text-blue-600 font-black tracking-tighter">PROCESSANDO SUA SOLICITAÇÃO...</p>
+                    </div>
                 </div>
+
             </form>
         </div>
 
-        <!-- Footer -->
-        <div class="bg-slate-50/50 p-6 text-center border-t border-slate-100">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] select-none">© 2025 SAS — Governo de Pernambuco</p>
+        <!-- System Footer -->
+        <div class="text-center pb-10">
+            <img src="images/govpe.png" alt="Governo de Pernambuco" class="h-16 mx-auto opacity-40 grayscale filter hover:grayscale-0 transition-all duration-700">
+            <p class="text-[9px] font-black text-slate-300 uppercase tracking-[0.4em] mt-6">SAS — Sistema de Atendimento ao Servidor</p>
+        </div>
+
+    </div>
+
+    <!-- Confirmation Overlay (Success) -->
+    <div id="successOverlay" class="fixed inset-0 bg-blue-600 z-[999] hidden flex items-center justify-center p-6">
+        <div class="text-center text-white space-y-8 max-w-md animate-fade-in">
+            <div class="w-24 h-24 bg-white/20 rounded-[2.5rem] mx-auto flex items-center justify-center shadow-2xl">
+                <i data-lucide="clock" class="w-12 h-12 text-white animate-pulse"></i>
+            </div>
+            <div class="space-y-2">
+                <h2 class="text-3xl font-black tracking-tighter">Tudo pronto!</h2>
+                <p class="text-blue-100 font-medium">Seus dados foram enviados. Por favor, aguarde enquanto um atendente inicia sua conversa.</p>
+            </div>
+            <div class="bg-blue-700/50 p-6 rounded-3xl border border-white/10">
+                <p class="text-xs font-black uppercase tracking-widest opacity-60 mb-2">Seu Protocolo foi gerado</p>
+                <p class="text-2xl font-black text-white" id="successProtocol">#000000</p>
+            </div>
+            <p class="text-[10px] uppercase font-bold tracking-widest animate-bounce opacity-40">Mantenha esta página aberta</p>
         </div>
     </div>
 
@@ -92,45 +196,121 @@
     <script src="js/api.js"></script>
     <script>
         lucide.createIcons();
+
         const cpfInput = document.getElementById('cpf');
-        const nomeInput = document.getElementById('nome');
-        const form = document.getElementById('solicitarForm');
+        const form = document.getElementById('onboardingForm');
+        const btnSubmit = document.getElementById('btnSubmit');
+        const loadingState = document.getElementById('loadingState');
+        const successOverlay = document.getElementById('successOverlay');
+        const protocolEl = document.getElementById('successProtocol');
 
-        // CPF Mask and Auto-lookup
-        cpfInput.addEventListener('input', async (e) => {
-            const val = window.SAS.utils.formatCPF(e.target.value);
-            e.target.value = val;
-
-            if (val.length === 14) {
-                try {
-                    const raw = val.replace(/\D/g, '');
-                    const res = await fetch(`/api/identificacao/validar?valor=${raw}`);
-                    const data = await res.json();
-                    if (data.success && data.data) {
-                        const servidor = Array.isArray(data.data) ? data.data[0] : data.data;
-                        nomeInput.value = servidor.nome_completo;
-                        nomeInput.classList.add('text-blue-600');
-                    }
-                } catch (err) {
-                    console.log('CPF not found in DB, standard flow.');
-                }
-            }
-        });
-
-        form.onsubmit = (e) => {
-            e.preventDefault();
-            const payload = {
-                cpf: cpfInput.value,
-                nome: nomeInput.value,
-                assunto: document.getElementById('assunto').value,
-                timestamp: new Date().toISOString()
-            };
+        // Layout interactions
+        cpfInput.oninput = (e) => {
+            const val = e.target.value.replace(/\D/g, '');
+            e.target.value = window.SAS.utils.formatCPF(val);
             
-            // For now, let's simulate the redirection to chat with params
-            // In a real scenario, this would create a session in the DB
-            const params = new URLSearchParams(payload).toString();
-            window.location.href = `chat_cliente?${params}`;
+            // Auto-lookup if CPF is full
+            if (val.length === 14) {
+                lookupData(val.replace(/\D/g, ''));
+            }
         };
+
+        async function lookupData(cpf) {
+            try {
+                const res = await fetch(`/api/identificacao/validar?valor=${cpf}`);
+                const data = await res.json();
+                if (data.success && data.data) {
+                    const serv = Array.isArray(data.data) ? data.data[0] : data.data;
+                    document.getElementById('nome').value = serv.nome_completo || '';
+                    document.getElementById('matricula').value = serv.matricula || '';
+                    document.getElementById('cargo').value = serv.cargo || '';
+                    document.getElementById('vinculo').value = serv.vinculo || '';
+                    document.getElementById('local').value = serv.local_trabalho || '';
+                    document.getElementById('email').value = serv.email || '';
+                }
+            } catch (err) {}
+        }
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            
+            btnSubmit.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+
+            const payload = {
+                nome: document.getElementById('nome').value,
+                cpf: document.getElementById('cpf').value,
+                matricula: document.getElementById('matricula').value,
+                cargo: document.getElementById('cargo').value,
+                vinculo: document.getElementById('vinculo').value,
+                local: document.getElementById('local').value,
+                email: document.getElementById('email').value,
+                demanda: document.getElementById('demanda').value
+            };
+
+            // Format initial message for the attendant
+            const initialMsg = `🔹 *DADOS DO SERVIDOR* 🔹\n` +
+                             `👤 *Nome:* ${payload.nome}\n` +
+                             `🆔 *CPF:* ${payload.cpf}\n` +
+                             `🔢 *Matrícula:* ${payload.matricula}\n` +
+                             `💼 *Cargo:* ${payload.cargo}\n` +
+                             `🔗 *Vínculo:* ${payload.vinculo}\n` +
+                             `📍 *Local:* ${payload.local}\n` +
+                             `📧 *E-mail:* ${payload.email}\n` +
+                             `❓ *DEMANDA:* ${payload.demanda}`;
+
+            try {
+                const res = await fetch('/api/chat/sessao', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        nome: payload.nome,
+                        cpf: payload.cpf,
+                        assunto: payload.demanda
+                    })
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    const sessaoId = data.sessao_id;
+                    protocolEl.textContent = `#${String(sessaoId).padStart(6, '0')}`;
+                    
+                    // Send the data as first message
+                    await fetch('/api/chat/mensagem', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            sessao_id: sessaoId,
+                            remetente_tipo: 'sistema',
+                            mensagem: initialMsg
+                        })
+                    });
+
+                    // Show Success
+                    successOverlay.classList.remove('hidden');
+                    
+                    // Logic to poll status and redirect to real chat when attendant starts
+                    checkStatus(sessaoId);
+                }
+            } catch (err) {
+                alert('Erro ao iniciar atendimento. Tente novamente.');
+                btnSubmit.classList.remove('hidden');
+                loadingState.classList.add('hidden');
+            }
+        };
+
+        async function checkStatus(id) {
+            setInterval(async () => {
+                try {
+                    const res = await fetch('/api/chat/sessoes');
+                    const sessoes = await res.json();
+                    const s = sessoes.find(x => x.id === id);
+                    if (s && s.status === 'em_atendimento') {
+                        window.location.href = `/chat_cliente?sessao_id=${id}`;
+                    }
+                } catch (e) {}
+            }, 3000);
+        }
     </script>
 </body>
 </html>

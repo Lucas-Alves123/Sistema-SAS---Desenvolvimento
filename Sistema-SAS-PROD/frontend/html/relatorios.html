@@ -340,8 +340,18 @@
 
             if (metric === 'status') {
                 const counts = {};
+                const statusMap = {
+                    'concluido': 'Concluido',
+                    'agendado': 'Agendado',
+                    'pendente': 'Pendente Resposta',
+                    'chegou': 'Aguardando',
+                    'em_andamento': 'Em Andamento',
+                    'cancelado': 'Cancelado',
+                    'nao_compareceu': 'Não Compareceu'
+                };
                 data.forEach(d => {
-                    const s = d.status.replace('_', ' ').toUpperCase();
+                    const statusKey = d.status.toLowerCase();
+                    const s = statusMap[statusKey] || statusKey.toUpperCase();
                     counts[s] = (counts[s] || 0) + 1;
                 });
                 labels = Object.keys(counts);
@@ -513,7 +523,18 @@
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-800 font-medium min-w-[150px]">${extrasServHtml}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600 capitalize">${item.tipo_atendimento || '-'}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.prioridade || 'Normal'}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 ${statusColor} capitalize">${item.status.replace(/_/g, ' ')}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 ${statusColor} capitalize">
+                        ${({
+                            'concluido': 'Concluido',
+                            'agendado': 'Agendado',
+                            'pendente': 'Pendente Resposta',
+                            'chegou': 'Aguardando',
+                            'em_andamento': 'Em Andamento',
+                            'cancelado': 'Cancelado',
+                            'nao_compareceu': 'Não Compareceu',
+                            'cancelado_pelo_servidor': 'Cancelado Serv.'
+                        })[item.status.toLowerCase()] || item.status.replace(/_/g, ' ')}
+                    </td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${item.observacao_problema || '-'}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${item.observacao_solucao || '-'}</td>
                     <td class="px-2 py-3 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${extrasObsHtml}</td>

@@ -11,7 +11,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <style>
         .chat-container { height: calc(100vh - 180px); }
-        .message-bubble { max-width: 75%; }
+        .message-bubble { max-width: 75%; white-space: pre-wrap; padding: 4px 12px !important; border-radius: 12px !important; box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important; }
+        .message-bubble p { margin: 0 !important; padding: 0 !important; line-height: 1.25 !important; }
         .custom-scrollbar::-webkit-scrollbar { width: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
@@ -248,16 +249,18 @@
                                 </button>
                                 <div class="p-4 space-y-4 border-t border-slate-50">
                                     <select id="panelService" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
-                                        <option value="">Tipo de Serviço...</option>
+                                        <option value="">Selecione...</option>
                                         <option value="Aposentadoria">Aposentadoria</option>
-                                        <option value="Pensão">Pensão</option>
-                                        <option value="Auxílio Saúde">Auxílio Saúde</option>
-                                        <option value="Informações">Informações Gerais</option>
+                                        <option value="Atendimento Geral">Atendimento Geral</option>
+                                        <option value="Seleção Pública Simplificada">Seleção Pública Simplificada</option>
+                                        <option value="Certidão">Certidão</option>
+                                        <option value="Licença">Licença</option>
+                                        <option value="Pagamento">Pagamento</option>
+                                        <option value="Plantão Extraordinário">Plantão Extraordinário</option>
                                     </select>
                                     <div class="grid grid-cols-2 gap-2">
                                         <select id="panelTypeAt" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
-                                            <option value="Online">Online</option>
-                                            <option value="Presencial">Presencial</option>
+                                            <option value="WhatsApp/Sistema">WhatsApp/Sistema</option>
                                         </select>
                                         <select id="panelPriority" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
                                             <option value="Normal">Normal</option>
@@ -306,7 +309,45 @@
         const mainFileInput = document.getElementById('mainFileInput');
         const mainImgInput = document.getElementById('mainImgInput');
 
+        // Holidays 2026
+        const holidays = [
+            "2026-01-01", "2026-03-06", "2026-04-03", "2026-04-21",
+            "2026-05-01", "2026-06-04", "2026-06-24", "2026-09-07",
+            "2026-10-12", "2026-11-02", "2026-11-15", "2026-12-25"
+        ];
+
+        const panelDate = document.getElementById('panelDate');
+        panelDate.min = new Date().toISOString().split('T')[0];
+
+        panelDate.onchange = (e) => {
+            const val = e.target.value;
+            if (!val) return;
+            const date = new Date(val + 'T12:00:00'); 
+            const dayOfWeek = date.getDay();
+            
+            // Validate Weekends
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                alert('Agendamentos não são permitidos aos finais de semana.');
+                e.target.value = '';
+                return;
+            }
+
+            // Validate Holidays
+            if (holidays.includes(val)) {
+                alert('Esta data é um feriado. Por favor, escolha outro dia útil.');
+                e.target.value = '';
+                return;
+            }
+        };
+
         const previewView = document.getElementById('previewView');
+
+        // Right Panel Handlers
+        document.getElementById('btnOpenAction').onclick = () => {
+            const panel = document.getElementById('actionPanel');
+            panel.classList.toggle('hidden');
+        };
+
         const closePreview = document.getElementById('closePreview');
         const finalSend = document.getElementById('finalSend');
         const editorImg = document.getElementById('editorImg');
@@ -375,11 +416,11 @@
                     </div>`;
             } else {
                 d.innerHTML = `
-                    <div class="message-bubble ${bubbleClass} p-4 rounded-3xl shadow-xl border">
-                        <p class="text-sm font-medium">${msg}</p>
-                        <div class="flex ${isAttendant ? 'justify-end' : 'justify-start'} gap-1.5 mt-2">
-                            <span class="text-[9px] ${textClass} font-bold uppercase">${time}</span>
-                            ${isAttendant ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>' : ''}
+                    <div class="message-bubble ${bubbleClass} px-4 py-2 rounded-[1.25rem] shadow-lg border">
+                        <p class="text-sm font-medium leading-tight m-0 p-0">${msg}</p>
+                        <div class="flex ${isAttendant ? 'justify-end' : 'justify-start'} gap-1.5 mt-1.5">
+                            <span class="text-[9px] ${textClass} font-bold uppercase opacity-80">${time}</span>
+                            ${isAttendant ? '<i data-lucide="check" class="w-3.5 h-3.5 opacity-80"></i>' : ''}
                         </div>
                     </div>`;
             }
@@ -414,9 +455,16 @@
                 const isActive = currentSessionId === s.id;
                 const lastTime = s.ultima_msg_time ? s.ultima_msg_time.split(' ')[1].substring(0,5) : '';
                 
-                let statusColor = 'bg-orange-400';
-                if (s.status === 'em_atendimento') statusColor = 'bg-green-500';
-                if (s.status === 'standby') statusColor = 'bg-blue-400';
+                let statusColor = 'bg-red-500 animate-pulse';
+                let statusLabelBadge = '';
+                
+                if (s.status === 'em_atendimento') {
+                    statusColor = 'bg-green-500';
+                } else if (s.status === 'standby') {
+                    statusColor = 'bg-blue-400';
+                } else if (s.status === 'aguardando') {
+                    statusLabelBadge = '<span class="px-1.5 py-0.5 bg-red-100 text-red-600 text-[8px] font-black rounded-md ml-2 border border-red-200">NOVA SOLICITAÇÃO</span>';
+                }
 
                 const item = document.createElement('div');
                 item.className = `flex items-center gap-3 p-3.5 rounded-2xl cursor-pointer transition-all ${isActive ? 'bg-blue-600 text-white shadow-xl shadow-blue-100' : 'hover:bg-white hover:shadow-md text-slate-600'}`;
@@ -430,7 +478,7 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-baseline mb-0.5">
-                            <h4 class="text-sm font-bold truncate">${s.participante_nome}</h4>
+                            <h4 class="text-sm font-bold truncate flex items-center">${s.participante_nome}${statusLabelBadge}</h4>
                             <span class="text-[9px] font-bold ${isActive ? 'opacity-80' : 'text-slate-400'}">${lastTime}</span>
                         </div>
                         <p class="text-xs ${isActive ? 'opacity-90' : 'text-slate-400'} truncate font-medium">${s.status === 'standby' ? '⏱️ EM ESPERA - ' : ''}${s.ultima_msg || s.assunto || 'Iniciando conversa...'}</p>
@@ -455,9 +503,16 @@
             document.getElementById('hdrStatusText').textContent = statusLabel[sessao.status] || 'Offline';
             document.getElementById('hdrStatus').className = `absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 border-2 border-white rounded-full ${statusColor[sessao.status] || 'bg-slate-400'}`;
             
-            // Fill Action Panel
+            // Reset and Fill basic info only (manual conference preferred)
             document.getElementById('panelName').value = sessao.participante_nome || '';
             document.getElementById('panelCPF').value = sessao.participante_cpf || '';
+            document.getElementById('panelMatricula').value = '';
+            document.getElementById('panelEmail').value = '';
+            document.getElementById('panelCargo').value = '';
+            document.getElementById('panelVinculo').value = '';
+            document.getElementById('panelLocal').value = '';
+            
+            // Re-init date/time
             document.getElementById('panelDate').value = new Date().toISOString().split('T')[0];
             document.getElementById('panelTime').value = getNowTime();
             
@@ -473,14 +528,9 @@
                     addMessage(m.mensagem, align, { time, midia_url: m.midia_url });
                 });
                 
-                // If status is 'aguardando', take it
-                if (sessao.status === 'aguardando') {
-                    fetch(`/api/chat/atribuir/${sessao.id}`, {
-                        method: 'PUT',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ atendente_id: auth.id })
-                    }).then(() => loadSessions());
-                }
+                // If status is 'aguardando', we don't auto-take anymore to allow "Accept/Reject" logic later if needed
+                // But for now, we just let them see the history.
+                // We could add an "ACCEPT" button here.
             } catch (err) { console.error('Erro ao buscar mensagens:', err); }
         };
 
@@ -779,10 +829,26 @@
             } 
         };
 
-        // Right Panel Handlers
-        document.getElementById('btnOpenAction').onclick = () => {
+        document.getElementById('btnOpenAction').onclick = async () => {
+            if (!currentSessionId) return;
+            const sessao = sessions.find(s => s.id === currentSessionId);
+            
+            // If it's a new session, "take" it
+            if (sessao && sessao.status === 'aguardando') {
+                try {
+                    await fetch(`/api/chat/atribuir/${currentSessionId}`, {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ atendente_id: auth.id })
+                    });
+                    loadSessions(); // Update sidebar and header status
+                    sendMessage("👋 Olá! Sou o atendente do SAS e vou te auxiliar com sua demanda. Só um momento enquanto analiso as informações...");
+                } catch (e) { console.error(e); }
+            }
+
+            // Always toggle/open the action panel
             const panel = document.getElementById('actionPanel');
-            panel.classList.toggle('hidden');
+            if (panel) panel.classList.toggle('hidden');
         };
 
         document.getElementById('btnCreateAppointment').onclick = async () => {
@@ -823,15 +889,20 @@
                         status: 'chegou', 
                         tipo_atendimento: tipo_at,
                         prioridade: prioridade,
-                        atendente_id: auth.id
+                        atendente_id: auth.id,
+                        sessao_id: currentSessionId
                     })
                 });
                 const data = await res.json();
                 if (data.id) {
                     alert('Agendamento criado com sucesso! O servidor já está na fila do monitor.');
-                    sendMessage(`✅ Seu agendamento para ${servico} foi realizado com sucesso! Aguarde ser chamado no painel.`);
+                    sendMessage(`✅ Seu agendamento foi realizado com sucesso! Aguarde ser chamado no painel.`);
+                } else {
+                    alert('NÃO FOI POSSÍVEL CONFIRMAR: ' + (data.error || data.message || 'Erro desconhecido'));
                 }
-            } catch (err) { alert('Erro ao criar agendamento.'); }
+            } catch (err) { 
+                alert('Erro de conexão ou no servidor ao tentar confirmar.'); 
+            }
         };
 
         document.getElementById('btnEndChat').onclick = async () => {
@@ -876,6 +947,15 @@
                     document.getElementById('panelEmail').value = d.email || '';
                     document.getElementById('panelCargo').value = d.cargo || '';
                     document.getElementById('panelVinculo').value = d.vinculo || '';
+                    // Format initial message for the attendant
+                    const initialMsg = `🔹 *DADOS DO SERVIDOR* 🔹\n` +
+                                     `👤 *Nome:* ${d.nome_completo}\n` +
+                                     `🆔 *CPF:* ${d.cpf}\n` +
+                                     `🔢 *Matrícula:* ${d.matricula}\n` +
+                                     `💼 *Cargo:* ${d.cargo}\n` +
+                                     `🔗 *Vínculo:* ${d.vinculo}\n` +
+                                     `📍 *Local:* ${d.local_trabalho}\n` +
+                                     `📧 *E-mail:* ${d.email}`;
                     document.getElementById('panelLocal').value = d.local_trabalho || '';
                     
                     // Open sections to show data

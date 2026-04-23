@@ -86,7 +86,7 @@ def promote_next_to_panel(atendente_id=None, guiche=None):
             SELECT id FROM agendamentos 
             WHERE status = 'pendente' 
             AND DATE(data_agendamento) = CURDATE() 
-            AND (tipo_atendimento IN ('Presencial', 'Online') OR tipo_atendimento IS NULL)
+            AND (tipo_atendimento IN ('Presencial', 'Online', 'WhatsApp/Sistema', 'Whatsapp', 'whatsapp', 'whatsapp/sistema') OR tipo_atendimento IS NULL)
             AND hora_atendimento > (NOW() - INTERVAL 3 MINUTE)
         """, one=True)
 
@@ -330,7 +330,7 @@ def create_agendamento():
         fields = [
             'nome_completo', 'cpf', 'matricula', 'cargo', 'vinculo', 'local_trabalho', 'email',
             'tipo_servico', 'assunto_secundario', 'tipo_atendimento', 'prioridade', 'data_agendamento', 'hora_inicio',
-            'status', 'created_by', 'atendente_id'
+            'status', 'created_by', 'atendente_id', 'sessao_id'
         ]
         
         placeholders = ["%s"] * len(fields)
@@ -351,7 +351,8 @@ def create_agendamento():
             data.get('hora_inicio') or None, # Convert empty string to None
             data.get('status', 'agendado'),
             data.get('created_by'),
-            data.get('atendente_id')
+            data.get('atendente_id'),
+            data.get('sessao_id')
         ]
         
         query = f"""
@@ -448,7 +449,7 @@ def update_agendamento(id):
                 WHERE status = 'pendente' 
                 AND DATE(data_agendamento) = CURDATE() 
                 AND id != %s
-                AND (tipo_atendimento IN ('Presencial', 'Online') OR tipo_atendimento IS NULL)
+                AND (tipo_atendimento IN ('Presencial', 'Online', 'WhatsApp/Sistema', 'Whatsapp', 'whatsapp', 'whatsapp/sistema') OR tipo_atendimento IS NULL)
                 AND (hora_atendimento > (NOW() - INTERVAL 3 MINUTE) OR hora_atendimento IS NULL)
             """, (id,), one=True)
             
@@ -667,7 +668,7 @@ def get_current_call():
             SELECT id, nome_completo, guiche, chamada_count 
             FROM agendamentos 
             WHERE status = 'pendente' AND data_agendamento = %s
-            AND (tipo_atendimento IN ('Presencial', 'Online') OR tipo_atendimento IS NULL)
+            AND (tipo_atendimento IN ('Presencial', 'Online', 'WhatsApp/Sistema', 'Whatsapp', 'whatsapp', 'whatsapp/sistema') OR tipo_atendimento IS NULL)
             AND (hora_atendimento > (NOW() - INTERVAL 3 MINUTE) OR hora_atendimento IS NULL)
             ORDER BY hora_atendimento DESC, id DESC 
             LIMIT 1

@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
 from ..db import query_db
 from datetime import datetime
+import requests
+import json
 
 chat_bp = Blueprint('chat', __name__)
 
@@ -140,4 +142,85 @@ def standby_chat(sessao_id):
         query_db("UPDATE chat_sessoes SET status = 'standby' WHERE id = %s", (sessao_id,))
         return jsonify({"success": True})
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ----------------------------------------------------------------------------
+# LOGICA DE WHATSAPP / WEBHOOK (BOT)
+# ----------------------------------------------------------------------------
+
+def send_whatsapp_message(number, text):
+    """
+    Função auxiliar para enviar mensagens via API de WhatsApp (Ex: Evolution, Z-API)
+    """
+    # CONFIGURAÇÃO DA SUA API (Preencha aqui quando tiver os dados)
+    API_URL = "SUA_URL_DA_API_AQUI"
+    API_KEY = "SUA_KEY_AQUI"
+    INSTANCE = "SUA_INSTANCIA_AQUI"
+
+    if "SUA_URL" in API_URL:
+        print(f"[WA Simulation] Enviar para {number}: {text}")
+        return True
+
+    payload = {
+        "number": number,
+        "message": text
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "apikey": API_KEY
+    }
+    
+    try:
+        url = f"{API_URL}/message/sendText/{INSTANCE}"
+        res = requests.post(url, json=payload, headers=headers, timeout=10)
+        return res.status_code in [200, 201]
+    except Exception as e:
+        print(f"[WA Error] Falha ao enviar: {e}")
+        return False
+
+@chat_bp.route('/webhook', methods=['POST'])
+def whatsapp_webhook():
+    """
+    Webhook para receber mensagens do WhatsApp e responder automaticamente (BOT)
+    """
+    try:
+        data = request.json
+        # Ajuste esses campos dependendo de qual API de WhatsApp você usar
+        # Exemplo para Evolution API:
+        sender_number = ""
+        message_text = ""
+        
+        if data.get('data') and data['data'].get('key'):
+             sender_number = data['data']['key'].get('remoteJid', '').split('@')[0]
+             message_text = data['data'].get('message', {}).get('conversation', '')
+        else:
+             # Fallback genérico
+             sender_number = data.get('from', '').split('@')[0]
+             message_text = data.get('text', '')
+
+        print(f"[WEBHOOK] Mensagem de {sender_number}: {message_text}")
+
+        # --- TRAVA DE SEGURANÇA (BETA TESTER) ---
+        # Apenas o seu número receberá a resposta automática por enquanto
+        ALLOWED_NUMBER = "5581982985213"
+        if ALLOWED_NUMBER not in sender_number:
+            print(f"[WEBHOOK] Ignorando número {sender_number} (Fora da Whitelist)")
+            return jsonify({"status": "ignored"}), 200
+
+        # --- LÓGICA DO BOT ---
+        welcome_text = (
+            "Bom dia! 👋\n\n"
+            "Este canal é destinado ao Atendimento ao Servidor da Secretaria Estadual de Saúde (SES-PE).\n\n"
+            "📞 *Aviso:* Não realizamos ligações e não é possível ouvir áudios por aqui.\n\n"
+            "Para registrar seu atendimento e entrar na fila, clique no link abaixo e preencha seus dados:\n\n"
+            "🔗 https://sas.pe.gov.br/solicitar\n\n"
+            "Agradecemos a compreensão."
+        )
+
+        success = send_whatsapp_message(sender_number, welcome_text)
+        
+        return jsonify({"success": success, "number": sender_number}), 200
+
+    except Exception as e:
+        print(f"[WEBHOOK Error]: {e}")
         return jsonify({"error": str(e)}), 500

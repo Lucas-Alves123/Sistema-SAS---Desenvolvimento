@@ -44,6 +44,14 @@ def check_and_fix():
         else:
             print("reset_expires column exists.")
 
+        # Check for sessao_id in agendamentos
+        cur.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='agendamentos' AND COLUMN_NAME='sessao_id' AND TABLE_SCHEMA=%s", (Config.DB_NAME,))
+        if not cur.fetchone():
+            print("Adding sessao_id column to agendamentos...")
+            cur.execute("ALTER TABLE agendamentos ADD COLUMN sessao_id INT")
+        else:
+            print("sessao_id column exists in agendamentos.")
+
         conn.commit()
         cur.close()
         conn.close()

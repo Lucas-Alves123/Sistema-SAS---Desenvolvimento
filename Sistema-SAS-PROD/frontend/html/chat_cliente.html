@@ -66,13 +66,11 @@
         const msgInput = document.getElementById('msgInput');
         const sendBtn = document.getElementById('sendBtn');
         
-        let sessaoId = localStorage.getItem('sas_chat_sessao_id');
+        const params = new URLSearchParams(window.location.search);
+        let sessaoId = params.get('sessao_id') || localStorage.getItem('sas_chat_sessao_id');
         let pollingInterval = null;
 
-        const getParams = () => {
-            const p = new URLSearchParams(window.location.search);
-            return { nome: p.get('nome'), cpf: p.get('cpf'), assunto: p.get('assunto') || 'Atendimento Geral' };
-        };
+        if (sessaoId) localStorage.setItem('sas_chat_sessao_id', sessaoId);
 
         const addMessage = (text, align='right', time = null) => {
             if (!time) time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -81,39 +79,13 @@
             d.className = `flex flex-col ${isBot ? 'items-start' : 'items-end'}`;
             
             d.innerHTML = `
-                <div class="message-bubble p-4 rounded-2xl shadow-sm border ${isBot ? 'bg-white border-slate-100 text-slate-700 rounded-tl-none' : 'bg-blue-600 border-blue-500 text-white rounded-tr-none'}">
-                    <p class="text-sm font-medium">${text}</p>
-                    <span class="text-[9px] block mt-2 font-bold uppercase ${isBot ? 'text-slate-300' : 'text-blue-100'}">${time}</span>
+                <div class="message-bubble px-4 py-2 rounded-xl shadow-sm border ${isBot ? 'bg-white border-slate-100 text-slate-700 rounded-tl-none' : 'bg-blue-600 border-blue-500 text-white rounded-tr-none'}">
+                    <p class="text-[13px] font-medium leading-relaxed m-0 p-0">${text}</p>
+                    <span class="text-[8px] block mt-1 font-black uppercase ${isBot ? 'text-slate-300' : 'text-blue-200'}">${time}</span>
                 </div>
             `;
             chatWindow.appendChild(d);
             chatWindow.scrollTop = chatWindow.scrollHeight;
-        };
-
-        const startSession = async () => {
-            const params = getParams();
-            if (!params.nome && !sessaoId) {
-                chatWindow.innerHTML = '<div class="text-center p-8 text-slate-400 font-bold uppercase text-xs">Acesse pelo link enviado pelo SAS</div>';
-                return;
-            }
-
-            if (!sessaoId) {
-                try {
-                    const res = await fetch('/api/chat/sessao', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(params)
-                    });
-                    const data = await res.json();
-                    if (data.sessao_id) {
-                        sessaoId = data.sessao_id;
-                        localStorage.setItem('sas_chat_sessao_id', sessaoId);
-                    }
-                } catch (e) { console.error(e); }
-            }
-            
-            loadMessages();
-            pollingInterval = setInterval(loadMessages, 3000);
         };
 
         const loadMessages = async () => {
@@ -125,7 +97,7 @@
                 document.getElementById('loading')?.remove();
                 
                 const currentCount = chatWindow.querySelectorAll('.message-bubble').length;
-                if (msgs.length > currentCount) {
+                if (msgs.length !== currentCount) {
                     chatWindow.innerHTML = '';
                     msgs.forEach(m => {
                         const align = (m.remetente_tipo === 'sistema' || m.remetente_tipo === 'atendente') ? 'left' : 'right';
@@ -155,10 +127,24 @@
             } catch (e) { console.error(e); }
         };
 
+        if (!sessaoId) {
+            chatWindow.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full text-center p-8 space-y-4">
+                    <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-300">
+                        <i data-lucide="link-2" class="w-8 h-8"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-black text-slate-800 uppercase tracking-tight">Vínculo não encontrado</h2>
+                        <p class="text-xs text-slate-400 font-medium mt-1">Por favor, acesse através do link oficial enviado pelo SAS.</p>
+                    </div>
+                </div>`;
+        } else {
+            loadMessages();
+            pollingInterval = setInterval(loadMessages, 3000);
+        }
+
         sendBtn.onclick = sendMessage;
         msgInput.onkeydown = (e) => { if(e.key === 'Enter') sendMessage(); };
-
-        startSession();
     </script>
 </body>
 </html>
