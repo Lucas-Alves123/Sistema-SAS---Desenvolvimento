@@ -683,13 +683,79 @@
             }
         });
 
-        btnContinuar.addEventListener('click', () => {
-            if (!currentServidor) return;
-            document.getElementById('display_nome').textContent = currentServidor.nome_completo;
-            step1Content.classList.add('hidden');
-            step2Content.classList.remove('hidden');
-            updateStepper(2);
-            lucide.createIcons();
+        const urlParams = new URL(window.location.href).searchParams;
+        const chatType = urlParams.get('tipo');
+        const prefillIdent = urlParams.get('identificacao');
+        const prefillNome = urlParams.get('nome');
+
+        if (prefillIdent) {
+            inputIdentificacao.value = prefillIdent;
+            // Trigger search automatically if we have prefill
+            setTimeout(() => formIdentificacao.dispatchEvent(new Event('submit')), 500);
+        }
+
+        let isSubmitting = false;
+        btnContinuar.addEventListener('click', async () => {
+            if (!currentServidor || isSubmitting) return;
+            isSubmitting = true;
+
+            if (chatType === 'chat') {
+                // Fluxo de Chat Automatizado
+                btnContinuar.disabled = true;
+                btnContinuar.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Iniciando Chat...';
+                lucide.createIcons();
+
+                try {
+                    const res = await fetch('/api/chat/sessao', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            nome: currentServidor.nome_completo,
+                            cpf: currentServidor.cpf,
+                            matricula: currentServidor.matricula,
+                            cargo: currentServidor.cargo,
+                            vinculo: currentServidor.vinculo,
+                            local: currentServidor.local_trabalho,
+                            email: currentServidor.email,
+                            assunto: 'Atendimento via Link WhatsApp'
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        // Ao invés de redirecionar, mostra o Overlay de Sucesso (Fila de Espera)
+                        const protocolEl = document.getElementById('successProtocol');
+                        const successOverlay = document.getElementById('successOverlay');
+                        protocolEl.textContent = `#${String(data.sessao_id).padStart(6, '0')}`;
+                        successOverlay.classList.remove('hidden');
+                        
+                        // Inicia o Polling para redirecionar quando o atendente chamar
+                        setInterval(async () => {
+                            try {
+                                const resS = await fetch('/api/chat/sessoes');
+                                const sessoes = await resS.json();
+                                const s = sessoes.find(x => x.id === data.sessao_id);
+                                if (s && s.status === 'em_atendimento') {
+                                    window.location.href = `/chat_cliente?sessao_id=${data.sessao_id}`;
+                                }
+                            } catch (e) {}
+                        }, 3000);
+                        return;
+                    }
+                    throw new Error(data.error || 'Erro ao criar sessão');
+                } catch (e) {
+                    window.SAS.utils.notify('error', 'Falha ao iniciar chat: ' + e.message);
+                    btnContinuar.disabled = false;
+                    btnContinuar.innerHTML = '<span>Continuar</span><i data-lucide="arrow-right" class="w-5 h-5"></i>';
+                    lucide.createIcons();
+                }
+            } else {
+                // Fluxo Padrão de Agendamento
+                document.getElementById('display_nome').textContent = currentServidor.nome_completo;
+                step1Content.classList.add('hidden');
+                step2Content.classList.remove('hidden');
+                updateStepper(2);
+                lucide.createIcons();
+            }
         });
 
         // --- STEP 2 LOGIC ---
@@ -946,6 +1012,24 @@
             }
         }
     </script>
+
+    <!-- Confirmation Overlay (Success - Chat Flow) -->
+    <div id="successOverlay" class="fixed inset-0 bg-blue-600 z-[999] hidden flex items-center justify-center p-6">
+        <div class="text-center text-white space-y-8 max-w-md animate-fade-in">
+            <div class="w-24 h-24 bg-white/20 rounded-[2.5rem] mx-auto flex items-center justify-center shadow-2xl">
+                <i data-lucide="clock" class="w-12 h-12 text-white animate-pulse"></i>
+            </div>
+            <div class="space-y-2">
+                <h2 class="text-3xl font-black tracking-tighter">Entrou na Fila!</h2>
+                <p class="text-blue-100 font-medium">Sua solicitação de chat foi registrada. Por favor, aguarde enquanto um atendente inicia sua conversa.</p>
+            </div>
+            <div class="bg-blue-700/50 p-6 rounded-3xl border border-white/10">
+                <p class="text-xs font-black uppercase tracking-widest opacity-60 mb-2">Seu Protocolo</p>
+                <p class="text-2xl font-black text-white" id="successProtocol">#000000</p>
+            </div>
+            <p class="text-[10px] uppercase font-bold tracking-widest animate-bounce opacity-40">Mantenha esta página aberta</p>
+        </div>
+    </div>
 </body>
 
 </html>

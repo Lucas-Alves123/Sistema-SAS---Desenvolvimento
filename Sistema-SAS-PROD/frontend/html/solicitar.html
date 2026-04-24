@@ -231,8 +231,11 @@
             } catch (err) {}
         }
 
+        let isSubmitting = false;
         form.onsubmit = async (e) => {
             e.preventDefault();
+            if (isSubmitting) return;
+            isSubmitting = true;
             
             btnSubmit.classList.add('hidden');
             loadingState.classList.remove('hidden');
@@ -248,17 +251,6 @@
                 demanda: document.getElementById('demanda').value
             };
 
-            // Format initial message for the attendant
-            const initialMsg = `🔹 *DADOS DO SERVIDOR* 🔹\n` +
-                             `👤 *Nome:* ${payload.nome}\n` +
-                             `🆔 *CPF:* ${payload.cpf}\n` +
-                             `🔢 *Matrícula:* ${payload.matricula}\n` +
-                             `💼 *Cargo:* ${payload.cargo}\n` +
-                             `🔗 *Vínculo:* ${payload.vinculo}\n` +
-                             `📍 *Local:* ${payload.local}\n` +
-                             `📧 *E-mail:* ${payload.email}\n` +
-                             `❓ *DEMANDA:* ${payload.demanda}`;
-
             try {
                 const res = await fetch('/api/chat/sessao', {
                     method: 'POST',
@@ -266,6 +258,12 @@
                     body: JSON.stringify({
                         nome: payload.nome,
                         cpf: payload.cpf,
+                        matricula: payload.matricula,
+                        cargo: payload.cargo,
+                        vinculo: payload.vinculo,
+                        local: payload.local,
+                        email: payload.email,
+                        demanda: payload.demanda,
                         assunto: payload.demanda
                     })
                 });
@@ -275,17 +273,6 @@
                     const sessaoId = data.sessao_id;
                     protocolEl.textContent = `#${String(sessaoId).padStart(6, '0')}`;
                     
-                    // Send the data as first message
-                    await fetch('/api/chat/mensagem', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            sessao_id: sessaoId,
-                            remetente_tipo: 'sistema',
-                            mensagem: initialMsg
-                        })
-                    });
-
                     // Show Success
                     successOverlay.classList.remove('hidden');
                     

@@ -37,12 +37,14 @@ def query_db(query, args=(), one=False):
         else:
             conn.commit()
             last_id = cur.lastrowid
+            row_count = cur.rowcount
             cur.close()
             conn.close()
             # If it was an INSERT, return the last inserted ID in a dict to mimic RETURNING id
             if query.strip().upper().startswith("INSERT"):
                 return {"id": last_id}
-            return None
+            # For UPDATE/DELETE, return the row count
+            return {"rowcount": row_count}
     except Error as e:
         print(f"Database query error: {e}")
         if conn:

@@ -804,11 +804,11 @@
                                 </div>
                             </div>
 
-                            <div>
+                            <div class="${(item.tipo_atendimento === 'Online' || item.tipo_atendimento === 'WhatsApp/Sistema') ? 'hidden' : ''}">
                                 <label class="block text-blue-700 font-bold mb-2">Observação 1 - Problema relatado pelo cliente</label>
                                 <textarea id="obs1" oninput="saveServiceDraft('${item.id}')" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Descreva o problema relatado...">${item.observacao_problema || ''}</textarea>
                             </div>
-                            <div>
+                            <div class="${(item.tipo_atendimento === 'Online' || item.tipo_atendimento === 'WhatsApp/Sistema') ? 'hidden' : ''}">
                                 <label class="block text-blue-700 font-bold mb-2">Observação 2 - Resposta/Solução dada pelo atendente</label>
                                 <textarea id="obs2" oninput="saveServiceDraft('${item.id}')" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Descreva a solução fornecida...">${item.observacao_solucao || ''}</textarea>
                             </div>
@@ -1027,7 +1027,8 @@
                 assuntosAdicionais.push({ categoria, descricao });
             });
 
-            if (!obs1.trim() || !obs2.trim()) {
+            const isChat = currentActiveItem && (currentActiveItem.tipo_atendimento === 'Online' || currentActiveItem.tipo_atendimento === 'WhatsApp/Sistema');
+            if (!isChat && (!obs1.trim() || !obs2.trim())) {
                 window.SAS.utils.notify('warning', 'É preciso preencher as duas observações para encerrar.');
                 return;
             }

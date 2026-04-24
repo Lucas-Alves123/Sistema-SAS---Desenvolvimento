@@ -11,8 +11,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <style>
         .chat-container { height: calc(100vh - 180px); }
-        .message-bubble { max-width: 75%; white-space: pre-wrap; padding: 4px 12px !important; border-radius: 12px !important; box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important; }
-        .message-bubble p { margin: 0 !important; padding: 0 !important; line-height: 1.25 !important; }
+        .message-bubble { max-width: 75%; white-space: pre-wrap; padding: 6px 12px !important; border-radius: 16px !important; box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important; min-height: unset !important; display: inline-block; }
+        .message-bubble img { max-width: 100%; width: 280px; height: auto; border-radius: 12px; margin: 4px 0; display: block; }
+        .message-bubble p { margin: 0 !important; padding: 0 !important; line-height: 1.3 !important; font-size: 13px !important; }
         .custom-scrollbar::-webkit-scrollbar { width: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
@@ -261,6 +262,7 @@
                                     <div class="grid grid-cols-2 gap-2">
                                         <select id="panelTypeAt" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
                                             <option value="WhatsApp/Sistema">WhatsApp/Sistema</option>
+                                            <option value="Online">Online</option>
                                         </select>
                                         <select id="panelPriority" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
                                             <option value="Normal">Normal</option>
@@ -270,6 +272,27 @@
                                     <div class="grid grid-cols-2 gap-2">
                                         <input type="date" id="panelDate" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
                                         <input type="time" id="panelTime" class="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Grupo 4: Observações -->
+                            <div id="groupObservations" class="border border-slate-100 rounded-2xl overflow-hidden shadow-sm bg-white hidden">
+                                <button class="w-full flex items-center justify-between p-4 bg-slate-50/50 hover:bg-slate-50 transition-all group" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i>
+                                        <span class="text-[10px] font-black text-slate-700 uppercase tracking-widest">Observações</span>
+                                    </div>
+                                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-300 group-hover:text-blue-400 transition-colors"></i>
+                                </button>
+                                <div id="observationsContent" class="p-4 space-y-4 border-t border-slate-50 hidden">
+                                    <div>
+                                        <label class="text-[9px] font-black text-slate-400 uppercase mb-1 block">Obs 1 - Problema</label>
+                                        <textarea id="panelObs1" placeholder="Relato do servidor..." class="w-full px-4 py-2 bg-slate-50 border-none rounded-xl text-xs font-medium text-slate-700 outline-none h-20 resize-none"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="text-[9px] font-black text-slate-400 uppercase mb-1 block">Obs 2 - Solução</label>
+                                        <textarea id="panelObs2" placeholder="O que foi feito..." class="w-full px-4 py-2 bg-slate-50 border-none rounded-xl text-xs font-medium text-slate-700 outline-none h-20 resize-none"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -406,21 +429,21 @@
             if (msg.startsWith('data:image') || meta.midia_url) {
                 const src = meta.midia_url || msg;
                 d.innerHTML = `
-                    <div class="message-bubble p-1.5 rounded-3xl ${bubbleClass} shadow-xl border overflow-hidden cursor-pointer" onclick="window.SAS.chat.down('${src}', 'midia.png')">
+                    <div class="message-bubble p-1 rounded-2xl ${bubbleClass} shadow-xl border overflow-hidden cursor-pointer" style="width: fit-content; height: auto;" onclick="window.SAS.chat.down('${src}', 'midia.png')">
                         <img src="${src}" class="max-w-full rounded-2xl" onload="window.SAS.chat.scrollEnd()">
                         ${meta.caption ? `<p class="px-2 py-2 text-sm font-medium">${meta.caption}</p>` : ''}
-                        <div class="flex ${isAttendant ? 'justify-end' : 'justify-start'} mt-1 px-2 pb-1 relative z-10">
+                        <div class="flex ${isAttendant ? 'justify-end' : 'justify-start'} mt-1 px-1 pb-1 relative z-10">
                             <span class="text-[9px] ${textClass} font-bold uppercase">${time}</span>
                             ${isAttendant ? '<i data-lucide="check" class="w-3.5 h-3.5 ml-1"></i>' : ''}
                         </div>
                     </div>`;
             } else {
                 d.innerHTML = `
-                    <div class="message-bubble ${bubbleClass} px-4 py-2 rounded-[1.25rem] shadow-lg border">
+                    <div class="message-bubble ${bubbleClass} px-3 py-1.5 rounded-[1.1rem] shadow-lg border flex flex-col" style="width: fit-content; height: auto; min-width: 60px;">
                         <p class="text-sm font-medium leading-tight m-0 p-0">${msg}</p>
-                        <div class="flex ${isAttendant ? 'justify-end' : 'justify-start'} gap-1.5 mt-1.5">
-                            <span class="text-[9px] ${textClass} font-bold uppercase opacity-80">${time}</span>
-                            ${isAttendant ? '<i data-lucide="check" class="w-3.5 h-3.5 opacity-80"></i>' : ''}
+                        <div class="flex ${isAttendant ? 'justify-end' : 'justify-start'} gap-1 mt-0.5 opacity-70">
+                            <span class="text-[9px] ${textClass} font-bold uppercase">${time}</span>
+                            ${isAttendant ? '<i data-lucide="check" class="w-2.5 h-2.5"></i>' : ''}
                         </div>
                     </div>`;
             }
@@ -488,11 +511,8 @@
             });
         };
 
-        const selectSession = async (sessao) => {
-            currentSessionId = sessao.id;
-            renderSessionList();
-            
-            // Update Header
+        const updateHeaderUI = (sessao) => {
+            if (!sessao) return;
             const initials = sessao.participante_nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
             document.getElementById('hdrAvatar').textContent = initials;
             document.getElementById('hdrName').textContent = sessao.participante_nome;
@@ -502,6 +522,55 @@
             
             document.getElementById('hdrStatusText').textContent = statusLabel[sessao.status] || 'Offline';
             document.getElementById('hdrStatus').className = `absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 border-2 border-white rounded-full ${statusColor[sessao.status] || 'bg-slate-400'}`;
+            
+            // Toggle Standby/Resume Button
+            const btnStandby = document.getElementById('btnStandbyChat');
+            if (sessao.status === 'standby') {
+                btnStandby.innerHTML = '<i data-lucide="play-circle" class="w-4 h-4"></i> Retomar Atendimento';
+                btnStandby.classList.remove('text-blue-500');
+                btnStandby.classList.add('text-green-500');
+                btnStandby.classList.remove('border-blue-50');
+                btnStandby.classList.add('border-green-50');
+            } else {
+                btnStandby.innerHTML = '<i data-lucide="pause-circle" class="w-4 h-4"></i> Colocar em Espera';
+                btnStandby.classList.remove('text-green-500');
+                btnStandby.classList.add('text-blue-500');
+                btnStandby.classList.remove('border-green-50');
+                btnStandby.classList.add('border-blue-50');
+            }
+            lucide.createIcons();
+        };
+
+        const loadActiveChatMessages = async () => {
+            if (!currentSessionId) return;
+            try {
+                const res = await fetch(`/api/chat/mensagens/${currentSessionId}`);
+                const history = await res.json();
+                
+                const currentCount = chatHistory.querySelectorAll('.message-bubble').length;
+                if (history.length > currentCount) {
+                    if (currentCount === 0 || chatHistory.querySelector('.animate-spin')) {
+                        chatHistory.innerHTML = '';
+                    }
+                    const newMsgs = history.slice(currentCount);
+                    newMsgs.forEach(m => {
+                        // Oculta a mensagem de boas-vindas do sistema para o atendente (ele já sabe quem é)
+                        if (m.remetente_tipo === 'sistema' && m.mensagem.includes('Bem-vindo ao atendimento SAS')) return;
+                        
+                        const align = m.remetente_tipo === 'atendente' ? 'right' : 'left';
+                        const time = m.created_at.split(' ')[1].substring(0,5);
+                        addMessage(m.mensagem, align, { time, midia_url: m.midia_url });
+                    });
+                }
+            } catch (err) { console.error('Erro ao buscar mensagens:', err); }
+        };
+
+        const selectSession = async (sessao) => {
+            currentSessionId = sessao.id;
+            renderSessionList();
+            
+            // Update Header
+            updateHeaderUI(sessao);
             
             // Reset and Fill basic info only (manual conference preferred)
             document.getElementById('panelName').value = sessao.participante_nome || '';
@@ -518,20 +587,7 @@
             
             // Load History
             chatHistory.innerHTML = '<div class="flex justify-center p-8 opacity-50"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>';
-            try {
-                const res = await fetch(`/api/chat/mensagens/${sessao.id}`);
-                const history = await res.json();
-                chatHistory.innerHTML = '';
-                history.forEach(m => {
-                    const align = m.remetente_tipo === 'atendente' ? 'right' : 'left';
-                    const time = m.created_at.split(' ')[1].substring(0,5);
-                    addMessage(m.mensagem, align, { time, midia_url: m.midia_url });
-                });
-                
-                // If status is 'aguardando', we don't auto-take anymore to allow "Accept/Reject" logic later if needed
-                // But for now, we just let them see the history.
-                // We could add an "ACCEPT" button here.
-            } catch (err) { console.error('Erro ao buscar mensagens:', err); }
+            loadActiveChatMessages();
         };
 
         const sendMessage = async (text, midiaUrl = null) => {
@@ -822,6 +878,13 @@
             previewView.style.display='none'; pendingFiles=[];
         };
 
+        mainInput.onkeydown = (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                mainSend.click();
+            }
+        };
+
         mainSend.onclick = () => { 
             if(mainInput.value.trim()){ 
                 sendMessage(mainInput.value.trim()); 
@@ -835,15 +898,25 @@
             
             // If it's a new session, "take" it
             if (sessao && sessao.status === 'aguardando') {
+                const btn = document.getElementById('btnOpenAction');
+                btn.disabled = true; // Trava para evitar cliques duplos
                 try {
+                    // Atualização Otimista
+                    sessao.status = 'em_atendimento';
+                    updateHeaderUI(sessao);
+                    renderSessionList();
+                    
                     await fetch(`/api/chat/atribuir/${currentSessionId}`, {
                         method: 'PUT',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ atendente_id: auth.id })
                     });
-                    loadSessions(); // Update sidebar and header status
-                    sendMessage("👋 Olá! Sou o atendente do SAS e vou te auxiliar com sua demanda. Só um momento enquanto analiso as informações...");
-                } catch (e) { console.error(e); }
+                    
+                    loadSessions(); // Sync with server backup
+                } catch (e) { 
+                    console.error(e); 
+                    btn.disabled = false;
+                }
             }
 
             // Always toggle/open the action panel
@@ -865,6 +938,8 @@
             const prioridade = document.getElementById('panelPriority').value;
             const data_ag = document.getElementById('panelDate').value;
             const hora_ag = document.getElementById('panelTime').value;
+            const obs1 = document.getElementById('panelObs1').value;
+            const obs2 = document.getElementById('panelObs2').value;
 
             if (!nome || !cpf || !servico || !data_ag || !hora_ag) {
                 alert('Preencha os campos obrigatórios (Nome, CPF, Serviço, Data e Hora).');
@@ -886,6 +961,8 @@
                         tipo_servico: servico,
                         data_agendamento: data_ag,
                         hora_inicio: hora_ag,
+                        observacao_problema: obs1,
+                        observacao_solucao: obs2,
                         status: 'chegou', 
                         tipo_atendimento: tipo_at,
                         prioridade: prioridade,
@@ -895,8 +972,14 @@
                 });
                 const data = await res.json();
                 if (data.id) {
-                    alert('Agendamento criado com sucesso! O servidor já está na fila do monitor.');
-                    sendMessage(`✅ Seu agendamento foi realizado com sucesso! Aguarde ser chamado no painel.`);
+                    alert('Agendamento criado com sucesso!');
+                    sendMessage(`✅ Seu agendamento foi realizado com sucesso! Para continuarmos o atendimento, daremos prosseguimento por aqui.`);
+                    
+                    // Mostrar campo de observações após confirmar
+                    document.getElementById('groupObservations').classList.remove('hidden');
+                    document.getElementById('observationsContent').classList.remove('hidden');
+                    // Opcional: esconder o botão de confirmar agendamento já que já foi feito
+                    document.getElementById('btnCreateAppointment').classList.add('hidden');
                 } else {
                     alert('NÃO FOI POSSÍVEL CONFIRMAR: ' + (data.error || data.message || 'Erro desconhecido'));
                 }
@@ -918,13 +1001,32 @@
 
         document.getElementById('btnStandbyChat').onclick = async () => {
             if (!currentSessionId) return;
-            if (confirm('Deseja colocar este atendimento em espera?')) {
-                await fetch(`/api/chat/standby/${currentSessionId}`, { method: 'PUT' });
-                sendMessage('⚠️ Este atendimento foi colocado em espera. Assim que possível retornaremos o contato.');
-                currentSessionId = null;
-                chatHistory.innerHTML = '';
+            const sessao = sessions.find(s => s.id === currentSessionId);
+            const isStandby = sessao && sessao.status === 'standby';
+
+            if (confirm(isStandby ? 'Deseja retomar este atendimento?' : 'Deseja colocar este atendimento em espera?')) {
+                const endpoint = isStandby ? `/api/chat/atribuir/${currentSessionId}` : `/api/chat/standby/${currentSessionId}`;
+                const method = isStandby ? 'PUT' : 'PUT';
+                const body = isStandby ? JSON.stringify({ atendente_id: auth.id }) : null;
+
+                await fetch(endpoint, { 
+                    method, 
+                    headers: isStandby ? {'Content-Type': 'application/json'} : {},
+                    body
+                });
+                
+                // Atualizar o status localmente para refletir na UI instantaneamente
+                sessao.status = isStandby ? 'em_atendimento' : 'standby';
+                updateHeaderUI(sessao);
+                renderSessionList();
+                
+                if (isStandby) {
+                    sendMessage('✅ Este atendimento foi retomado.');
+                } else {
+                    sendMessage('⚠️ Este atendimento foi colocado em espera. Assim que possível retornaremos o contato.');
+                }
+                
                 loadSessions();
-                alert('Atendimento movido para Standby.');
             }
         };
 
@@ -973,7 +1075,8 @@
 
         // Startup
         loadSessions();
-        setInterval(loadSessions, 5000); // Poll for new messages every 5s
+        setInterval(loadSessions, 3000); // Poll for sessions every 3s
+        setInterval(loadActiveChatMessages, 2000); // Poll for current chat messages every 2s
 
     </script>
 </body>

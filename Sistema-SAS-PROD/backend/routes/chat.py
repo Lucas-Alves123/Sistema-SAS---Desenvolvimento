@@ -6,14 +6,22 @@ import json
 
 chat_bp = Blueprint('chat', __name__)
 
-# 1. Iniciar Sessão de Chat (Usado pelo solicitar.html)
+# 1. Iniciar Sessão de Chat (Usado pelo solicitar.html e identificacao.html)
 @chat_bp.route('/sessao', methods=['POST'])
 def criar_sessao():
     try:
         data = request.json
         nome = data.get('nome')
         cpf = data.get('cpf')
-        assunto = data.get('assunto')
+        assunto = data.get('assunto', 'Sem assunto')
+        
+        # Extra fields for the summary
+        matricula = data.get('matricula', '-')
+        cargo = data.get('cargo', '-')
+        vinculo = data.get('vinculo', '-')
+        local = data.get('local', '-')
+        email = data.get('email', '-')
+        demanda = data.get('demanda') or assunto
         
         if not nome:
             return jsonify({"error": "Nome é obrigatório"}), 400
@@ -25,15 +33,28 @@ def criar_sessao():
         result = query_db(sql, (nome, cpf, assunto))
         sessao_id = result['id']
 
-        # Mensagem automática de boas-vindas do sistema
+        # Generate Server Data summary automatically in the backend
+        initial_msg = (
+            f"🔹 *DADOS DO SERVIDOR* 🔹\n"
+            f"👤 *Nome:* {nome}\n"
+            f"🆔 *CPF:* {cpf}\n"
+            f"🔢 *Matrícula:* {matricula}\n"
+            f"💼 *Cargo:* {cargo}\n"
+            f"🔗 *Vínculo:* {vinculo}\n"
+            f"📍 *Local:* {local}\n"
+            f"📧 *E-mail:* {email}\n"
+            f"❓ *DEMANDA:* {demanda}"
+        )
+
         msg_sql = """
             INSERT INTO chat_mensagens (sessao_id, remetente_tipo, mensagem)
-            VALUES (%s, 'sistema', 'Olá! Bem-vindo ao atendimento SAS. Para agilizarmos seu atendimento, por favor, me diga seu CPF e o que você precisa hoje.')
+            VALUES (%s, 'sistema', %s)
         """
-        query_db(msg_sql, (sessao_id,))
+        query_db(msg_sql, (sessao_id, initial_msg))
         
         return jsonify({"success": True, "sessao_id": sessao_id}), 201
     except Exception as e:
+        print(f"[CHAT ERROR] Criar Sessão: {e}")
         return jsonify({"error": str(e)}), 500
 
 # 2. Listar Sessões (Para a Sidebar do Atendente)
@@ -115,15 +136,40 @@ def buscar_mensagens(sessao_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# 5. Atribuir Atendente ao Chat
+# 5. Atribuir Atendente ao Chat (Atendimento Instantâneo com trava de duplicidade)
 @chat_bp.route('/atribuir/<int:sessao_id>', methods=['PUT'])
 def atribuir_atendente(sessao_id):
     try:
         atendente_id = request.json.get('atendente_id')
-        sql = "UPDATE chat_sessoes SET atendente_id = %s, status = 'em_atendimento' WHERE id = %s"
-        query_db(sql, (atendente_id, sessao_id))
+        
+        # Tenta atualizar o status de 'aguardando' para 'em_atendimento'
+        # O query_db retorna a quantidade de linhas afetadas.
+        sql_update = "UPDATE chat_sessoes SET atendente_id = %s, status = 'em_atendimento' WHERE id = %s AND status = 'aguardando'"
+        result = query_db(sql_update, (atendente_id, sessao_id))
+        
+        # Se result['rowcount'] > 0 (ou similar dependendo do cursor), significa que fomos os primeiros a "atender"
+        # Como o query_db costuma retornar o resultado da execução, vamos verificar se houve mudança
+        if result and result.get('rowcount', 0) > 0:
+            # SUCESSO: Primeira vez atendendo. Enviar saudação.
+            atendente = query_db("SELECT nome_completo FROM usuarios WHERE id = %s", (atendente_id,), one=True)
+            atendente_nome = atendente['nome_completo'] if atendente else "Atendente SAS"
+            
+            greeting = f"👋 Olá! Sou o atendente do SAS e vou te auxiliar com sua demanda. Só um momento enquanto analiso as informações..."
+            
+            msg_sql = """
+                INSERT INTO chat_mensagens (sessao_id, remetente_tipo, atendente_id, mensagem)
+                VALUES (%s, 'atendente', %s, %s)
+            """
+            query_db(msg_sql, (sessao_id, atendente_id, greeting))
+        else:
+            # Se não afetou linhas, ou já estava em atendimento ou em standby. 
+            # Apenas garantimos que o atendente atual seja o dono (caso seja uma retomada ou troca)
+            sql_fallback = "UPDATE chat_sessoes SET atendente_id = %s, status = 'em_atendimento' WHERE id = %s"
+            query_db(sql_fallback, (atendente_id, sessao_id))
+
         return jsonify({"success": True})
     except Exception as e:
+        print(f"[CHAT ERROR] Atribuir: {e}")
         return jsonify({"error": str(e)}), 500
 
 # 6. Finalizar Chat
