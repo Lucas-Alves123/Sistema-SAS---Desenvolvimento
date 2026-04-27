@@ -24,6 +24,9 @@ def create_app():
     
     app.config.from_object(Config)
     
+    # Increase upload limit (32MB)
+    app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024
+    
     # Enable CORS for all routes
     CORS(app)
 

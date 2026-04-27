@@ -53,7 +53,16 @@
                 <!-- Sidebar -->
                 <div class="w-80 border-r border-slate-100 flex flex-col bg-slate-50/30 shrink-0">
                     <div class="p-5 border-b border-slate-100 bg-white">
-                        <h2 class="text-xl font-black text-slate-800 mb-4 tracking-tight">Conversas</h2>
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-xl font-black text-slate-800 tracking-tight">Conversas</h2>
+                        </div>
+                        
+                        <!-- Tabs -->
+                        <div class="flex bg-slate-100 p-1 rounded-xl mb-4">
+                            <button id="tabActive" class="flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all bg-white text-blue-600 shadow-sm">Ativos</button>
+                            <button id="tabHistory" class="flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all text-slate-400 hover:text-slate-600">Histórico</button>
+                        </div>
+
                         <div class="relative">
                             <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
                             <input type="text" id="sidebarSearch" placeholder="Buscar servidor..." class="w-full pl-10 pr-4 py-2.5 bg-slate-100 border-none rounded-2xl text-sm outline-none">
@@ -400,6 +409,7 @@
         let cropper = null;
         let currentSessionId = null;
         let sessions = [];
+        let sidebarMode = 'active'; // 'active' ou 'history'
 
         const scrollEnd = () => { chatHistory.scrollTop = chatHistory.scrollHeight; };
         window.SAS.chat = { scrollEnd, down: (u,n) => { let a=document.createElement('a'); a.href=u; a.download=n; a.click(); }};
@@ -426,27 +436,51 @@
                 : 'bg-white text-slate-700 rounded-tl-none border-slate-100 shadow-slate-100';
             const textClass = isAttendant ? 'text-blue-100' : 'text-slate-400';
 
-            if (msg.startsWith('data:image') || meta.midia_url) {
-                const src = meta.midia_url || msg;
-                d.innerHTML = `
-                    <div class="message-bubble p-1 rounded-2xl ${bubbleClass} shadow-xl border overflow-hidden cursor-pointer" style="width: fit-content; height: auto;" onclick="window.SAS.chat.down('${src}', 'midia.png')">
-                        <img src="${src}" class="max-w-full rounded-2xl" onload="window.SAS.chat.scrollEnd()">
-                        ${meta.caption ? `<p class="px-2 py-2 text-sm font-medium">${meta.caption}</p>` : ''}
-                        <div class="flex ${isAttendant ? 'justify-end' : 'justify-start'} mt-1 px-1 pb-1 relative z-10">
-                            <span class="text-[9px] ${textClass} font-bold uppercase">${time}</span>
-                            ${isAttendant ? '<i data-lucide="check" class="w-3.5 h-3.5 ml-1"></i>' : ''}
+            let content = '';
+            let finalMsg = msg;
+            const midiaUrl = meta.midia_url || (msg.startsWith('data:') ? msg : null);
+
+            if (midiaUrl && midiaUrl.length > 50) {
+                const isImg = midiaUrl.startsWith('data:image/');
+                const isDoc = msg.startsWith('DOC:');
+
+                if (isImg) {
+                    content = `
+                        <div class="mb-1 overflow-hidden rounded-xl cursor-pointer" onclick="window.SAS.chat.down('${midiaUrl}', 'imagem.png')">
+                            <img src="${midiaUrl}" class="max-w-full rounded-xl" onload="window.SAS.chat.scrollEnd()">
                         </div>
-                    </div>`;
-            } else {
-                d.innerHTML = `
-                    <div class="message-bubble ${bubbleClass} px-3 py-1.5 rounded-[1.1rem] shadow-lg border flex flex-col" style="width: fit-content; height: auto; min-width: 60px;">
-                        <p class="text-sm font-medium leading-tight m-0 p-0">${msg}</p>
-                        <div class="flex ${isAttendant ? 'justify-end' : 'justify-start'} gap-1 mt-0.5 opacity-70">
-                            <span class="text-[9px] ${textClass} font-bold uppercase">${time}</span>
-                            ${isAttendant ? '<i data-lucide="check" class="w-2.5 h-2.5"></i>' : ''}
+                    `;
+                } else {
+                    // LÓGICA INTELIGENTE: Detecta documento mesmo sem DOC: se for Base64 não-imagem
+                    let displayFileName = 'Documento Recebido';
+                    if (msg.includes('|')) {
+                        displayFileName = msg.split('|')[0].replace('DOC:', '');
+                        finalMsg = msg.split('|')[1];
+                    }
+                    content = `
+                        <div class="mb-2 p-3 ${isAttendant ? 'bg-white/10' : 'bg-slate-50'} rounded-xl flex items-center gap-3 cursor-pointer hover:opacity-80 transition-all border ${isAttendant ? 'border-white/10' : 'border-slate-100'}" onclick="const a = document.createElement('a'); a.href='${midiaUrl}'; a.download='${displayFileName}'; a.click();">
+                            <div class="w-10 h-10 ${isAttendant ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'} rounded-lg flex items-center justify-center shadow-sm shrink-0">
+                                <i data-lucide="file-text" class="w-5 h-5"></i>
+                            </div>
+                            <div class="flex-1 overflow-hidden">
+                                <p class="text-[11px] font-bold truncate ${isAttendant ? 'text-white' : 'text-slate-800'}">${displayFileName}</p>
+                                <p class="text-[9px] font-black uppercase ${isAttendant ? 'text-blue-200' : 'text-slate-400'}">Clique para baixar</p>
+                            </div>
                         </div>
-                    </div>`;
+                    `;
+                }
             }
+
+            d.innerHTML = `
+                <div class="message-bubble ${bubbleClass} px-3 py-1.5 rounded-[1.1rem] shadow-lg border flex flex-col" style="width: fit-content; height: auto; min-width: 60px; max-width: 80%;">
+                    ${content}
+                    <p class="text-sm font-medium leading-tight m-0 p-0">${finalMsg}</p>
+                    <div class="flex ${isAttendant ? 'justify-end' : 'justify-start'} gap-1 mt-1 opacity-70">
+                        <span class="text-[9px] ${textClass} font-bold uppercase">${time}</span>
+                        ${isAttendant ? '<i data-lucide="check" class="w-2.5 h-2.5"></i>' : ''}
+                    </div>
+                </div>`;
+
             chatHistory.appendChild(d); 
             if (window.lucide) lucide.createIcons(); 
             scrollEnd();
@@ -455,7 +489,7 @@
         // API Integration
         const loadSessions = async () => {
             try {
-                const res = await fetch('/api/chat/sessoes');
+                const res = await fetch(`/api/chat/sessoes${sidebarMode === 'history' ? '?history=true' : ''}`);
                 sessions = await res.json();
                 renderSessionList();
             } catch (err) { console.error('Erro ao carregar sessões:', err); }
@@ -469,7 +503,7 @@
             const filtered = sessions.filter(s => s.participante_nome.toLowerCase().includes(search));
             
             if (filtered.length === 0) {
-                list.innerHTML = '<div class="text-center p-8 text-xs font-bold text-slate-400 uppercase tracking-widest">Nenhum chat ativo</div>';
+                list.innerHTML = `<div class="text-center p-8 text-xs font-bold text-slate-400 uppercase tracking-widest">Nenhum chat ${sidebarMode === 'history' ? 'no histórico' : 'ativo'}</div>`;
                 return;
             }
 
@@ -487,6 +521,9 @@
                     statusColor = 'bg-blue-400';
                 } else if (s.status === 'aguardando') {
                     statusLabelBadge = '<span class="px-1.5 py-0.5 bg-red-100 text-red-600 text-[8px] font-black rounded-md ml-2 border border-red-200">NOVA SOLICITAÇÃO</span>';
+                } else if (s.status === 'finalizado') {
+                    statusColor = 'bg-slate-400';
+                    statusLabelBadge = '<span class="px-1.5 py-0.5 bg-slate-100 text-slate-400 text-[8px] font-black rounded-md ml-2 border border-slate-200">ENCERRADO</span>';
                 }
 
                 const item = document.createElement('div');
@@ -496,7 +533,9 @@
                 item.innerHTML = `
                     <div class="relative shrink-0">
                         <div class="w-12 h-12 rounded-full ${isActive ? 'bg-white/20' : 'bg-blue-100 text-blue-600'} flex items-center justify-center font-black">${initials}</div>
-                        <div class="absolute -bottom-1 -right-1 w-4 h-4 ${statusColor} border-2 border-white rounded-full"></div>
+                        <div class="absolute -bottom-1 -right-1 w-4 h-4 ${statusColor} border-2 border-white rounded-full flex items-center justify-center">
+                            ${s.status === 'finalizado' ? '<i data-lucide="lock" class="w-2 h-2 text-white"></i>' : ''}
+                        </div>
                         ${s.notificacao_pendente ? '<div class="absolute -top-1 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full animate-pulse shadow-sm"></div>' : ''}
                     </div>
                     <div class="flex-1 min-w-0">
@@ -509,6 +548,7 @@
                 `;
                 list.appendChild(item);
             });
+            lucide.createIcons();
         };
 
         const updateHeaderUI = (sessao) => {
@@ -517,26 +557,41 @@
             document.getElementById('hdrAvatar').textContent = initials;
             document.getElementById('hdrName').textContent = sessao.participante_nome;
             
-            const statusLabel = { 'aguardando': 'Aguardando', 'em_atendimento': 'Em Atendimento', 'standby': 'Em Espera' };
-            const statusColor = { 'aguardando': 'bg-orange-400', 'em_atendimento': 'bg-green-500', 'standby': 'bg-blue-400' };
+            const statusLabel = { 'aguardando': 'Aguardando', 'em_atendimento': 'Em Atendimento', 'standby': 'Em Espera', 'finalizado': 'Encerrada' };
+            const statusColor = { 'aguardando': 'bg-orange-400', 'em_atendimento': 'bg-green-500', 'standby': 'bg-blue-400', 'finalizado': 'bg-slate-400' };
             
             document.getElementById('hdrStatusText').textContent = statusLabel[sessao.status] || 'Offline';
             document.getElementById('hdrStatus').className = `absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 border-2 border-white rounded-full ${statusColor[sessao.status] || 'bg-slate-400'}`;
             
             // Toggle Standby/Resume Button
             const btnStandby = document.getElementById('btnStandbyChat');
-            if (sessao.status === 'standby') {
-                btnStandby.innerHTML = '<i data-lucide="play-circle" class="w-4 h-4"></i> Retomar Atendimento';
-                btnStandby.classList.remove('text-blue-500');
-                btnStandby.classList.add('text-green-500');
-                btnStandby.classList.remove('border-blue-50');
-                btnStandby.classList.add('border-green-50');
+            const btnEnd = document.getElementById('btnEndChat');
+            const inputArea = document.getElementById('mainInput').parentElement.parentElement;
+
+            if (sessao.status === 'finalizado') {
+                btnStandby.classList.add('hidden');
+                btnEnd.classList.add('hidden');
+                inputArea.classList.add('opacity-50', 'pointer-events-none');
+                document.getElementById('mainInput').placeholder = "Chat encerrado (Apenas leitura)";
             } else {
-                btnStandby.innerHTML = '<i data-lucide="pause-circle" class="w-4 h-4"></i> Colocar em Espera';
-                btnStandby.classList.remove('text-green-500');
-                btnStandby.classList.add('text-blue-500');
-                btnStandby.classList.remove('border-green-50');
-                btnStandby.classList.add('border-blue-50');
+                btnStandby.classList.remove('hidden');
+                btnEnd.classList.remove('hidden');
+                inputArea.classList.remove('opacity-50', 'pointer-events-none');
+                document.getElementById('mainInput').placeholder = "Escreva uma mensagem...";
+
+                if (sessao.status === 'standby') {
+                    btnStandby.innerHTML = '<i data-lucide="play-circle" class="w-4 h-4"></i> Retomar Atendimento';
+                    btnStandby.classList.remove('text-blue-500');
+                    btnStandby.classList.add('text-green-500');
+                    btnStandby.classList.remove('border-blue-50');
+                    btnStandby.classList.add('border-green-50');
+                } else {
+                    btnStandby.innerHTML = '<i data-lucide="pause-circle" class="w-4 h-4"></i> Colocar em Espera';
+                    btnStandby.classList.remove('text-green-500');
+                    btnStandby.classList.add('text-blue-500');
+                    btnStandby.classList.remove('border-green-50');
+                    btnStandby.classList.add('border-blue-50');
+                }
             }
             lucide.createIcons();
         };
@@ -992,12 +1047,34 @@
             if (!currentSessionId) return;
             if (confirm('Deseja finalizar esta conversa?')) {
                 await fetch(`/api/chat/finalizar/${currentSessionId}`, { method: 'PUT' });
-                currentSessionId = null;
-                document.getElementById('chatHeader').innerHTML = '<div class="p-4 text-slate-400 font-bold">Conversa finalizada</div>';
-                chatHistory.innerHTML = '';
+                // currentSessionId = null; // Don't nullify so user can still see it in history
                 loadSessions();
+                // Find and update status locally in sessions array for immediate UI update
+                const sessao = sessions.find(s => s.id === currentSessionId);
+                if (sessao) {
+                    sessao.status = 'finalizado';
+                    updateHeaderUI(sessao);
+                }
             }
         };
+
+        // Tab Switching Logic
+        const tabActive = document.getElementById('tabActive');
+        const tabHistory = document.getElementById('tabHistory');
+
+        const updateTabs = () => {
+            if (sidebarMode === 'active') {
+                tabActive.className = 'flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all bg-white text-blue-600 shadow-sm';
+                tabHistory.className = 'flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all text-slate-400 hover:text-slate-600';
+            } else {
+                tabHistory.className = 'flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all bg-white text-blue-600 shadow-sm';
+                tabActive.className = 'flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all text-slate-400 hover:text-slate-600';
+            }
+            loadSessions();
+        };
+
+        tabActive.onclick = () => { sidebarMode = 'active'; updateTabs(); };
+        tabHistory.onclick = () => { sidebarMode = 'history'; updateTabs(); };
 
         document.getElementById('btnStandbyChat').onclick = async () => {
             if (!currentSessionId) return;

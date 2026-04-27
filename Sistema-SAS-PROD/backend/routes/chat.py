@@ -61,15 +61,18 @@ def criar_sessao():
 @chat_bp.route('/sessoes', methods=['GET'])
 def listar_sessoes():
     try:
-        # Busca sessões aguardando ou em atendimento
+        exibir_historico = request.args.get('history') == 'true'
+        
+        # Busca sessões conforme o filtro de histórico
         sql = """
             SELECT s.*, 
             (SELECT mensagem FROM chat_mensagens WHERE sessao_id = s.id ORDER BY id DESC LIMIT 1) as ultima_msg,
             (SELECT created_at FROM chat_mensagens WHERE sessao_id = s.id ORDER BY id DESC LIMIT 1) as ultima_msg_time
             FROM chat_sessoes s
-            WHERE status != 'finalizado'
+            WHERE status {} 'finalizado'
             ORDER BY s.ultimo_acesso DESC
-        """
+        """.format('=' if exibir_historico else '!=')
+        
         sessoes = query_db(sql)
         
         # Serialização de datas
@@ -94,7 +97,12 @@ def enviar_mensagem():
         mensagem = data.get('mensagem')
         midia_url = data.get('midia_url')
         
+        print(f"[CHAT DEBUG] Nova msg de {remetente_tipo}. Sessão: {sessao_id}")
+        if midia_url:
+            print(f"[CHAT DEBUG] Anexo detectado: {midia_url[:50]}... (Tamanho: {len(midia_url)} chars)")
+        
         if not sessao_id or not mensagem:
+            print("[CHAT DEBUG] ERRO: Dados incompletos")
             return jsonify({"error": "Dados incompletos"}), 400
             
         sql = """
