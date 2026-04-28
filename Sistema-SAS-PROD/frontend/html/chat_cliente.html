@@ -39,7 +39,7 @@
             <div id="loading" class="flex flex-col items-center justify-center h-full opacity-30"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
         </main>
 
-        <footer class="p-4 md:p-6 bg-white border-t border-slate-100 shrink-0">
+        <footer id="chatFooter" class="p-4 md:p-6 bg-white border-t border-slate-100 shrink-0 hidden">
             <!-- Resetadores de input -->
             <input type="file" id="fileInput" class="hidden" onclick="this.value=null">
             <input type="file" id="imgInput" class="hidden" accept="image/*" onclick="this.value=null">
@@ -55,6 +55,10 @@
                 </button>
             </div>
         </footer>
+        <div id="waitFooter" class="p-4 md:p-6 bg-slate-50 border-t border-slate-200 shrink-0 flex flex-col items-center justify-center gap-2">
+            <div class="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin opacity-60"></div>
+            <p class="text-[12px] md:text-[13px] font-semibold text-slate-500 text-center">Aguardando o atendente confirmar seu agendamento no sistema...</p>
+        </div>
     </div>
 
     <!-- Preview Modal -->
@@ -184,6 +188,13 @@
             try {
                 const res = await fetch(`/api/chat/mensagens/${sessaoId}`);
                 const msgs = await res.json();
+                
+                const hasConfirmation = msgs.some(m => m.remetente_tipo === 'atendente' && m.mensagem.includes('Seu agendamento foi realizado com sucesso'));
+                if (hasConfirmation) {
+                    document.getElementById('waitFooter').classList.add('hidden');
+                    document.getElementById('chatFooter').classList.remove('hidden');
+                }
+                
                 const validMsgs = msgs.filter(m => !m.mensagem.includes('DADOS DO SERVIDOR'));
                 if (validMsgs.length > lastMsgCount) {
                     if (lastMsgCount === 0) chatWindow.innerHTML = '';

@@ -489,7 +489,7 @@
         // API Integration
         const loadSessions = async () => {
             try {
-                const res = await fetch(`/api/chat/sessoes${sidebarMode === 'history' ? '?history=true' : ''}`);
+                const res = await fetch(`/api/chat/sessoes${sidebarMode === 'history' ? '?history=true' : ''}`, { cache: "no-store" });
                 sessions = await res.json();
                 renderSessionList();
             } catch (err) { console.error('Erro ao carregar sessões:', err); }
@@ -599,19 +599,18 @@
         const loadActiveChatMessages = async () => {
             if (!currentSessionId) return;
             try {
-                const res = await fetch(`/api/chat/mensagens/${currentSessionId}`);
+                const res = await fetch(`/api/chat/mensagens/${currentSessionId}`, { cache: "no-store" });
                 const history = await res.json();
                 
+                const validMsgs = history.filter(m => !(m.remetente_tipo === 'sistema' && m.mensagem.includes('Bem-vindo ao atendimento SAS')));
                 const currentCount = chatHistory.querySelectorAll('.message-bubble').length;
-                if (history.length > currentCount) {
+                
+                if (validMsgs.length > currentCount) {
                     if (currentCount === 0 || chatHistory.querySelector('.animate-spin')) {
-                        chatHistory.innerHTML = '';
+                        chatHistory.innerHTML = '<div class="flex justify-center mb-8"><span class="bg-blue-100 text-blue-700 text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">Hoje</span></div>';
                     }
-                    const newMsgs = history.slice(currentCount);
+                    const newMsgs = validMsgs.slice(currentCount);
                     newMsgs.forEach(m => {
-                        // Oculta a mensagem de boas-vindas do sistema para o atendente (ele já sabe quem é)
-                        if (m.remetente_tipo === 'sistema' && m.mensagem.includes('Bem-vindo ao atendimento SAS')) return;
-                        
                         const align = m.remetente_tipo === 'atendente' ? 'right' : 'left';
                         const time = m.created_at.split(' ')[1].substring(0,5);
                         addMessage(m.mensagem, align, { time, midia_url: m.midia_url });
@@ -916,21 +915,42 @@
         mainImgInput.onchange = (e) => openSelection(e.target.files);
         btnAddFiles.onclick = () => mainFileInput.click(); // Now allows all files
 
+        const fileToBase64 = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+
         closePreview.onclick = () => { previewView.style.display='none'; pendingFiles=[]; };
         finalSend.onclick = async () => {
             saveCurrentState();
-            const pf = pendingFiles[currIdx];
-            pf.cap = editorCaption.value;
+            const pfCurrent = pendingFiles[currIdx];
+            if (pfCurrent) pfCurrent.cap = editorCaption.value;
             
-            // In a production app, we would upload these files first.
-            // For now, we use the base64/blob as 'midia_url'
+            const btn = document.getElementById('finalSend');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>';
+
             for (const pf of pendingFiles) {
-                const content = pf.file.type.startsWith('image/') ? (pf.editedData || pf.url) : 'Arquivo enviado';
-                const midia = pf.file.type.startsWith('image/') ? (pf.editedData || pf.url) : null;
-                await sendMessage(pf.cap || 'Mídia enviada', midia);
-                addMessage(pf.cap || 'Mídia enviada', 'right', { midia_url: midia });
+                const isImg = pf.file.type.startsWith('image/');
+                let midia = null;
+                
+                if (isImg && pf.editedData) {
+                    midia = pf.editedData;
+                } else {
+                    midia = await fileToBase64(pf.file);
+                }
+                
+                const textMsg = isImg ? (pf.cap || 'Imagem enviada') : `DOC:${pf.file.name}|${pf.cap || 'Documento enviado'}`;
+                
+                await sendMessage(textMsg, midia);
+                addMessage(textMsg, 'right', { midia_url: midia, time: getNowTime() });
             }
             previewView.style.display='none'; pendingFiles=[];
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="send" class="w-7 h-7 -translate-x-1 translate-y-1"></i>';
+            lucide.createIcons();
         };
 
         mainInput.onkeydown = (e) => {
