@@ -186,17 +186,29 @@
         const loadMessages = async () => {
             if (!sessaoId) return;
             try {
+                // Fetch session status to check if service started
+                const sessRes = await fetch(`/api/chat/sessoes/${sessaoId}`);
+                if (sessRes.ok) {
+                    const sessData = await sessRes.json();
+                    if (sessData.status === 'em_atendimento' || sessData.status === 'pendente' || sessData.status === 'finalizado') {
+                        document.getElementById('waitFooter').classList.add('hidden');
+                        document.getElementById('chatFooter').classList.remove('hidden');
+                        
+                        // Se estiver finalizado, bloqueia o input mas mostra o footer
+                        if (sessData.status === 'finalizado') {
+                            document.getElementById('msgInput').disabled = true;
+                            document.getElementById('msgInput').placeholder = "Atendimento encerrado";
+                            document.getElementById('sendBtn').disabled = true;
+                        }
+                    }
+                }
+
                 const res = await fetch(`/api/chat/mensagens/${sessaoId}`);
                 const msgs = await res.json();
                 
-                const hasConfirmation = msgs.some(m => m.remetente_tipo === 'atendente' && m.mensagem.includes('Seu agendamento foi realizado com sucesso'));
-                if (hasConfirmation) {
-                    document.getElementById('waitFooter').classList.add('hidden');
-                    document.getElementById('chatFooter').classList.remove('hidden');
-                }
-                
                 const validMsgs = msgs.filter(m => !m.mensagem.includes('DADOS DO SERVIDOR'));
                 if (validMsgs.length > lastMsgCount) {
+
                     if (lastMsgCount === 0) chatWindow.innerHTML = '';
                     const newMsgs = validMsgs.slice(lastMsgCount);
                     newMsgs.forEach(m => {

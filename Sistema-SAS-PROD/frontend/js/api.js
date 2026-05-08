@@ -19,6 +19,11 @@
             if (!res.ok) throw new Error('Failed to fetch data');
             return await res.json();
         },
+        get: async (id) => {
+            const res = await fetch(`${API_URL}/${endpoint}/${id}`);
+            if (!res.ok) throw new Error('Failed to fetch item');
+            return await res.json();
+        },
         filter: async (criteria) => {
             // Server-side filtering
             const params = new URLSearchParams(criteria).toString();

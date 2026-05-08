@@ -5,7 +5,7 @@ import os
 if __name__ == '__main__':
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from backend.config import Config
 from backend.routes.usuarios import usuarios_bp
@@ -47,6 +47,11 @@ def create_app():
     app.register_blueprint(ai_bp, url_prefix='/api/ai')
     app.register_blueprint(avaliacoes_bp, url_prefix='/api/avaliacoes')
     app.register_blueprint(chat_bp, url_prefix='/api/chat')
+    
+    @app.route('/static/uploads/<path:filename>')
+    def serve_uploads(filename):
+        upload_path = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+        return send_from_directory(upload_path, filename)
     
     @app.route('/')
     def index():
@@ -112,6 +117,10 @@ def create_app():
     @app.route('/chat_cliente')
     def chat_cliente_page():
         return app.send_static_file('html/chat_cliente.html')
+
+    @app.route('/whatsapp')
+    def whatsapp_page():
+        return app.send_static_file('html/whatsapp.html')
 
     @app.route('/health')
     def health_check():

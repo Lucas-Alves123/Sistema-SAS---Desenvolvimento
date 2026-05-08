@@ -86,6 +86,17 @@ def listar_sessoes():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@chat_bp.route('/sessoes/<int:id>', methods=['GET'])
+def get_sessao(id):
+    try:
+        sessao = query_db("SELECT * FROM chat_sessoes WHERE id = %s", (id,), one=True)
+        if not sessao:
+            return jsonify({"error": "Sessão não encontrada"}), 404
+        return jsonify(sessao)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 # 3. Enviar Mensagem
 @chat_bp.route('/mensagem', methods=['POST'])
 def enviar_mensagem():
@@ -278,3 +289,30 @@ def whatsapp_webhook():
     except Exception as e:
         print(f"[WEBHOOK Error]: {e}")
         return jsonify({"error": str(e)}), 500
+
+@chat_bp.route('/atender/<int:sessao_id>', methods=['POST'])
+def atender_sessao(sessao_id):
+    try:
+        data = request.json
+        atendente_id = data.get('atendente_id')
+        
+        # 1. Update Session Status
+        query_db("UPDATE chat_sessoes SET status = 'em_atendimento', atendente_id = %s, ultimo_acesso = NOW() WHERE id = %s", (atendente_id, sessao_id))
+        
+        # 2. Update Linked Appointment Status (if exists)
+        # We look for a record in agendamentos that has this sessao_id and is 'chegou'
+        query_db("""
+            UPDATE agendamentos 
+            SET status = 'em_andamento', atendente_id = %s, hora_atendimento = NOW() 
+            WHERE sessao_id = %s AND (status = 'chegou' OR status = 'aguardando')
+        """, (atendente_id, sessao_id))
+        
+        # 3. Add system message to chat
+        msg = "✅ *ATENDIMENTO INICIADO* \nO atendente já está visualizando sua demanda e iniciará a conversa em breve."
+        query_db("INSERT INTO chat_mensagens (sessao_id, remetente_tipo, mensagem) VALUES (%s, 'sistema', %s)", (sessao_id, msg))
+        
+        return jsonify({"success": True})
+    except Exception as e:
+        print(f"[CHAT ERROR] Atender: {e}")
+        return jsonify({"error": str(e)}), 500
+

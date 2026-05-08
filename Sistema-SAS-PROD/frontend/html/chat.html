@@ -375,10 +375,33 @@
         const previewView = document.getElementById('previewView');
 
         // Right Panel Handlers
-        document.getElementById('btnOpenAction').onclick = () => {
+        document.getElementById('btnOpenAction').onclick = async () => {
             const panel = document.getElementById('actionPanel');
             panel.classList.toggle('hidden');
+
+            if (!currentSessionId) return;
+            
+            // If the session is new (aguardando), mark as attended automatically
+            const sessao = sessions.find(s => s.id === currentSessionId);
+            if (sessao && (sessao.status === 'aguardando' || sessao.status === 'chegou')) {
+                try {
+                    const response = await fetch(`/api/chat/atender/${currentSessionId}`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ atendente_id: auth.id })
+                    });
+                    
+                    if (response.ok) {
+                        sessao.status = 'em_atendimento';
+                        updateHeaderUI(sessao);
+                        loadSessions(); // Refresh sidebar to update badges
+                    }
+                } catch (err) {
+                    console.error('Erro ao iniciar atendimento:', err);
+                }
+            }
         };
+
 
         const closePreview = document.getElementById('closePreview');
         const finalSend = document.getElementById('finalSend');

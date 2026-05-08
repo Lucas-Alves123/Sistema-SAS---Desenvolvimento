@@ -35,3 +35,12 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
 }
+
+/* Horizontal Scrollbar at Top Utility */
+.scrollbar-top {
+    transform: rotateX(180deg);
+}
+
+.scrollbar-top > * {
+    transform: rotateX(180deg);
+}

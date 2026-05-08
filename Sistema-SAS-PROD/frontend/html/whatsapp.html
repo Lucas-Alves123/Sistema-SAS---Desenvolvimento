@@ -80,13 +80,13 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">CPF *</label>
-                        <input type="text" name="cpf" required
+                        <input type="text" id="cpfInput" name="cpf" required maxlength="14"
                             class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500 outline-none transition-all"
                             placeholder="000.000.000-00">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Matrícula *</label>
-                        <input type="text" name="matricula" required
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Matrícula</label>
+                        <input type="text" name="matricula"
                             class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500 outline-none transition-all"
                             placeholder="Digite sua matrícula">
                     </div>
@@ -94,37 +94,49 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Cargo *</label>
-                        <input type="text" name="cargo" required
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Cargo</label>
+                        <input type="text" name="cargo"
                             class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500 outline-none transition-all"
                             placeholder="Ex: Enfermeiro">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Vínculo *</label>
-                        <select name="vinculo" required
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Vínculo</label>
+                        <select name="vinculo"
                             class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500 outline-none bg-white">
                             <option value="">Selecione...</option>
-                            <option value="Efetivo">Efetivo</option>
                             <option value="Comissionado">Comissionado</option>
-                            <option value="Contratado">Contratado</option>
-                            <option value="Cedido">Cedido</option>
-                            <option value="Aposentado">Aposentado</option>
+                            <option value="Concurso (Nomeado)">Concurso (Nomeado)</option>
+                            <option value="CTD (Contrato)">CTD (Contrato)</option>
+                            <option value="Estatutário">Estatutário</option>
+                            <option value="Extraquadro">Extraquadro</option>
+                            <option value="Ex-servidor">Ex-servidor</option>
+                            <option value="Extra - Sem vínculo">Extra - Sem vínculo</option>
+                            <option value="Seleção (Convocado)">Seleção (Convocado)</option>
+                            <option value="Outros">Outros</option>
                         </select>
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Local de Trabalho *</label>
-                    <input type="text" name="local_trabalho" required
-                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500 outline-none transition-all"
-                        placeholder="Ex: Hospital da Restauração">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Local de Trabalho</label>
+                        <input type="text" name="local_trabalho"
+                            class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                            placeholder="Ex: Hospital da Restauração">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">E-mail *</label>
+                        <input type="email" name="email" required
+                            class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                            placeholder="seuemail@servidor.pe.gov.br">
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">E-mail *</label>
-                    <input type="email" name="email" required
-                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500 outline-none transition-all"
-                        placeholder="seu@email.com">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Informe seu problema ou dúvida *</label>
+                    <textarea name="observacao_problema" id="demandaInput" required
+                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500 outline-none transition-all h-32 resize-none"
+                        placeholder="Descreva aqui brevemente o que você precisa..."></textarea>
                 </div>
 
                 <!-- Hidden field for service type, defaulting to 'Atendimento WhatsApp' -->
@@ -151,8 +163,17 @@
             <div class="bg-slate-50 rounded-xl p-6 border border-slate-200 mb-8 inline-block w-full max-sm">
                 <div class="text-sm text-slate-500 uppercase font-bold tracking-wider mb-1">Posição Atual</div>
                 <div class="text-5xl font-bold text-blue-600" id="queuePosition">--</div>
-                <p class="text-xs text-slate-400 mt-2">Aguarde. Sua posição será atualizada automaticamente.</p>
+                <p class="text-xs text-slate-400 mt-2" id="statusDebug">Sincronizando...</p>
+                
+                <!-- Botão de Acesso ao Chat (Fica visível quando inicia) -->
+                <div id="chatRedirectArea" class="hidden mt-6 p-4 bg-green-50 border border-green-200 rounded-xl">
+                    <p class="text-green-700 font-bold mb-3">✅ SEU ATENDIMENTO COMEÇOU!</p>
+                    <a id="chatLink" href="#" class="block w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg text-center animate-bounce">
+                        ENTRAR NO CHAT
+                    </a>
+                </div>
             </div>
+
 
             <div class="text-left bg-blue-50 p-4 rounded-lg border border-blue-100 text-sm text-blue-800">
                 <p class="font-bold mb-2 flex items-center gap-2">
@@ -335,6 +356,23 @@
         let pollInterval = null;
         let userData = JSON.parse(localStorage.getItem('sas_whatsapp_user') || '{}');
 
+        const cpfInput = document.getElementById('cpfInput');
+
+        // CPF Mask Logic
+        cpfInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 11) value = value.slice(0, 11);
+            
+            if (value.length > 9) {
+                value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{2}).*/, '$1.$2.$3-$4');
+            } else if (value.length > 6) {
+                value = value.replace(/^(\d{3})(\d{3})(\d{0,3}).*/, '$1.$2.$3');
+            } else if (value.length > 3) {
+                value = value.replace(/^(\d{3})(\d{0,3}).*/, '$1.$2');
+            }
+            e.target.value = value;
+        });
+
         if (currentId) {
             const lastStep = localStorage.getItem('sas_whatsapp_step') || '2';
             showStep(parseInt(lastStep));
@@ -367,7 +405,16 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(userData)
                 });
-                const result = await response.json();
+                
+                let result;
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    result = await response.json();
+                } else {
+                    const text = await response.text();
+                    throw new Error("Erro no servidor: Resposta não é JSON.");
+                }
+
                 if (!response.ok) throw new Error(result.error || 'Erro ao registrar.');
                 currentId = result.id;
                 localStorage.setItem('sas_whatsapp_id', currentId);
@@ -376,7 +423,8 @@
                 showStep(2);
                 startPolling();
             } catch (error) {
-                window.SAS.utils.modal.alert('Erro', error.message, 'danger');
+                console.error(error);
+                window.openGlobalAlertModal('Erro', error.message, 'danger');
                 submitBtn.innerHTML = 'Entrar na Fila';
                 submitBtn.disabled = false;
             }
@@ -408,29 +456,62 @@
         function startPolling() {
             if (pollInterval) clearInterval(pollInterval);
             checkStatus();
-            pollInterval = setInterval(checkStatus, 5000);
+            pollInterval = setInterval(checkStatus, 2000); // Mais rápido (2s)
         }
+
+        let lastSessaoId = null;
+
+        const goToChat = () => {
+            if (lastSessaoId) {
+                window.location.href = `/chat_cliente?sessao_id=${lastSessaoId}`;
+            }
+        };
 
         async function checkStatus() {
             if (!currentId) return;
+            const debugEl = document.getElementById('statusDebug');
+            const redirectArea = document.getElementById('chatRedirectArea');
+            const chatLink = document.getElementById('chatLink');
+
             try {
                 const response = await fetch(`/api/agendamentos/public/status/${currentId}`);
+                
+                if (response.status === 404) {
+                    clearInterval(pollInterval);
+                    resetSession();
+                    return;
+                }
+
                 const data = await response.json();
-                const currentStep = parseInt(localStorage.getItem('sas_whatsapp_step') || '1');
+                
                 if (data.status === 'chegou') {
                     queuePositionEl.textContent = data.position;
-                    if (currentStep !== 2) showStep(2);
-                } else if (data.status === 'pendente' || data.status === 'em_andamento') {
-                    if (currentStep !== 3) showStep(3);
-                } else {
+                    if (debugEl) debugEl.textContent = "Aguardando atendente...";
+                } else if (data.status === 'em_andamento' || data.status === 'em_atendimento' || data.status === 'pendente') {
                     clearInterval(pollInterval);
-                    window.SAS.utils.modal.alert('Atendimento', data.message || 'Seu atendimento foi encerrado.', 'info');
+                    
+                    const chatUrl = `${window.location.origin}/chat_cliente?sessao_id=${data.sessao_id}`;
+                    
+                    if (debugEl) debugEl.textContent = "✅ Atendimento Iniciado!";
+                    if (redirectArea) redirectArea.classList.remove('hidden');
+                    if (chatLink) chatLink.href = chatUrl;
+                    
+                    // Tentar redirecionar automaticamente
+                    setTimeout(() => {
+                        window.location.href = chatUrl;
+                    }, 1000);
+                } else if (data.status === 'finalizado' || data.status === 'cancelado' || data.status === 'nao_compareceu') {
+                    clearInterval(pollInterval);
+                    alert('Seu atendimento foi encerrado.');
                     resetSession();
                 }
             } catch (e) {
                 console.error('Polling error', e);
             }
         }
+
+
+
 
         function resetSession() {
             localStorage.removeItem('sas_whatsapp_id');

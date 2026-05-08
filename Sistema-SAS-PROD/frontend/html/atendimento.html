@@ -26,6 +26,7 @@
         const content = document.getElementById('page-content');
         let currentGuiche = localStorage.getItem('sas_guiche') || '1';
         let currentQueueTab = 'Presencial';
+        let isResumedService = false; // Flag para controlar se é um retorno do histórico
 
         content.innerHTML = `
             <div class="flex flex-col items-center justify-center mb-6 animate-fade-in">
@@ -167,6 +168,15 @@
                 <div id="arrivalsSection" class="bg-white rounded-xl shadow-sm border border-blue-200 p-6">
                     <h2 class="text-xl font-bold text-blue-700 mb-4">Agendamentos de Hoje - Confirmar Chegada</h2>
                     <div id="arrivalsList" class="space-y-2"></div>
+                </div>
+
+                <!-- Nova Seção: Atendidos Hoje -->
+                <div id="doneTodaySection" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="history" class="w-5 h-5 text-emerald-600"></i>
+                        <h2 class="text-xl font-bold text-gray-800">Atendidos Hoje</h2>
+                    </div>
+                    <div id="doneTodayList" class="space-y-2"></div>
                 </div>
             </div>
 
@@ -326,6 +336,51 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Modal de Anexos -->
+            <div id="anexosModal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[110] animate-fade-in p-4">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200">
+                    <div class="bg-slate-800 p-6 text-white flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xl font-bold flex items-center gap-2">
+                                <i data-lucide="paperclip" class="w-6 h-6"></i>
+                                Anexos do Atendimento
+                            </h3>
+                            <p id="anexosNomeServidor" class="text-xs text-slate-400 mt-1 uppercase tracking-wider font-bold"></p>
+                        </div>
+                        <button onclick="closeAnexosModal()" class="p-2 hover:bg-white/10 rounded-full transition-colors">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-6">
+                        <!-- Upload Area -->
+                        <div class="mb-6 p-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 flex flex-col items-center justify-center gap-3 group hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer relative">
+                            <input type="file" id="anexoFileInput" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleAnexoUpload()">
+                            <div class="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-slate-400 group-hover:text-blue-600 group-hover:scale-110 transition-all">
+                                <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-sm font-bold text-slate-700">Clique ou arraste arquivos aqui</p>
+                                <p class="text-xs text-slate-500">PDF, Imagens, Documentos (Máx: 10MB)</p>
+                            </div>
+                        </div>
+
+                        <!-- List Area -->
+                        <div class="space-y-3">
+                            <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Arquivos Anexados</h4>
+                            <div id="anexosList" class="max-h-60 overflow-y-auto pr-2 space-y-2">
+                                <!-- Anexos aparecem aqui -->
+                                <div class="text-center py-8 text-slate-400 italic text-sm">Nenhum anexo encontrado.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-slate-50 border-t border-slate-100 text-center">
+                        <button onclick="closeAnexosModal()" class="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg transition-all text-sm">Fechar</button>
+                    </div>
+                </div>
+            </div>
         `;
 
         lucide.createIcons();
@@ -385,14 +440,17 @@
                 'Deseja chamar este servidor agora?',
                 async () => {
                     try {
-                        const targetStatus = currentQueueTab === 'Presencial' ? 'na_fila_do_painel' : 'pendente';
+                        const isDigital = currentQueueTab !== 'Presencial';
+                        const targetStatus = isDigital ? 'em_andamento' : 'na_fila_do_painel';
+                        
                         await window.SAS.base44.entities.Agendamento.update(id, {
                             status: targetStatus,
                             atendente_id: user.id,
                             guiche: currentGuiche
                         });
+                        isResumedService = false; // Chamada normal, não é retorno
                         loadData();
-                        window.SAS.utils.notify('success', 'Chamando servidor...');
+                        window.SAS.utils.notify('success', isDigital ? 'Atendimento iniciado!' : 'Chamando servidor...');
                     } catch (e) {
                         console.error(e);
                         if (e.status === 409) {
@@ -516,28 +574,154 @@
 
         fetchStatus();
 
+        let currentAnexosAgendamentoId = null;
+
+        window.openAnexosModal = async (id, nome) => {
+            currentAnexosAgendamentoId = id;
+            const nomeEl = document.getElementById('anexosNomeServidor');
+            if (nomeEl) nomeEl.textContent = nome;
+            document.getElementById('anexosModal').classList.remove('hidden');
+            await loadAnexos(id);
+        };
+
+        window.closeAnexosModal = () => {
+            document.getElementById('anexosModal').classList.add('hidden');
+            currentAnexosAgendamentoId = null;
+        };
+
+        async function loadAnexos(id) {
+            const listEl = document.getElementById('anexosList');
+            if (!listEl) return;
+
+            listEl.innerHTML = '<div class="text-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div></div>';
+            
+            try {
+                const response = await fetch(`/api/agendamentos/${id}/anexos`);
+                const anexos = await response.json();
+                
+                if (!anexos || anexos.length === 0) {
+                    listEl.innerHTML = '<div class="text-center py-8 text-slate-400 italic text-sm">Nenhum anexo encontrado.</div>';
+                    return;
+                }
+                
+                listEl.innerHTML = '';
+                anexos.forEach(anexo => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl hover:shadow-sm transition-all group';
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <div class="bg-blue-50 p-2 rounded-lg text-blue-600">
+                                <i data-lucide="file" class="w-5 h-5"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <div class="font-bold text-slate-800 text-sm truncate" title="${anexo.file_name}">${anexo.file_name}</div>
+                                <div class="text-[10px] text-slate-400">${new Date(anexo.created_at).toLocaleString()}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a href="${anexo.file_path}" target="_blank" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Baixar">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                            </a>
+                            <button onclick="deleteAnexo(${anexo.id})" class="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors" title="Excluir">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    listEl.appendChild(div);
+                });
+                lucide.createIcons();
+            } catch (e) {
+                console.error(e);
+                listEl.innerHTML = '<div class="text-center py-8 text-red-500 text-sm">Erro ao carregar anexos.</div>';
+            }
+        }
+
+        window.handleAnexoUpload = async () => {
+            const input = document.getElementById('anexoFileInput');
+            const file = input.files[0];
+            if (!file) return;
+
+            if (file.size > 10 * 1024 * 1024) {
+                window.SAS.utils.notify('error', 'O arquivo é muito grande (máx 10MB)');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                window.SAS.utils.notify('info', 'Enviando arquivo...');
+                const response = await fetch(`/api/agendamentos/${currentAnexosAgendamentoId}/anexos`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    window.SAS.utils.notify('success', 'Arquivo anexado!');
+                    input.value = '';
+                    await loadAnexos(currentAnexosAgendamentoId);
+                } else {
+                    window.SAS.utils.notify('error', result.error || 'Erro ao subir arquivo');
+                }
+            } catch (e) {
+                console.error(e);
+                window.SAS.utils.notify('error', 'Erro na comunicação com o servidor');
+            }
+        };
+
+        window.deleteAnexo = (id) => {
+            window.SAS.utils.modal.confirm(
+                'Excluir Anexo',
+                'Tem certeza que deseja remover este arquivo permanentemente?',
+                async () => {
+                    try {
+                        const response = await fetch(`/api/agendamentos/anexos/${id}`, {
+                            method: 'DELETE'
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            window.SAS.utils.notify('success', 'Anexo removido!');
+                            await loadAnexos(currentAnexosAgendamentoId);
+                        } else {
+                            window.SAS.utils.notify('error', 'Erro ao remover anexo');
+                        }
+                    } catch (e) {
+                        window.SAS.utils.notify('error', 'Erro ao excluir arquivo');
+                    }
+                },
+                'danger'
+            );
+        };
+
         const loadData = async () => {
             const all = await window.SAS.base44.entities.Agendamento.list();
             const today = new Date().toISOString().split('T')[0];
-            const todayAppointments = all.filter(a => a.data_agendamento === today);
+            
+            // Inclui agendamentos de HOJE ou agendamentos do PASSADO que ainda estão pendentes
+            const todayAppointments = all.filter(a => 
+                a.data_agendamento === today || 
+                (a.data_agendamento < today && ['agendado', 'chegou', 'pendente', 'em_andamento', 'na_fila_do_painel'].includes(a.status))
+            );
             totalAgendadosEl.textContent = todayAppointments.length;
+
 
             const arrivals = todayAppointments.filter(a => 
                 a.status === 'agendado' &&
-                (a.tipo_atendimento === currentQueueTab || (!a.tipo_atendimento && currentQueueTab === 'Presencial'))
+                (a.tipo_atendimento && a.tipo_atendimento.toLowerCase() === currentQueueTab.toLowerCase() || (!a.tipo_atendimento && currentQueueTab === 'Presencial'))
             ).sort((a, b) => {
-                const timeA = a.hora_inicio || '23:59';
-                const timeB = b.hora_inicio || '23:59';
-                return timeA.localeCompare(timeB);
+                const dateA = a.data_agendamento + ' ' + (a.hora_inicio || '23:59');
+                const dateB = b.data_agendamento + ' ' + (b.hora_inicio || '23:59');
+                return dateA.localeCompare(dateB);
             });
 
             const queue = todayAppointments.filter(a =>
                 a.status === 'chegou' &&
-                (a.tipo_atendimento === currentQueueTab || (!a.tipo_atendimento && currentQueueTab === 'Presencial'))
+                (a.tipo_atendimento && a.tipo_atendimento.toLowerCase() === currentQueueTab.toLowerCase() || (!a.tipo_atendimento && currentQueueTab === 'Presencial'))
             ).sort((a, b) => {
-                const timeA = a.hora_inicio || '00:00';
-                const timeB = b.hora_inicio || '00:00';
-                return timeA.localeCompare(timeB);
+                const dateA = a.data_agendamento + ' ' + (a.hora_inicio || '00:00');
+                const dateB = b.data_agendamento + ' ' + (b.hora_inicio || '00:00');
+                return dateA.localeCompare(dateB);
             });
 
             const active = todayAppointments.find(a =>
@@ -547,6 +731,12 @@
 
             const waitingResponse = all.filter(a => 
                 a.status === 'pendente_resposta' && 
+                String(a.atendente_id) === String(user.id)
+            ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            const doneToday = all.filter(a => 
+                a.data_agendamento === today && 
+                a.status === 'concluido' &&
                 String(a.atendente_id) === String(user.id)
             ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
@@ -567,6 +757,7 @@
             renderQueue(queue);
             renderStandby(waitingResponse);
             renderActiveCall(active);
+            renderDoneToday(doneToday);
         };
 
         window.switchTab = (tab) => {
@@ -673,13 +864,46 @@
                         <div class="text-sm ${textClass} opacity-80">${item.tipo_servico}</div>
                     </div>
                     <div class="flex items-center gap-4">
-                        <div class="text-right hidden md:block">
+                        <div class="text-right">
                             <div class="font-bold ${textClass}">Aguardando</div>
                             <div class="text-xs ${textClass} opacity-80">Nível: ${item.prioridade}</div>
                         </div>
                     </div>
                 `;
                 queueList.appendChild(div);
+            });
+            lucide.createIcons();
+        };
+
+        const renderDoneToday = (items) => {
+            const doneList = document.getElementById('doneTodayList');
+            doneList.innerHTML = '';
+            
+            if (items.length === 0) {
+                doneList.innerHTML = '<p class="text-slate-400 italic text-sm text-center py-4">Nenhum atendimento finalizado por você hoje.</p>';
+                return;
+            }
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors bg-white shadow-sm';
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="bg-emerald-100 p-2 rounded-full text-emerald-600">
+                            <i data-lucide="check" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm">${item.nome_completo}</div>
+                            <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">${item.tipo_servico}</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="resumeService('${item.id}')" class="bg-slate-100 hover:bg-blue-100 text-slate-600 hover:text-blue-700 px-4 py-1.5 rounded-lg transition-all flex items-center gap-1 text-[10px] font-black uppercase tracking-widest border border-slate-200">
+                            <i data-lucide="play" class="w-3.5 h-3.5"></i> Retomar
+                        </button>
+                    </div>
+                `;
+                doneList.appendChild(div);
             });
             lucide.createIcons();
         };
@@ -760,6 +984,9 @@
             } else if (item.status === 'em_andamento') {
                 activeCallSection.innerHTML = `
                     <div class="bg-white rounded-xl shadow-lg border-2 border-blue-500 p-8 animate-fade-in relative">
+                        <button onclick="cancelService('${item.id}')" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all" title="Opções de Saída">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
                         ${item.observacao_transferencia ? `
                             <div class="mb-4 bg-blue-50 border border-blue-200 p-4 rounded-lg">
                                 <div class="text-xs font-bold text-blue-800 uppercase mb-1">Motivo da Transferência</div>
@@ -767,7 +994,14 @@
                             </div>
                         ` : ''}
                         <div class="mb-6 border-b pb-4">
-                            <h2 class="text-3xl font-bold text-blue-800 mb-1">${item.nome_completo}</h2>
+                            <div class="flex justify-between items-start mb-1">
+                                <h2 class="text-3xl font-bold text-blue-800">${item.nome_completo}</h2>
+                                ${(isResumedService && (item.tipo_atendimento === 'Presencial' || !item.tipo_atendimento)) ? `
+                                    <button onclick="recallToPanel_local('${item.id}')" class="flex items-center gap-2 bg-slate-100 hover:bg-blue-100 text-slate-600 hover:text-blue-700 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border border-slate-200">
+                                        <i data-lucide="megaphone" class="w-3.5 h-3.5"></i> Chamar no Painel
+                                    </button>
+                                ` : ''}
+                            </div>
                             <div class="mt-2 group relative">
                                 <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Tipo de Serviço (Clique para alterar se necessário):</label>
                                 <select id="servicoCorrigido" class="w-full p-2 border border-blue-200 rounded-lg bg-blue-50 text-blue-800 font-bold outline-none focus:ring-2 focus:ring-blue-500">
@@ -795,9 +1029,14 @@
                             <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
                                 <div class="flex justify-between items-center mb-3">
                                     <label class="block text-blue-700 font-bold">O servidor precisou tratar de mais um assunto?</label>
-                                    <button onclick="addAssuntoRow('${item.id}')" class="bg-blue-600 text-white text-xs px-3 py-1 rounded-md font-bold hover:bg-blue-700 transition-all flex items-center gap-1">
-                                        <i data-lucide="plus" class="w-3 h-3"></i> Adicionar
-                                    </button>
+                                    <div class="flex gap-2">
+                                        <button onclick="openAnexosModal('${item.id}', '${item.nome_completo}')" class="bg-white border border-slate-300 text-slate-600 text-xs px-3 py-1 rounded-md font-bold hover:bg-slate-50 transition-all flex items-center gap-1 shadow-sm">
+                                            <i data-lucide="paperclip" class="w-3 h-3"></i> Anexos
+                                        </button>
+                                        <button onclick="addAssuntoRow('${item.id}')" class="bg-blue-600 text-white text-xs px-3 py-1 rounded-md font-bold hover:bg-blue-700 transition-all flex items-center gap-1">
+                                            <i data-lucide="plus" class="w-3 h-3"></i> Adicionar
+                                        </button>
+                                    </div>
                                 </div>
                                 <div id="assuntosContainer" class="space-y-3">
                                     <!-- Linhas de assuntos aparecem aqui -->
@@ -1061,7 +1300,10 @@
 
                 lastServiceName.textContent = ag.nome_completo;
                 lastBtnReq.onclick = () => window.SAS.pdf.generateRequerimentoA(ag);
-                lastBtnComp.onclick = () => window.SAS.pdf.generateComprovante(ag, user.nome_completo || user.nome);
+                lastBtnComp.onclick = () => {
+                    const chefia = user.nome_assinatura || user.nome_completo || user.nome;
+                    window.SAS.pdf.generateComprovante(ag, chefia);
+                };
 
                 lastServiceSection.classList.remove('hidden');
                 lucide.createIcons();
@@ -1161,8 +1403,8 @@
                 const assuntos = [];
                 const rows = document.querySelectorAll('.assunto-row');
                 rows.forEach(row => {
-                    const cat = row.querySelector('.assunto-cat').value;
-                    const desc = row.querySelector('.assunto-desc').value;
+                    const cat = row.querySelector('.assunto-categoria').value;
+                    const desc = row.querySelector('.assunto-descricao').value;
                     if (cat && desc) assuntos.push({ categoria: cat, descricao: desc });
                 });
 
@@ -1192,6 +1434,7 @@
                 await window.SAS.base44.entities.Agendamento.update(id, {
                     status: 'em_andamento'
                 });
+                isResumedService = true; // Ativa flag de retorno
                 window.SAS.utils.notify('success', 'Atendimento retomado!');
                 loadData();
             } catch (e) {
@@ -1234,7 +1477,8 @@
                         closeTransferModal();
                         loadData();
                     } catch (e) {
-                        window.SAS.utils.notify('error', 'Erro ao transferir atendimento.');
+                        console.error(e);
+                        window.SAS.utils.notify('error', e.message || 'Erro ao transferir atendimento.');
                     }
                 }
             );
@@ -1256,12 +1500,14 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         atendente_id: user.id,
-                        guiche: currentGuiche
+                        guiche: currentGuiche,
+                        channel: currentQueueTab
                     })
                 });
                 
                 const result = await response.json();
                 if (result.success) {
+                    isResumedService = false; // Chamada normal
                     window.SAS.utils.notify('success', 'Chamando próximo da fila...');
                     loadData();
                 } else {
@@ -1292,6 +1538,25 @@
             } catch (error) {
                 console.error('Erro resetPanel:', error);
                 window.SAS.utils.notify('error', 'Falha na comunicação com o servidor.');
+            }
+        };
+
+        window.recallToPanel_local = async (id) => {
+            try {
+                const response = await fetch(`/api/agendamentos/${id}/recall`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guiche: currentGuiche })
+                });
+                
+                if (response.ok) {
+                    window.SAS.utils.notify('success', 'Chamada enviada ao painel!');
+                } else {
+                    const err = await response.json();
+                    window.SAS.utils.notify('warning', err.error || 'Painel ocupado.');
+                }
+            } catch (e) {
+                window.SAS.utils.notify('error', 'Erro ao rechamar no painel.');
             }
         };
 

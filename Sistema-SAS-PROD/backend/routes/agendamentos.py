@@ -1,9 +1,11 @@
 import os
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_from_directory
+from werkzeug.utils import secure_filename
 from ..db import query_db
 from datetime import datetime, timedelta
 
 agendamentos_bp = Blueprint('agendamentos', __name__)
+
 
 def get_next_in_queue(today, channel=None):
     """
@@ -15,7 +17,7 @@ def get_next_in_queue(today, channel=None):
         channel_sql = ""
         channel_params = []
         if channel:
-            channel_sql = " AND (tipo_atendimento = %s OR (tipo_atendimento IS NULL AND %s = 'Presencial'))"
+            channel_sql = " AND (LOWER(tipo_atendimento) = LOWER(%s) OR (tipo_atendimento IS NULL AND %s = 'Presencial'))"
             channel_params = [channel, channel]
 
         # 1. Get last 2 called tickets today for this channel
@@ -40,9 +42,9 @@ def get_next_in_queue(today, channel=None):
         if pref_consecutive >= 2:
             next_normal_query = f"""
                 SELECT id FROM agendamentos 
-                WHERE status = 'chegou' AND data_agendamento = %s AND prioridade != 'Preferencial'
+                WHERE status = 'chegou' AND data_agendamento <= %s AND prioridade != 'Preferencial'
                 {channel_sql}
-                ORDER BY id ASC LIMIT 1
+                ORDER BY data_agendamento ASC, id ASC LIMIT 1
             """
             next_normal = query_db(next_normal_query, [today] + channel_params, one=True)
             if next_normal:
@@ -51,9 +53,9 @@ def get_next_in_queue(today, channel=None):
         # 3. Otherwise, try Preferential first, then Normal
         next_pref_query = f"""
             SELECT id FROM agendamentos 
-            WHERE status = 'chegou' AND data_agendamento = %s AND prioridade = 'Preferencial'
+            WHERE status = 'chegou' AND data_agendamento <= %s AND prioridade = 'Preferencial'
             {channel_sql}
-            ORDER BY id ASC LIMIT 1
+            ORDER BY data_agendamento ASC, id ASC LIMIT 1
         """
         next_pref = query_db(next_pref_query, [today] + channel_params, one=True)
         if next_pref:
@@ -62,9 +64,9 @@ def get_next_in_queue(today, channel=None):
         # 4. Fallback to any Normal if no Preferential is left
         next_any_query = f"""
             SELECT id FROM agendamentos 
-            WHERE status = 'chegou' AND data_agendamento = %s
+            WHERE status = 'chegou' AND data_agendamento <= %s
             {channel_sql}
-            ORDER BY id ASC LIMIT 1
+            ORDER BY data_agendamento ASC, id ASC LIMIT 1
         """
         next_any = query_db(next_any_query, [today] + channel_params, one=True)
         return next_any['id'] if next_any else None
@@ -73,59 +75,52 @@ def get_next_in_queue(today, channel=None):
         print(f"[QUEUE ERROR] Error in get_next_in_queue: {e}")
         return None
 
-def promote_next_to_panel(atendente_id=None, guiche=None):
-    """Tenta promover o próximo da fila, ignorando chamados presos há mais de 15s."""
+def promote_next_to_panel(atendente_id, guiche=None, channel='Presencial'):
+    """
+    Promotes the next person from the queue.
+    If channel is 'Presencial', it goes to 'pendente' (calls the monitor).
+    If channel is Digital (WhatsApp, etc.), it goes to 'em_andamento' (bypasses monitor).
+    """
     try:
-        # 1. Clean stale calls using SQL Native time
         cleanup_stale_calls()
-        
-        today = datetime.now().strftime('%Y-%m-%d')
-        
-        # 2. Check if panel is TRULY busy (recent call in the last 15 seconds)
-        panel_busy = query_db("""
-            SELECT id FROM agendamentos 
-            WHERE status = 'pendente' 
-            AND DATE(data_agendamento) = CURDATE() 
-            AND (tipo_atendimento IN ('Presencial', 'Online', 'WhatsApp/Sistema', 'Whatsapp', 'whatsapp', 'whatsapp/sistema') OR tipo_atendimento IS NULL)
-            AND hora_atendimento > (NOW() - INTERVAL 3 MINUTE)
-        """, one=True)
+        today = datetime.now().date()
+        is_digital = channel and channel != 'Presencial'
 
-        if not panel_busy:
-            # 3. Promote from wait list (na_fila_do_painel)
-            waiting = query_db("""
+        # 1. Digital channels bypass panel busy check
+        if not is_digital:
+            panel_busy = query_db("""
                 SELECT id FROM agendamentos 
-                WHERE status = 'na_fila_do_painel' 
+                WHERE status = 'pendente' 
                 AND DATE(data_agendamento) = CURDATE() 
-                ORDER BY id ASC LIMIT 1
+                AND (tipo_atendimento = 'Presencial' OR tipo_atendimento IS NULL)
+                AND hora_atendimento > (NOW() - INTERVAL 1 MINUTE)
             """, one=True)
             
-            if waiting:
-                # IMPORTANT: DO NOT overwrite atendente_id or guiche. 
-                # This record already belongs to the person who manually called them.
-                sql = "UPDATE agendamentos SET status = 'pendente', hora_atendimento = NOW(), chamada_count = chamada_count + 1 WHERE id = %s"
-                query_db(sql, (waiting['id'],))
-                print(f"[QUEUE] Record {waiting['id']} promoted from panel queue (keeping original owner).")
-                return True
+            if panel_busy:
+                print(f"[QUEUE] Panel busy with recent call {panel_busy['id']}. Skipping promotion.")
+                return False
+
+        # 2. Get next in queue for the specific channel
+        next_id = get_next_in_queue(today, channel)
+        if next_id:
+            # WhatsApp, Email, etc. go straight to em_andamento to open the action panel
+            target_status = 'em_andamento' if is_digital else 'pendente'
+            sql = f"UPDATE agendamentos SET status = %s, hora_atendimento = NOW(), atendente_id = %s, chamada_count = chamada_count + 1"
+            params = [target_status, atendente_id]
+            if guiche:
+                sql += ", guiche = %s"
+                params.append(guiche)
+            sql += " WHERE id = %s"
+            params.append(next_id)
             
-            # 4. Fallback: Promote from normal 'chegou' queue ONLY if we have an attendant_id
-            # This prevents the monitor from auto-calling people without an attendant
-            if atendente_id:
-                next_id = get_next_in_queue(today)
-                if next_id:
-                    sql = "UPDATE agendamentos SET status = 'pendente', hora_atendimento = NOW(), atendente_id = %s, chamada_count = chamada_count + 1"
-                    params = [atendente_id]
-                    if guiche:
-                        sql += ", guiche = %s"
-                        params.append(guiche)
-                    sql += " WHERE id = %s"
-                    params.append(next_id)
-                    
-                    query_db(sql, tuple(params))
-                    print(f"[QUEUE] Record {next_id} promoted from normal queue by attendant {atendente_id}.")
-                    return True
-        else:
-            print(f"[QUEUE] Panel busy with recent call {panel_busy['id']}. Skipping promotion.")
+            query_db(sql, tuple(params))
+            return True
+        
         return False
+    except Exception as e:
+        print(f"[QUEUE ERROR] Error in promote_next_to_panel: {e}")
+        return False
+
     except Exception as e:
         print(f"[QUEUE ERROR] Error in promote_next_to_panel: {e}")
         return False
@@ -136,7 +131,9 @@ def proximo_post():
         data = request.json or {}
         atendente_id = data.get('atendente_id')
         guiche = data.get('guiche')
-        success = promote_next_to_panel(atendente_id, guiche)
+        channel = data.get('channel', 'Presencial')
+        success = promote_next_to_panel(atendente_id, guiche, channel)
+
         return jsonify({"success": success})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -162,21 +159,9 @@ def reset_painel_route():
 
 
 def cleanup_stale_calls():
-    """Converte chamados pendentes com mais de 60 segundos para 'chamada_expirada' usando SQL nativo."""
-    try:
-        # Using MySQL native functions to avoid timezone issues between Python and MySQL
-        # Only expire Presencial (or NULL) calls. Digital channels (WhatsApp, etc.) should NOT expire.
-        query_db("""
-            UPDATE agendamentos 
-            SET status = 'chamada_expirada' 
-            WHERE status = 'pendente' 
-            AND DATE(data_agendamento) = CURDATE()
-            AND (tipo_atendimento IS NULL OR tipo_atendimento = 'Presencial')
-            AND hora_atendimento IS NOT NULL 
-            AND hora_atendimento < (NOW() - INTERVAL 3 MINUTE)
-        """)
-    except Exception as e:
-        print(f"Erro na limpeza de chamados: {e}")
+    """Funcionalidade de expiração automática desativada."""
+    pass
+
 
 @agendamentos_bp.route('/', strict_slashes=False, methods=['GET'])
 def list_agendamentos():
@@ -190,7 +175,7 @@ def list_agendamentos():
         matricula = request.args.get('matricula')
         
         query = """
-            SELECT a.*, u.nome_completo as atendente_nome 
+            SELECT a.*, u.nome_completo as atendente_nome, u.nome_assinatura as atendente_assinatura
             FROM agendamentos a
             LEFT JOIN usuarios u ON a.atendente_id = u.id
             WHERE 1=1
@@ -206,6 +191,8 @@ def list_agendamentos():
         
         if sort == '-created_date':
             query += " ORDER BY a.created_at DESC"
+        elif sort == '-data_agendamento':
+            query += " ORDER BY a.data_agendamento DESC, a.hora_inicio DESC"
         else:
             query += " ORDER BY a.data_agendamento, a.hora_inicio"
             
@@ -250,12 +237,20 @@ def create_agendamento():
             # data_agendamento is YYYY-MM-DD, hora_inicio is HH:MM
             appt_dt_str = f"{data['data_agendamento']} {data['hora_inicio'][:5]}"
             appt_dt = datetime.strptime(appt_dt_str, "%Y-%m-%d %H:%M")
-            if appt_dt < datetime.now():
-                 return jsonify({'error': 'Não é possível agendar para um horário passado.'}), 400
+            # if appt_dt < datetime.now():
+            #      return jsonify({'error': 'Não é possível agendar para um horário passado.'}), 400
         except (ValueError, TypeError):
             pass # Ignore format errors here
             
     try:
+        # 0. Check if there's already an appointment for this session
+        sess_id = data.get('sessao_id')
+        if sess_id:
+            existing_by_session = query_db("SELECT id FROM agendamentos WHERE sessao_id = %s", (sess_id,), one=True)
+            if existing_by_session:
+                # If it exists, we update it instead of creating a duplicate
+                return update_agendamento(existing_by_session['id'])
+
         # 1. Check for Duplicate Appointment (Same Server, Same Day)
         cpf = data.get('cpf')
         matricula = data.get('matricula')
@@ -397,6 +392,22 @@ def get_proximo():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@agendamentos_bp.route('/<int:id>', methods=['GET'])
+def get_agendamento(id):
+    try:
+        agendamento = query_db("SELECT a.*, u.nome_completo as atendente_nome, u.nome_assinatura as atendente_assinatura FROM agendamentos a LEFT JOIN usuarios u ON a.atendente_id = u.id WHERE a.id = %s", (id,), one=True)
+        if not agendamento:
+            return jsonify({'error': 'Agendamento não encontrado'}), 404
+            
+        # Serialize dates/times
+        for key in ['data_agendamento', 'hora_inicio', 'created_at', 'hora_chegada', 'hora_atendimento', 'hora_conclusao']:
+            if agendamento.get(key):
+                agendamento[key] = str(agendamento[key])
+                
+        return jsonify(agendamento)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @agendamentos_bp.route('/<int:id>', methods=['PUT'])
 def update_agendamento(id):
     data = dict(request.json)
@@ -408,94 +419,66 @@ def update_agendamento(id):
     new_status = data.get('status')
     try:
         old_record = query_db("SELECT * FROM agendamentos WHERE id = %s", (id,), one=True)
-        if old_record:
-            old_status = old_record['status']
-            if new_status and old_status != new_status:
-                if new_status == 'chegou':
-                    data['hora_chegada'] = datetime.now()
-                elif new_status == 'pendente':
-                    data['hora_atendimento'] = datetime.now()
-                elif new_status == 'em_andamento':
-                    data['hora_atendimento'] = datetime.now()
-    except Exception as e:
-        print(f"Error pre-processing status change: {e}")
-
-    # 2. Build fields for update
-    fields = []
-    values = []
-    for key, value in data.items():
-        if key != 'id':
-            fields.append(f"{key} = %s")
-            values.append(value)
-            
-    if not fields:
-        return jsonify({'error': 'No fields to update'}), 400
+        if not old_record:
+            return jsonify({'error': 'Agendamento não encontrado'}), 404
         
-    values.append(id)
-    
-    try:
-        # 1. Update timestamp if moving to a pending/panel status
-        if new_status in ['pendente', 'na_fila_do_painel']:
-            data['hora_atendimento'] = datetime.now()
-            # AGGRESSIVE: Increment call count so the panel detects it even if it's the same ID
-            query_db("UPDATE agendamentos SET chamada_count = chamada_count + 1 WHERE id = %s", (id,))
+        old_status = old_record['status']
+        new_status = data.get('status')
 
-        # 2. Race Condition Check for panel busy
+        # 1. Automatic Timestamping
+        if new_status and old_status != new_status:
+            if new_status == 'chegou':
+                data['hora_chegada'] = datetime.now()
+            elif new_status in ['pendente', 'em_andamento', 'na_fila_do_painel']:
+                data['hora_atendimento'] = datetime.now()
+            elif new_status == 'concluido':
+                data['hora_conclusao'] = datetime.now()
+
+        # 2. Panel Busy Check (Only for calling/transferring to panel)
         if new_status in ['pendente', 'na_fila_do_painel']:
-            today = datetime.now().strftime('%Y-%m-%d')
-            # Check if panel is busy (Agressively)
+            # Agressive reset: count increment
+            query_db("UPDATE agendamentos SET chamada_count = chamada_count + 1 WHERE id = %s", (id,))
+            
+            # Relaxed busy check (last 60 seconds)
             busy = query_db("""
                 SELECT id FROM agendamentos 
                 WHERE status = 'pendente' 
-                AND DATE(data_agendamento) = CURDATE() 
                 AND id != %s
-                AND (tipo_atendimento IN ('Presencial', 'Online', 'WhatsApp/Sistema', 'Whatsapp', 'whatsapp', 'whatsapp/sistema') OR tipo_atendimento IS NULL)
-                AND (hora_atendimento > (NOW() - INTERVAL 3 MINUTE) OR hora_atendimento IS NULL)
+                AND (hora_atendimento > (NOW() - INTERVAL 1 MINUTE) OR hora_atendimento IS NULL)
             """, (id,), one=True)
             
             if busy:
-                return jsonify({'error': 'O painel está ocupado no momento. Aguarde o reset automático em 60s ou clique em Reset.'}), 409
+                return jsonify({'error': f'O painel está ocupado pelo atendimento {busy["id"]}. Aguarde um momento.'}), 409
 
-        if new_status == 'concluido':
-            data['hora_conclusao'] = datetime.now()
-            
-            base_url = request.url_root
-            user_email = old_record.get('email') or data.get('email')
-            nome = old_record.get('nome_completo') or data.get('nome_completo')
-            
-            # Debug logging
-            with open('backend/email_debug.log', 'a') as f:
-                f.write(f"[{datetime.now()}] Trigger detectado: concluido | ID: {id} | Email: {user_email} | Nome: {nome}\n")
-
+        # 3. Handle Satisfaction Email
+        if new_status == 'concluido' and old_status != 'concluido':
+            user_email = data.get('email') or old_record.get('email')
+            nome = data.get('nome_completo') or old_record.get('nome_completo')
             if user_email:
                 try:
                     import threading
-                    threading.Thread(target=send_satisfaction_email, args=(user_email, nome, id, base_url)).start()
-                except Exception as e:
-                    with open('backend/email_debug.log', 'a') as f:
-                        f.write(f"[{datetime.now()}] ERRO ao iniciar thread: {e}\n")
-                    print(f"Error triggering survey email: {e}")
+                    threading.Thread(target=send_satisfaction_email, args=(user_email, nome, id, request.url_root)).start()
+                except Exception as e: print(f"Email error: {e}")
 
-        # Build update query
+        # 4. Perform Update
         fields = []
         values = []
         for key, value in data.items():
             if key != 'id':
-                fields.append(f"{key} = %s")
+                fields.append(f"`{key}` = %s")
                 values.append(value)
         
-        values.append(id)
-        query = f"UPDATE agendamentos SET {', '.join(fields)} WHERE id = %s"
-        query_db(query, tuple(values))
-        
-        # After update: If it was 'pendente' and now isn't, promote next
+        if fields:
+            values.append(id)
+            query = f"UPDATE agendamentos SET {', '.join(fields)} WHERE id = %s"
+            query_db(query, tuple(values))
+
+        # 5. Post-Update Promotion & User Status
         if old_status == 'pendente' and new_status != 'pendente':
             promote_next_to_panel()
-        # Also if it's a new call that was promoted but then cancelled/moved quickly
         elif old_status == 'na_fila_do_painel' and new_status != 'na_fila_do_painel' and new_status != 'pendente':
             promote_next_to_panel()
 
-        # Update user status for 'em_atendimento'
         if new_status == 'em_andamento':
             current_atendente = data.get('atendente_id') or old_record.get('atendente_id')
             if current_atendente:
@@ -505,21 +488,15 @@ def update_agendamento(id):
             if old_atendente:
                 query_db("UPDATE usuarios SET status_atendimento = 'presencial' WHERE id = %s", (old_atendente,))
 
+        # 6. Return updated record
         updated = query_db("SELECT * FROM agendamentos WHERE id = %s", (id,), one=True)
-        
-        if not updated:
-            return jsonify({'error': 'Agendamento not found'}), 404
-            
-        # Serialize dates
-        if updated.get('data_agendamento'): updated['data_agendamento'] = str(updated['data_agendamento'])
-        if updated.get('hora_inicio'): updated['hora_inicio'] = str(updated['hora_inicio'])
-        if updated.get('created_at'): updated['created_at'] = str(updated['created_at'])
-        if updated.get('hora_chegada'): updated['hora_chegada'] = str(updated['hora_chegada'])
-        if updated.get('hora_atendimento'): updated['hora_atendimento'] = str(updated['hora_atendimento'])
-        if updated.get('hora_conclusao'): updated['hora_conclusao'] = str(updated['hora_conclusao'])
+        for key in ['data_agendamento', 'hora_inicio', 'created_at', 'hora_chegada', 'hora_atendimento', 'hora_conclusao']:
+            if updated.get(key): updated[key] = str(updated[key])
         
         return jsonify(updated)
+
     except Exception as e:
+        print(f"CRITICAL ERROR UPDATE: {e}")
         return jsonify({'error': str(e)}), 500
 
 @agendamentos_bp.route('/<int:id>', methods=['DELETE'])
@@ -639,11 +616,10 @@ def check_availability():
             if s in booked_times:
                 continue
                 
-            # If date is today, check if slot is in the past
-            if data_str == today_str:
-                slot_start_mins = to_mins(s)
-                if slot_start_mins <= current_time_mins:
-                    continue
+            # if data_str == today_str:
+            #     slot_start_mins = to_mins(s)
+            #     if slot_start_mins <= current_time_mins:
+            #         continue
             
             final_slots.append(s)
 
@@ -755,3 +731,184 @@ def send_satisfaction_email(email, nome, agendamento_id, base_url):
             f.write(f"[{datetime.now()}] ERRO FATAL no envio: {e}\n")
         print(f"Error sending satisfaction email: {e}")
         return False
+
+@agendamentos_bp.route('/public', methods=['POST'])
+def create_public_agendamento():
+    try:
+        data = request.json
+        if not data.get('cpf') or not data.get('nome_completo'):
+            return jsonify({'error': 'CPF e Nome são obrigatórios'}), 400
+
+        # Anti-duplicate check for public flow (same CPF, same day)
+        existing = query_db("""
+            SELECT id FROM agendamentos 
+            WHERE cpf = %s AND data_agendamento = CURDATE() 
+            AND status IN ('chegou', 'pendente', 'em_andamento')
+            LIMIT 1
+        """, (data['cpf'],), one=True)
+        
+        if existing:
+            return jsonify({'success': True, 'id': existing['id'], 'message': 'Já existe um agendamento hoje.'}), 200
+
+
+        # Build payload for WhatsApp channel
+        payload = {
+            'nome_completo': data.get('nome_completo'),
+            'cpf': data.get('cpf'),
+            'matricula': data.get('matricula', ''),
+            'cargo': data.get('cargo', ''),
+            'vinculo': data.get('vinculo', ''),
+            'local_trabalho': data.get('local_trabalho', ''),
+            'email': data.get('email', ''),
+            'tipo_servico': data.get('tipo_servico', 'Atendimento WhatsApp'),
+            'tipo_atendimento': 'Whatsapp',
+            'status': 'chegou',
+            'data_agendamento': datetime.now().date(),
+            'hora_chegada': datetime.now(),
+            'prioridade': 'Normal' # Default for public flow
+        }
+
+        fields = list(payload.keys())
+        placeholders = ["%s"] * len(fields)
+        values = [payload[f] for f in fields]
+
+        query = f"INSERT INTO agendamentos ({', '.join(fields)}) VALUES ({', '.join(placeholders)})"
+        result = query_db(query, tuple(values))
+        new_id = result['id']
+
+        # NEW: Create a corresponding chat session
+        try:
+            # 1. Insert session
+            sess_sql = """
+                INSERT INTO chat_sessoes (participante_nome, participante_cpf, assunto, status)
+                VALUES (%s, %s, %s, 'aguardando')
+            """
+            sess_res = query_db(sess_sql, (payload['nome_completo'], payload['cpf'], 'Atendimento via WhatsApp'))
+            sess_id = sess_res['id']
+
+            # 2. Link session to appointment
+            query_db("UPDATE agendamentos SET sessao_id = %s WHERE id = %s", (sess_id, new_id))
+
+            # 3. Insert initial data message
+            demanda_real = data.get('observacao_problema') or data.get('demanda') or 'Não informado'
+            initial_msg = (
+                f"🔹 *DADOS DO SERVIDOR (VIA WHATSAPP)* 🔹\n"
+                f"👤 *Nome:* {payload['nome_completo']}\n"
+                f"🆔 *CPF:* {payload['cpf']}\n"
+                f"🔢 *Matrícula:* {payload['matricula']}\n"
+                f"💼 *Cargo:* {payload['cargo']}\n"
+                f"🔗 *Vínculo:* {payload['vinculo']}\n"
+                f"📍 *Local:* {payload['local_trabalho']}\n"
+                f"📧 *E-mail:* {payload['email']}\n"
+                f"❓ *DEMANDA:* {demanda_real}"
+            )
+            
+            # Check if messages already exist to avoid duplicates
+            existing_msg = query_db("SELECT id FROM chat_mensagens WHERE sessao_id = %s LIMIT 1", (sess_id,), one=True)
+            if not existing_msg:
+                msg_sql = "INSERT INTO chat_mensagens (sessao_id, remetente_tipo, mensagem) VALUES (%s, 'sistema', %s)"
+                query_db(msg_sql, (sess_id, initial_msg))
+
+
+        except Exception as e_chat:
+            print(f"[CHAT SYNC ERROR] {e_chat}")
+            # Non-blocking: even if chat fails, agendamento is created
+        
+        return jsonify({'success': True, 'id': new_id}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@agendamentos_bp.route('/public/status/<int:id>', methods=['GET'])
+def get_public_status(id):
+    try:
+        # 1. Get current record
+        record = query_db("SELECT status, data_agendamento, sessao_id FROM agendamentos WHERE id = %s", (id,), one=True)
+        if not record:
+            return jsonify({'error': 'Não encontrado'}), 404
+
+        if record['status'] != 'chegou':
+            return jsonify({
+                'status': record['status'], 
+                'position': 0,
+                'sessao_id': record['sessao_id']
+            })
+
+
+        # 2. Calculate position in queue for today
+        # Only count 'chegou' status with ID lower than current
+        today = record['data_agendamento']
+        pos_query = """
+            SELECT COUNT(*) as pos 
+            FROM agendamentos 
+            WHERE data_agendamento = %s 
+            AND status = 'chegou' 
+            AND id <= %s
+        """
+        pos_result = query_db(pos_query, (today, id), one=True)
+        position = pos_result['pos'] if pos_result else 1
+
+        return jsonify({
+            'status': record['status'],
+            'position': position
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@agendamentos_bp.route('/<int:agendamento_id>/anexos', methods=['GET'])
+def list_anexos(agendamento_id):
+    try:
+        anexos = query_db("SELECT id, file_name, file_path, created_at FROM agendamento_anexos WHERE agendamento_id = %s ORDER BY created_at DESC", (agendamento_id,))
+        return jsonify(anexos)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@agendamentos_bp.route('/<int:agendamento_id>/anexos', methods=['POST'])
+def upload_anexo(agendamento_id):
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "Nenhum arquivo enviado"}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "Arquivo sem nome"}), 400
+        
+        filename = secure_filename(file.filename)
+        # Add timestamp to avoid collisions
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_")
+        stored_filename = f"{timestamp}{filename}"
+        
+        upload_dir = os.path.join('backend', 'static', 'uploads', 'anexos')
+        if not os.path.exists(upload_dir):
+            os.makedirs(upload_dir)
+            
+        file_path = os.path.join(upload_dir, stored_filename)
+        file.save(file_path)
+        
+        # Save to DB - relative path for serving
+        db_path = f"/static/uploads/anexos/{stored_filename}"
+        query_db("INSERT INTO agendamento_anexos (agendamento_id, file_path, file_name) VALUES (%s, %s, %s)", 
+                 (agendamento_id, db_path, filename))
+        
+        return jsonify({"success": True, "message": "Arquivo enviado com sucesso", "file_name": filename})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@agendamentos_bp.route('/anexos/<int:anexo_id>', methods=['DELETE'])
+def delete_anexo(anexo_id):
+    try:
+        anexo = query_db("SELECT file_path FROM agendamento_anexos WHERE id = %s", (anexo_id,), one=True)
+        if not anexo:
+            return jsonify({"error": "Anexo não encontrado"}), 404
+        
+        # Delete file from disk
+        file_path = os.path.join('backend', anexo['file_path'].lstrip('/'))
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            
+        # Delete from DB
+        query_db("DELETE FROM agendamento_anexos WHERE id = %s", (anexo_id,))
+        
+        return jsonify({"success": True, "message": "Anexo removido com sucesso"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

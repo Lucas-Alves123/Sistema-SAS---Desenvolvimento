@@ -49,8 +49,8 @@
                             <input type="text" id="nome" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-400" placeholder="Ex.: Maria">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-sm font-semibold text-gray-700">CPF</label>
-                            <input type="text" id="cpf" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-400" placeholder="000.000.000-00" maxlength="14">
+                            <label class="text-sm font-semibold text-gray-700">CPF <span class="text-red-500">*</span></label>
+                            <input type="text" id="cpf" required class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-400" placeholder="000.000.000-00" maxlength="14">
                         </div>
                         <div class="space-y-2">
                             <label class="text-sm font-semibold text-gray-700">Matrícula</label>
@@ -115,9 +115,9 @@
                             </div>
                         </div>
                         <div class="space-y-2">
-                            <label class="text-sm font-semibold text-gray-700">Tipo de atendimento</label>
+                            <label class="text-sm font-semibold text-gray-700">Tipo de atendimento <span class="text-red-500">*</span></label>
                             <div class="relative">
-                                <select id="tipo_atendimento" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600 appearance-none">
+                                <select id="tipo_atendimento" required class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600 appearance-none">
                                     <option value="">Selecione...</option>
                                     <option value="Presencial">Presencial</option>
                                     <option value="Whatsapp">Whatsapp</option>
@@ -359,9 +359,9 @@
             }
         });
 
-        // Date Logic
+        // Date Logic - Temporarily allowed past dates
         const today = new Date().toISOString().split('T')[0];
-        dataInput.min = today;
+        // dataInput.min = today; 
 
         const populateSlots = (filterTerm = '') => {
             const list = document.getElementById('horaCustomList');
@@ -528,15 +528,17 @@
                 const [hours, minutes] = payload.hora_inicio.split(':').map(Number);
                 const selectedDate = new Date(year, month - 1, day, hours, minutes);
 
+            /* Temporarily disabled past date check
             if (selectedDate < now) {
                     window.SAS.utils.modal.alert('Horário Inválido', 'Não é possível realizar agendamentos para horários que já passaram.', 'danger');
                     return;
                 }
+            */
             }
 
             // Validation before submit
-            if (!payload.data_agendamento || !payload.tipo_servico) {
-                window.SAS.utils.notify('warning', 'Por favor, informe ao menos a Data e o Tipo de Serviço para realizar o agendamento.');
+            if (!payload.data_agendamento || !payload.tipo_servico || !payload.cpf || !payload.tipo_atendimento) {
+                window.SAS.utils.notify('warning', 'Por favor, preencha os campos obrigatórios: CPF, Serviço, Atendimento e Data.');
                 return;
             }
 

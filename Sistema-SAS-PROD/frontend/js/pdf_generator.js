@@ -408,8 +408,8 @@ window.SAS.pdf = {
         const dataAgendamento = ag.data_agendamento ? ag.data_agendamento.split('-').reverse().join('/') : '___/___/___';
         const nomeServidor = ag.nome_completo || 'NÃO INFORMADO';
         const cpfServidor = ag.cpf || '___.___.___-__';
-        const hInicio = formatTime(ag.hora_atendimento);
-        const hFim = formatTime(ag.hora_conclusao);
+        const hInicio = formatTime(ag.hora_atendimento || ag.hora_inicio);
+        const hFim = formatTime(ag.hora_conclusao || now);
 
         const text = `Declaro, para os devidos fins, que ${nomeServidor}, CPF Nº ${cpfServidor}, compareceu ao Serviço de Atendimento ao Servidor - SAS - SES/PE, no dia ${dataAgendamento}, possuindo agendamento com início às ${hInicio} e finalização às ${hFim}, para tratar de assuntos de seu interesse.`;
         
@@ -420,10 +420,13 @@ window.SAS.pdf = {
         let currentY = 75 + (splitText.length * 7) + 15;
         doc.text("Atenciosamente,", marginX, currentY);
         
-        // 6. Assinatura Dinâmica (Atendente logado)
+        // 6. Assinatura Dinâmica (Atendente logado ou vinculado ao registro)
         currentY += 35;
         doc.setFont("helvetica", "bold");
-        const chefia = atendenteNome || "Daisy Santana Maciel de Barros"; 
+        
+        // Prioridade: Nome passado por parâmetro > Nome de Assinatura no objeto > Nome de Exibição no objeto > Fallback
+        const chefia = atendenteNome || ag.atendente_assinatura || ag.atendente_nome || "Atendente Responsável"; 
+        
         doc.text(chefia, 105, currentY, { align: "center" });
         doc.setFont("helvetica", "normal");
         
