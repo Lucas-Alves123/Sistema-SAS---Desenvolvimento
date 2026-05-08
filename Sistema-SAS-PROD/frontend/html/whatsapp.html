@@ -133,6 +133,13 @@
                 </div>
 
                 <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Telefone *</label>
+                    <input type="text" name="telefone" required
+                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                        placeholder="(00) 00000-0000">
+                </div>
+
+                <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Informe seu problema ou dúvida *</label>
                     <textarea name="observacao_problema" id="demandaInput" required
                         class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500 outline-none transition-all h-32 resize-none"
@@ -372,6 +379,26 @@
             }
             e.target.value = value;
         });
+
+        // Telefone Mask Logic
+        const telInput = document.querySelector('input[name="telefone"]');
+        if (telInput) {
+            telInput.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.slice(0, 11);
+                
+                if (value.length > 10) {
+                    value = value.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+                } else if (value.length > 6) {
+                    value = value.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+                } else if (value.length > 2) {
+                    value = value.replace(/^(\d{2})(\d{0,5}).*/, '($1) $2');
+                } else if (value.length > 0) {
+                    value = value.replace(/^(\d*)/, '($1');
+                }
+                e.target.value = value;
+            });
+        }
 
         if (currentId) {
             const lastStep = localStorage.getItem('sas_whatsapp_step') || '2';

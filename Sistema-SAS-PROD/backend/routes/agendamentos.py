@@ -323,7 +323,7 @@ def create_agendamento():
 
         # Explicitly listing fields to match schema
         fields = [
-            'nome_completo', 'cpf', 'matricula', 'cargo', 'vinculo', 'local_trabalho', 'email',
+            'nome_completo', 'cpf', 'matricula', 'cargo', 'vinculo', 'local_trabalho', 'email', 'telefone',
             'tipo_servico', 'assunto_secundario', 'tipo_atendimento', 'prioridade', 'data_agendamento', 'hora_inicio',
             'status', 'created_by', 'atendente_id', 'sessao_id'
         ]
@@ -338,6 +338,7 @@ def create_agendamento():
             data.get('vinculo'),
             data.get('local_trabalho'),
             data.get('email'),
+            data.get('telefone'),
             data.get('tipo_servico'),
             data.get('assunto_secundario'),
             data.get('tipo_atendimento'),
@@ -755,6 +756,7 @@ def create_public_agendamento():
         payload = {
             'nome_completo': data.get('nome_completo'),
             'cpf': data.get('cpf'),
+            'telefone': data.get('telefone', ''),
             'matricula': data.get('matricula', ''),
             'cargo': data.get('cargo', ''),
             'vinculo': data.get('vinculo', ''),

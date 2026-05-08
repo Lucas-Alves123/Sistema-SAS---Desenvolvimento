@@ -199,6 +199,7 @@
                                     <th class="px-3 py-3 border-r border-slate-200">Tipo de Vínculo</th>
                                     <th class="px-3 py-3 border-r border-slate-200">Local</th>
                                     <th class="px-3 py-3 border-r border-slate-200">E-mail</th>
+                                    <th class="px-3 py-3 border-r border-slate-200">Telefone</th>
                                     <th class="px-3 py-3 border-r border-slate-200">Atendente</th>
                                     <th class="px-3 py-3 border-r border-slate-200">Serviço</th>
                                     <th class="px-3 py-3 border-r border-slate-200">Assuntos Extras</th>
@@ -635,6 +636,7 @@
                     { label: 'Vínculo', value: ag.vinculo || '-', class: 'capitalize' },
                     { label: 'Local', value: ag.local_trabalho || '-' },
                     { label: 'E-mail', value: ag.email || '-' },
+                    { label: 'Telefone', value: ag.telefone || '-' },
                     { label: 'Serviço', value: ag.tipo_servico || '-' },
                     { label: 'Atendente', value: ag.atendente_nome || '-', class: 'font-bold text-blue-700' },
                     { label: 'Status', value: ag.status.toUpperCase(), class: 'font-bold' },
@@ -734,7 +736,7 @@
             reportTableBody.innerHTML = '';
 
             if (dataToDisplay.length === 0) {
-                reportTableBody.innerHTML = '<tr><td colspan="16" class="px-4 py-8 text-center text-gray-500 font-medium">Nenhum registro encontrado para os filtros selecionados.</td></tr>';
+                reportTableBody.innerHTML = '<tr><td colspan="17" class="px-4 py-8 text-center text-gray-500 font-medium">Nenhum registro encontrado para os filtros selecionados.</td></tr>';
                 return;
             }
 
@@ -789,6 +791,7 @@
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600 capitalize">${item.vinculo || '-'}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.local_trabalho || '-'}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.email || '-'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.telefone || '-'}</td>
                     <td class="px-2 py-3 border-r border-slate-100 font-bold text-blue-700">${item.atendente_nome || '-'}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.tipo_servico || '-'}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-800 font-medium min-w-[150px]">${extrasServHtml}</td>
@@ -933,6 +936,7 @@
                         'Tipo de Vínculo': a.vinculo,
                         'Local de Trabalho': a.local_trabalho,
                         'E-mail': a.email,
+                        'Telefone': a.telefone,
                         'Atendente': a.atendente_nome,
                         'Serviço Principal': a.tipo_servico,
                         'Serviços Adicionais': extrasServ,

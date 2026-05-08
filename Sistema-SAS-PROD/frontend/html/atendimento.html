@@ -858,10 +858,19 @@
 
                 const div = document.createElement('div');
                 div.className = `${bgClass} border p-4 rounded-lg flex justify-between items-center`;
+                
+                let extraInfo = '';
+                if (currentQueueTab === 'Whatsapp' || currentQueueTab === 'Telefônico') {
+                    extraInfo = `<div class="text-xs font-bold ${textClass} mt-1 flex items-center gap-1"><i data-lucide="phone" class="w-3 h-3"></i> ${item.telefone || '-'}</div>`;
+                } else if (currentQueueTab === 'E-mail') {
+                    extraInfo = `<div class="text-xs font-bold ${textClass} mt-1 flex items-center gap-1"><i data-lucide="mail" class="w-3 h-3"></i> ${item.email || '-'}</div>`;
+                }
+
                 div.innerHTML = `
                     <div class="flex-1">
                         <div class="font-bold ${textClass} text-lg">${item.nome_completo} ${badge}</div>
                         <div class="text-sm ${textClass} opacity-80">${item.tipo_servico}</div>
+                        ${extraInfo}
                     </div>
                     <div class="flex items-center gap-4">
                         <div class="text-right">
@@ -937,6 +946,9 @@
                                 </span>
                                 <span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-xs font-bold border border-slate-200">
                                     <i data-lucide="user" class="w-3 h-3"></i> Nível: ${item.prioridade}
+                                </span>
+                                <span class="inline-flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-bold border border-green-100">
+                                    <i data-lucide="phone" class="w-3 h-3"></i> Tel: ${item.telefone || '-'}
                                 </span>
                             </div>
                         </div>
@@ -1021,6 +1033,9 @@
                                 </span>
                                 <span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 px-4 py-1.5 rounded-full text-xs font-bold border border-slate-200 shadow-sm">
                                     <i data-lucide="star" class="w-3.5 h-3.5"></i> Nível: ${item.prioridade}
+                                </span>
+                                <span class="inline-flex items-center gap-1.5 bg-green-50 text-green-700 px-4 py-1.5 rounded-full text-xs font-bold border border-green-100 shadow-sm">
+                                    <i data-lucide="phone" class="w-3.5 h-3.5"></i> Tel: ${item.telefone || '-'}
                                 </span>
                             </div>
                         </div>
