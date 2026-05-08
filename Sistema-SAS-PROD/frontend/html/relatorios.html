@@ -41,7 +41,9 @@
                 </div>
             </div>
 
-            <div class="max-w-6xl mx-auto">
+            <div class="w-full">
+                <!-- Title and Tabs (Centered) -->
+                <div class="max-w-7xl mx-auto">
                 <!-- Tabs -->
                 <div class="flex gap-4 mb-6 border-b border-gray-200">
                     <button id="tabCharts" class="px-6 py-3 font-bold text-blue-600 border-b-2 border-blue-600 transition-colors">
@@ -54,9 +56,10 @@
                         Avaliações de Satisfação
                     </button>
                 </div>
+                </div>
 
-                <!-- Charts View -->
-                <div id="viewCharts" class="bg-white rounded-xl shadow-lg border border-slate-100 p-6 animate-fade-in">
+                <!-- Charts View (Centered) -->
+                <div id="viewCharts" class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg border border-slate-100 p-6 animate-fade-in">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <!-- Controls -->
                         <div class="space-y-4">
@@ -175,6 +178,17 @@
                                 </div>
                             </div>
 
+                            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase">Busca Rápida (Nome, CPF, E-mail ou Matrícula)</label>
+                                    <div class="relative">
+                                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                        <input type="text" id="filterSearch" placeholder="Digite para pesquisar..." 
+                                            class="w-full bg-white border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="flex justify-end gap-3 mt-6">
                                 <button id="filterBtn" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-lg font-bold shadow-md shadow-blue-100 transition-all text-sm">
                                     <i data-lucide="filter" class="w-4 h-4"></i> Aplicar Filtros
@@ -186,30 +200,36 @@
                     <!-- Pagination (Top) -->
                     <div id="paginationTop" class="flex justify-center mb-6"></div>
 
+                    <!-- Top Scrollbar (Synced with table) -->
+                    <div id="topScrollContainer" class="overflow-x-auto overflow-y-hidden h-2 w-full mb-1 bg-slate-50/50 rounded-full hidden lg:block">
+                        <div id="topScrollDummy" style="height: 1px;"></div>
+                    </div>
+
                     <!-- Table Container -->
-                    <div class="overflow-x-auto scrollbar-top border border-slate-200 rounded-xl shadow-sm bg-white mb-6">
-                        <table class="w-full text-[11px] text-left border-collapse">
-                            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
+                    <div id="mainTableContainer" class="overflow-auto max-h-[700px] border border-slate-200 rounded-xl shadow-sm bg-white mb-6 relative">
+                        <table class="w-full text-[11px] text-left border-separate border-spacing-0">
+                            <thead class="sticky top-0 z-20 bg-slate-100 text-slate-700 font-bold">
                                 <tr>
-                                    <th class="px-3 py-3 border-r border-slate-200">Data/Hora</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">Nome</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">CPF</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">Matrícula</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">Cargo</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">Tipo de Vínculo</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">Local</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">E-mail</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">Telefone</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">Atendente</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">Serviço</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">Assuntos Extras</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">Atendimento</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">Nível de Atendimento</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">Status</th>
-                                    <th class="px-3 py-3 border-r border-slate-200 text-center">Ações</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">Obs 1 (Prob)</th>
-                                    <th class="px-3 py-3 border-r border-slate-200">Obs 2 (Sol)</th>
-                                    <th class="px-3 py-3">Obs Extras</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Data/Hora</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Nome</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">CPF</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Matrícula</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Cargo</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Tipo de Vínculo</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Local</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">E-mail</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Telefone</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Atendente</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Serviço</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Assuntos Extras</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Atendimento</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Nível de Atendimento</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Status</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Concluído em</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20 text-center">Ações</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Obs 1 (Prob)</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Obs 2 (Sol)</th>
+                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-b border-slate-300 z-20">Obs Extras</th>
                                 </tr>
                             </thead>
                             <tbody id="reportTableBody" class="divide-y divide-slate-200">
@@ -222,7 +242,8 @@
                 </div>
 
                 <!-- Evaluations View -->
-                <div id="viewEvaluations" class="bg-white rounded-xl shadow-lg border border-slate-100 p-6 hidden animate-fade-in">
+                <!-- Evaluations View (Narrower) -->
+                <div id="viewEvaluations" class="max-w-6xl mx-auto bg-white rounded-xl shadow-lg border border-slate-100 p-6 hidden animate-fade-in">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center">
                             <div class="text-3xl font-bold text-blue-700" id="avgTotal">-</div>
@@ -661,6 +682,18 @@
             document.getElementById('detailsModal').classList.add('hidden');
         };
 
+        window.reopenService = (id) => {
+            window.SAS.utils.modal.confirm(
+                'Reabrir Atendimento',
+                'Deseja reabrir este atendimento para edição? Você será redirecionado para a tela de Atendimento.',
+                () => {
+                    const baseUrl = window.SAS.utils.createPageUrl('Atendimento');
+                    window.location.href = `${baseUrl}?resume=${id}`;
+                },
+                'info'
+            );
+        };
+
         // Funções Locais para PDF
         window.generateRequerimentoA_local = async (id) => {
             try {
@@ -702,9 +735,19 @@
             // Apply Filters
             const start = filterStartDate.value;
             const end = filterEndDate.value;
+            const typeValue = filterType.value;
             const attendant = filterAttendant.value;
             const service = filterService.value;
-            const typeValue = filterType.value;
+            const search = document.getElementById('filterSearch').value.toLowerCase();
+
+            if (search) {
+                data = data.filter(d => 
+                    (d.nome_completo && d.nome_completo.toLowerCase().includes(search)) ||
+                    (d.cpf && d.cpf.includes(search)) ||
+                    (d.email && d.email.toLowerCase().includes(search)) ||
+                    (d.matricula && d.matricula.includes(search))
+                );
+            }
 
             if (start) {
                 data = data.filter(d => d.data_agendamento >= start);
@@ -742,7 +785,7 @@
 
             dataToDisplay.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-50 transition-colors text-xs text-center';
+                tr.className = 'hover:bg-slate-50 transition-colors text-sm text-center';
 
                 let statusColor = 'text-gray-600';
                 if (item.status === 'concluido') statusColor = 'text-green-600 font-bold';
@@ -782,9 +825,14 @@
                     } catch (e) { console.error('Error parsing extras:', e); }
                 }
 
+                let importIndicator = '';
+                if (item.is_import) {
+                    importIndicator = `<span class="inline-block w-2 h-2 bg-red-500 rounded-full ml-1 animate-pulse" title="Registro da Carga - Necessita Ajuste"></span>`;
+                }
+
                 tr.innerHTML = `
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600 whitespace-nowrap">${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio ? item.hora_inicio.substring(0, 5) : ''}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 font-medium text-gray-800">${item.nome_completo || '-'}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 font-medium text-gray-800">${item.nome_completo || '-'} ${importIndicator}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${window.SAS.utils.formatCPF(item.cpf || '') || '-'}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.matricula || '-'}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.cargo || '-'}</td>
@@ -809,6 +857,9 @@
                             'cancelado_pelo_servidor': 'Cancelado Serv.'
                         })[item.status.toLowerCase()] || item.status.replace(/_/g, ' ')}
                     </td>
+                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600 whitespace-nowrap">
+                        ${item.hora_conclusao ? window.SAS.utils.formatDate(item.hora_conclusao.split(' ')[0]) + ' ' + item.hora_conclusao.split(' ')[1].substring(0, 5) : '-'}
+                    </td>
                     <td class="px-2 py-3 border-r border-slate-100 flex gap-1 justify-center items-center min-w-[120px]">
                         <button onclick="viewDetails('${item.id}')" title="Ver Detalhes" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
                             <i data-lucide="eye" class="w-4 h-4"></i>
@@ -821,6 +872,9 @@
                         </button>
                         <button onclick="generateComprovante_local('${item.id}')" title="Gerar Comprovante" class="p-1.5 text-orange-600 hover:bg-orange-50 rounded-md transition-colors">
                             <i data-lucide="award" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="reopenService('${item.id}')" title="Reabrir/Editar Atendimento" class="p-1.5 text-orange-500 hover:bg-orange-50 rounded-md transition-colors">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                         </button>
                     </td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${item.observacao_problema || '-'}</td>
@@ -943,6 +997,7 @@
                         'Atendimento': a.tipo_atendimento,
                         'Nível de Atendimento': a.prioridade,
                         'Status': a.status.replace(/_/g, ' ').toUpperCase(),
+                        'Data de Conclusão': a.hora_conclusao ? `${window.SAS.utils.formatDate(a.hora_conclusao.split(' ')[0])} ${a.hora_conclusao.split(' ')[1].substring(0, 5)}` : '-',
                         'Obsservação 1 - Problema': a.observacao_problema,
                         'Observação 2 - Solução': a.observacao_solucao,
                         'Observações Adicionais': extrasObs
@@ -962,6 +1017,11 @@
 
         filterBtn.addEventListener('click', () => {
             currentPage = 1; // Reset to page 1 on new filter
+            loadReportTable();
+        });
+
+        document.getElementById('filterSearch').addEventListener('input', () => {
+            currentPage = 1;
             loadReportTable();
         });
 
@@ -1082,6 +1142,38 @@
 
         // Generate initial chart
         generateBtn.click();
+
+        // Sync Top and Bottom Scrollbars
+        const topScroll = document.getElementById('topScrollContainer');
+        const topDummy = document.getElementById('topScrollDummy');
+        const mainScroll = document.getElementById('mainTableContainer');
+
+        if (topScroll && mainScroll) {
+            topScroll.onscroll = () => {
+                if (mainScroll.scrollLeft !== topScroll.scrollLeft) {
+                    mainScroll.scrollLeft = topScroll.scrollLeft;
+                }
+            };
+            mainScroll.onscroll = () => {
+                if (topScroll.scrollLeft !== mainScroll.scrollLeft) {
+                    topScroll.scrollLeft = mainScroll.scrollLeft;
+                }
+            };
+
+            // Keep dummy width in sync with table width
+            const updateDummyWidth = () => {
+                const table = mainScroll.querySelector('table');
+                if (table) {
+                    topDummy.style.width = table.offsetWidth + 'px';
+                }
+            };
+
+            const resizeObserver = new ResizeObserver(updateDummyWidth);
+            resizeObserver.observe(mainScroll);
+            
+            // Initial update
+            setTimeout(updateDummyWidth, 500);
+        }
     </script>
 </body>
 

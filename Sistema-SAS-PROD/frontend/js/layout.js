@@ -121,13 +121,13 @@
                 </header>
 
                 <!-- Main Content -->
-                <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <main class="flex-1 w-full ${activePage === 'Relatórios' ? 'max-w-[94%]' : 'max-w-7xl'} mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div id="page-content"></div>
                 </main>
 
                 <!-- Footer -->
                 <footer class="bg-blue-800 text-white py-4 mt-auto">
-                    <div class="max-w-7xl mx-auto px-4 text-center text-sm font-medium opacity-90">
+                    <div class="${activePage === 'Relatórios' ? 'max-w-[94%]' : 'max-w-7xl'} mx-auto px-4 text-center text-sm font-medium opacity-90">
                         © 2025 SAS — Sistema de Atendimento ao Servidor | Governo de Pernambuco
                     </div>
                     <div id="hidden-credit" class="hidden text-center text-[10px] mt-2 text-blue-300 italic animate-fade-in">

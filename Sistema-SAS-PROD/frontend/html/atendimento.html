@@ -27,6 +27,8 @@
         let currentGuiche = localStorage.getItem('sas_guiche') || '1';
         let currentQueueTab = 'Presencial';
         let isResumedService = false; // Flag para controlar se é um retorno do histórico
+        let resumedOriginalDate = null; // Armazena a data original para não perdê-la
+        let shouldFocusResumed = false; // Flag para focar no campo após retomar
 
         content.innerHTML = `
             <div class="flex flex-col items-center justify-center mb-6 animate-fade-in">
@@ -56,7 +58,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-8">
                 <div class="bg-blue-50 border-2 border-blue-400 rounded-xl p-6 text-center shadow-sm">
                     <div class="text-4xl font-bold text-blue-800 mb-1" id="totalAgendados">0</div>
-                    <div class="text-blue-600 font-medium">Agendados para hoje</div>
+                    <div class="text-blue-600 font-medium">Movimentação do Dia</div>
                 </div>
                 <div class="bg-yellow-50 border-2 border-yellow-400 rounded-xl p-6 text-center shadow-sm">
                     <div class="text-4xl font-bold text-yellow-800 mb-1" id="totalAguardando">0</div>
@@ -699,10 +701,17 @@
             const today = new Date().toISOString().split('T')[0];
             
             // Inclui agendamentos de HOJE ou agendamentos do PASSADO que ainda estão pendentes
-            const todayAppointments = all.filter(a => 
-                a.data_agendamento === today || 
-                (a.data_agendamento < today && ['agendado', 'chegou', 'pendente', 'em_andamento', 'na_fila_do_painel'].includes(a.status))
-            );
+            const todayAppointments = all.filter(a => {
+                if (a.is_import) return false; // Ignora carga do CSV
+
+                const isScheduledToday = a.data_agendamento === today;
+                const isCreatedToday = a.created_at && a.created_at.startsWith(today);
+                const isArrivalToday = a.hora_chegada && a.hora_chegada.startsWith(today);
+                const isConclusionToday = a.hora_conclusao && a.hora_conclusao.startsWith(today);
+                const isPendingPast = a.data_agendamento < today && ['agendado', 'chegou', 'pendente', 'em_andamento', 'pendente_resposta', 'na_fila_do_painel'].includes(a.status);
+                
+                return isScheduledToday || isCreatedToday || isArrivalToday || isConclusionToday || isPendingPast;
+            });
             totalAgendadosEl.textContent = todayAppointments.length;
 
 
@@ -724,7 +733,7 @@
                 return dateA.localeCompare(dateB);
             });
 
-            const active = todayAppointments.find(a =>
+            const active = all.find(a =>
                 (a.status === 'pendente' || a.status === 'em_andamento' || a.status === 'na_fila_do_painel') &&
                 String(a.atendente_id) === String(user.id)
             );
@@ -735,10 +744,14 @@
             ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
             const doneToday = all.filter(a => 
-                a.data_agendamento === today && 
-                a.status === 'concluido' &&
-                String(a.atendente_id) === String(user.id)
-            ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                !a.is_import &&
+                (a.data_agendamento === today || (a.hora_conclusao && a.hora_conclusao.startsWith(today)) || (a.created_at && a.created_at.startsWith(today) && a.status === 'concluido')) && 
+                a.status === 'concluido'
+            ).sort((a, b) => {
+                const timeA = a.hora_conclusao || a.created_at;
+                const timeB = b.hora_conclusao || b.created_at;
+                return new Date(timeB) - new Date(timeA);
+            });
 
             totalAguardandoEl.textContent = queue.length;
 
@@ -1087,6 +1100,17 @@
                 `;
                 // Restaurar rascunho se existir
                 restoreServiceDraft(item.id);
+
+                if (shouldFocusResumed) {
+                    setTimeout(() => {
+                        const obs1 = document.getElementById('obs1');
+                        if (obs1) {
+                            obs1.focus();
+                            obs1.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                        shouldFocusResumed = false;
+                    }, 100);
+                }
             }
             lucide.createIcons();
         };
@@ -1296,6 +1320,7 @@
                 await window.SAS.base44.entities.Agendamento.update(id, {
                     status: 'concluido',
                     atendente_id: user.id,
+                    data_agendamento: resumedOriginalDate || undefined, // Mantém a data original que capturamos na reabertura
                     tipo_servico: servicoCorrigido,
                     observacao_problema: obs1,
                     observacao_solucao: obs2,
@@ -1446,10 +1471,17 @@
             }
 
             try {
+                // Busca o registro atual para capturar a data original antes de retomar
+                const ag = await window.SAS.base44.entities.Agendamento.get(id);
+                resumedOriginalDate = ag.data_agendamento;
+
                 await window.SAS.base44.entities.Agendamento.update(id, {
-                    status: 'em_andamento'
+                    status: 'em_andamento',
+                    atendente_id: user.id,
+                    guiche: currentGuiche
                 });
                 isResumedService = true; // Ativa flag de retorno
+                shouldFocusResumed = true; // Ativa flag de foco
                 window.SAS.utils.notify('success', 'Atendimento retomado!');
                 loadData();
             } catch (e) {
@@ -1577,6 +1609,21 @@
 
         loadData();
         setInterval(loadData, 3000);
+
+        // Check for resume ID in URL on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const resumeId = urlParams.get('resume');
+            if (resumeId) {
+                // Clear URL params to avoid re-triggering on refresh
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                // Small delay to ensure everything is loaded before resuming
+                setTimeout(() => {
+                    window.resumeService(resumeId);
+                }, 500);
+            }
+        });
     </script>
 </body>
 

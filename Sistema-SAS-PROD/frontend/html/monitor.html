@@ -49,7 +49,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <!-- Status Cards -->
                 <div class="space-y-4">
-                    ${renderStatusCard('Agendados', 'clock', 'blue', 'agendado')}
+                    ${renderStatusCard('Movimentação do Dia', 'activity', 'blue', 'agendado')}
                     ${renderStatusCard('Aguardando', 'clock', 'yellow', 'chegou')}
                     ${renderStatusCard('Pendentes', 'alert-circle', 'orange', 'pendente')}
                     ${renderStatusCard('Em Andamento', 'play', 'blue', 'em_andamento')}
@@ -139,19 +139,35 @@
                 atendimentos = atendimentos.filter(a => String(a.atendente_id) === String(attendantFilter.value));
             }
 
+            const today = new Date().toISOString().split('T')[0];
             const counts = {
-                agendado: 0, chegou: 0, pendente: 0, em_andamento: 0, concluido: 0, cancelado: 0
+                total: 0, agendado: 0, chegou: 0, pendente: 0, em_andamento: 0, concluido: 0, cancelado: 0
             };
-
             atendimentos.forEach(a => {
-                if (counts[a.status] !== undefined) counts[a.status]++;
-                else if (a.status === 'nao_compareceu') counts.cancelado++;
+                if (a.is_import) return; // Ignora carga do CSV
+
+                const isScheduledToday = a.data_agendamento === today;
+                const isCreatedToday = a.created_at && a.created_at.startsWith(today);
+                const isArrivalToday = a.hora_chegada && a.hora_chegada.startsWith(today);
+                const isConclusionToday = a.hora_conclusao && a.hora_conclusao.startsWith(today);
+                const isPendingPast = a.data_agendamento < today && ['agendado', 'chegou', 'pendente', 'em_andamento', 'pendente_resposta', 'na_fila_do_painel'].includes(a.status);
+
+                const isActiveToday = isScheduledToday || isCreatedToday || isArrivalToday || isConclusionToday || isPendingPast;
+
+                if (isActiveToday) {
+                    counts.total++;
+                    if (counts[a.status] !== undefined) counts[a.status]++;
+                    else if (a.status === 'nao_compareceu') counts.cancelado++;
+                    else if (a.status === 'pendente_resposta') counts.pendente++;
+                }
             });
 
-            Object.keys(counts).forEach(key => {
-                const el = document.getElementById(`count-${key}`);
-                if (el) el.textContent = counts[key];
-            });
+            document.getElementById('count-agendado').textContent = counts.total;
+            document.getElementById('count-chegou').textContent = counts.chegou;
+            document.getElementById('count-pendente').textContent = counts.pendente;
+            document.getElementById('count-em_andamento').textContent = counts.em_andamento;
+            document.getElementById('count-concluido').textContent = counts.concluido;
+            document.getElementById('count-cancelado').textContent = counts.cancelado;
 
             fullFilteredData = atendimentos;
             renderTable();
