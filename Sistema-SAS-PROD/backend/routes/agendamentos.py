@@ -175,9 +175,13 @@ def list_agendamentos():
         matricula = request.args.get('matricula')
         
         query = """
-            SELECT a.*, u.nome_completo as atendente_nome, u.nome_assinatura as atendente_assinatura
+            SELECT a.*, 
+                   u.nome_completo as atendente_nome, 
+                   u.nome_assinatura as atendente_assinatura,
+                   m.nome_completo as modifier_nome
             FROM agendamentos a
             LEFT JOIN usuarios u ON a.atendente_id = u.id
+            LEFT JOIN usuarios m ON a.modified_by = m.id
             WHERE 1=1
         """
         params = []
@@ -396,7 +400,16 @@ def get_proximo():
 @agendamentos_bp.route('/<int:id>', methods=['GET'])
 def get_agendamento(id):
     try:
-        agendamento = query_db("SELECT a.*, u.nome_completo as atendente_nome, u.nome_assinatura as atendente_assinatura FROM agendamentos a LEFT JOIN usuarios u ON a.atendente_id = u.id WHERE a.id = %s", (id,), one=True)
+        agendamento = query_db("""
+            SELECT a.*, 
+                   u.nome_completo as atendente_nome, 
+                   u.nome_assinatura as atendente_assinatura,
+                   m.nome_completo as modifier_nome
+            FROM agendamentos a 
+            LEFT JOIN usuarios u ON a.atendente_id = u.id 
+            LEFT JOIN usuarios m ON a.modified_by = m.id
+            WHERE a.id = %s
+        """, (id,), one=True)
         if not agendamento:
             return jsonify({'error': 'Agendamento não encontrado'}), 404
             

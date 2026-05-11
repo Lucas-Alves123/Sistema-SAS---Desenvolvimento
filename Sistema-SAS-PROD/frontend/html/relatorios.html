@@ -826,13 +826,19 @@
                 }
 
                 let importIndicator = '';
-                if (item.is_import) {
+                if (item.is_import && !item.modified_by) {
                     importIndicator = `<span class="inline-block w-2 h-2 bg-red-500 rounded-full ml-1 animate-pulse" title="Registro da Carga - Necessita Ajuste"></span>`;
+                }
+
+                let editIndicator = '';
+                if (item.modified_by) {
+                    const tooltipText = `Modificado por: ${item.modifier_nome || 'Atendente'} em ${item.modified_at ? new Date(item.modified_at).toLocaleString() : 'Data desconhecida'}\nAtendente Original: ${item.atendente_nome || '?'}`;
+                    editIndicator = `<span class="inline-block w-2.5 h-2.5 bg-blue-500 rounded-full ml-1 cursor-help" title="${tooltipText}"></span>`;
                 }
 
                 tr.innerHTML = `
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600 whitespace-nowrap">${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio ? item.hora_inicio.substring(0, 5) : ''}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 font-medium text-gray-800">${item.nome_completo || '-'} ${importIndicator}</td>
+                    <td class="px-2 py-3 border-r border-slate-100 font-medium text-gray-800">${item.nome_completo || '-'} ${importIndicator} ${editIndicator}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${window.SAS.utils.formatCPF(item.cpf || '') || '-'}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.matricula || '-'}</td>
                     <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.cargo || '-'}</td>

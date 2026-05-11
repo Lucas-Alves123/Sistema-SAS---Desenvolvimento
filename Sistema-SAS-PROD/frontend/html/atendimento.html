@@ -712,7 +712,16 @@
                 
                 return isScheduledToday || isCreatedToday || isArrivalToday || isConclusionToday || isPendingPast;
             });
-            totalAgendadosEl.textContent = todayAppointments.length;
+
+            // A "Movimentação do Dia" deve contar apenas o que é DE FATO de hoje, excluindo o backlog pendente que ainda não foi tocado hoje
+            const actualTodayMovement = todayAppointments.filter(a => {
+                const isScheduledToday = a.data_agendamento === today;
+                const isCreatedToday = a.created_at && a.created_at.startsWith(today);
+                const isArrivalToday = a.hora_chegada && a.hora_chegada.startsWith(today);
+                const isConclusionToday = a.hora_conclusao && a.hora_conclusao.startsWith(today);
+                return isScheduledToday || isCreatedToday || isArrivalToday || isConclusionToday;
+            });
+            totalAgendadosEl.textContent = actualTodayMovement.length;
 
 
             const arrivals = todayAppointments.filter(a => 
@@ -735,16 +744,17 @@
 
             const active = all.find(a =>
                 (a.status === 'pendente' || a.status === 'em_andamento' || a.status === 'na_fila_do_painel') &&
-                String(a.atendente_id) === String(user.id)
+                (String(a.atendente_id) === String(user.id) || String(a.modified_by) === String(user.id))
             );
 
             const waitingResponse = all.filter(a => 
                 a.status === 'pendente_resposta' && 
-                String(a.atendente_id) === String(user.id)
+                (String(a.atendente_id) === String(user.id) || String(a.modified_by) === String(user.id))
             ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
             const doneToday = all.filter(a => 
                 !a.is_import &&
+                (String(a.atendente_id) === String(user.id) || String(a.created_by) === String(user.id) || (!a.atendente_id && !a.created_by)) &&
                 (a.data_agendamento === today || (a.hora_conclusao && a.hora_conclusao.startsWith(today)) || (a.created_at && a.created_at.startsWith(today) && a.status === 'concluido')) && 
                 a.status === 'concluido'
             ).sort((a, b) => {
@@ -1317,20 +1327,32 @@
             }
 
             try {
-                await window.SAS.base44.entities.Agendamento.update(id, {
+                // Captura o registro atual para ver se já tem dono
+                const currentAg = await window.SAS.base44.entities.Agendamento.get(id);
+                
+                const updates = {
                     status: 'concluido',
-                    atendente_id: user.id,
                     data_agendamento: resumedOriginalDate || undefined, // Mantém a data original que capturamos na reabertura
                     tipo_servico: servicoCorrigido,
                     observacao_problema: obs1,
                     observacao_solucao: obs2,
                     assuntos_adicionais: assuntosAdicionais.length > 0 ? JSON.stringify(assuntosAdicionais) : null
-                });
+                };
+
+                // Se não tem dono, o atual assume. Se já tem e é outro, marca como modificador.
+                if (!currentAg.atendente_id) {
+                    updates.atendente_id = user.id;
+                } else if (String(currentAg.atendente_id) !== String(user.id)) {
+                    updates.modified_by = user.id;
+                    updates.modified_at = new Date().toISOString().replace('T', ' ').split('.')[0];
+                }
+
+                await window.SAS.base44.entities.Agendamento.update(id, updates);
 
                 // Carrega dados atualizados para download
                 const respAll = await fetch('/api/agendamentos');
                 const agAll = await respAll.json();
-                const ag = agAll.find(a => String(a.id) === String(id));
+                const updatedAg = agAll.find(a => String(a.id) === String(id));
 
                 // Atualiza o painel de download manual (sem modal automático)
                 const lastServiceSection = document.getElementById('lastServiceSection');
@@ -1338,11 +1360,11 @@
                 const lastBtnReq = document.getElementById('lastBtnReq');
                 const lastBtnComp = document.getElementById('lastBtnComp');
 
-                lastServiceName.textContent = ag.nome_completo;
-                lastBtnReq.onclick = () => window.SAS.pdf.generateRequerimentoA(ag);
+                lastServiceName.textContent = updatedAg.nome_completo;
+                lastBtnReq.onclick = () => window.SAS.pdf.generateRequerimentoA(updatedAg);
                 lastBtnComp.onclick = () => {
                     const chefia = user.nome_assinatura || user.nome_completo || user.nome;
-                    window.SAS.pdf.generateComprovante(ag, chefia);
+                    window.SAS.pdf.generateComprovante(updatedAg, chefia);
                 };
 
                 lastServiceSection.classList.remove('hidden');
@@ -1471,15 +1493,24 @@
             }
 
             try {
-                // Busca o registro atual para capturar a data original antes de retomar
+                // Busca o registro atual para capturar a data original e o dono atual
                 const ag = await window.SAS.base44.entities.Agendamento.get(id);
                 resumedOriginalDate = ag.data_agendamento;
 
-                await window.SAS.base44.entities.Agendamento.update(id, {
+                const updates = {
                     status: 'em_andamento',
-                    atendente_id: user.id,
                     guiche: currentGuiche
-                });
+                };
+
+                // Lógica de "dono" vs "editor"
+                if (!ag.atendente_id) {
+                    updates.atendente_id = user.id;
+                } else if (String(ag.atendente_id) !== String(user.id)) {
+                    updates.modified_by = user.id;
+                    updates.modified_at = new Date().toISOString().replace('T', ' ').split('.')[0];
+                }
+
+                await window.SAS.base44.entities.Agendamento.update(id, updates);
                 isResumedService = true; // Ativa flag de retorno
                 shouldFocusResumed = true; // Ativa flag de foco
                 window.SAS.utils.notify('success', 'Atendimento retomado!');

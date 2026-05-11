@@ -152,10 +152,11 @@
                 const isConclusionToday = a.hora_conclusao && a.hora_conclusao.startsWith(today);
                 const isPendingPast = a.data_agendamento < today && ['agendado', 'chegou', 'pendente', 'em_andamento', 'pendente_resposta', 'na_fila_do_painel'].includes(a.status);
 
-                const isActiveToday = isScheduledToday || isCreatedToday || isArrivalToday || isConclusionToday || isPendingPast;
+                const isMovementToday = isScheduledToday || isCreatedToday || isArrivalToday || isConclusionToday;
+                const isActiveToday = isMovementToday || isPendingPast;
 
                 if (isActiveToday) {
-                    counts.total++;
+                    if (isMovementToday) counts.total++;
                     if (counts[a.status] !== undefined) counts[a.status]++;
                     else if (a.status === 'nao_compareceu') counts.cancelado++;
                     else if (a.status === 'pendente_resposta') counts.pendente++;
