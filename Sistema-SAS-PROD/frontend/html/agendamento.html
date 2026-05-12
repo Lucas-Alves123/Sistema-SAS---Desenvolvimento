@@ -431,14 +431,8 @@
 
             const dayOfWeek = date.getDay();
 
-            if (!isToday && (dayOfWeek === 0 || dayOfWeek === 6)) {
-                if (showAlert) {
-                    window.SAS.utils.modal.alert('Dia Não Útil', 'Agendamentos não podem ser realizados aos finais de semana ou feriados.', 'info');
-                    dataInput.value = '';
-                    horaSelect.value = '';
-                }
-                return;
-            }
+            // Remoção da trava de dia útil para permitir lançamentos manuais retroativos
+            // if (!isToday && (dayOfWeek === 0 || dayOfWeek === 6)) { ... }
 
             populateSlots();
         };
