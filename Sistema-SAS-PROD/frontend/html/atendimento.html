@@ -29,6 +29,17 @@
         let isResumedService = false; // Flag para controlar se é um retorno do histórico
         let resumedOriginalDate = null; // Armazena a data original para não perdê-la
         let shouldFocusResumed = false; // Flag para focar no campo após retomar
+        
+        const todayStr = () => {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        };
+        const formatInclusionDate = (createdAt) => {
+            if (!createdAt) return '';
+            const datePart = createdAt.includes('T') ? createdAt.split('T')[0] : createdAt.split(' ')[0];
+            if (datePart === todayStr()) return '';
+            return `<span class="text-orange-600 font-bold ml-1 text-[10px] italic">(incluído ${window.SAS.utils.formatDate(datePart)})</span>`;
+        };
 
         content.innerHTML = `
             <div class="flex flex-col items-center justify-center mb-6 animate-fade-in">
@@ -698,7 +709,7 @@
 
         const loadData = async () => {
             const all = await window.SAS.base44.entities.Agendamento.list();
-            const today = new Date().toISOString().split('T')[0];
+            const today = todayStr();
             
             // Inclui agendamentos de HOJE ou agendamentos do PASSADO que ainda estão pendentes
             const todayAppointments = all.filter(a => {
@@ -810,7 +821,7 @@
                 div.innerHTML = `
                     <div>
                         <div class="font-bold text-gray-800">${item.nome_completo}</div>
-                        <div class="text-sm text-gray-500">${item.hora_inicio || 'Sem horário'} - ${item.tipo_servico}</div>
+                        <div class="text-sm text-gray-500">${item.hora_inicio || 'Sem horário'} - ${item.tipo_servico}${formatInclusionDate(item.created_at)}</div>
                     </div>
                     <div class="flex gap-2">
                          <button onclick="confirmArrival('${item.id}')" class="bg-green-600 text-white px-4 py-1.5 rounded font-bold text-sm hover:bg-green-700 flex items-center gap-1">
@@ -848,7 +859,7 @@
                         </div>
                         <div>
                             <div class="font-bold text-gray-800">${item.nome_completo}</div>
-                            <div class="text-xs text-orange-700 font-medium uppercase tracking-wider">${item.tipo_atendimento} • ${item.tipo_servico}</div>
+                            <div class="text-xs text-orange-700 font-medium uppercase tracking-wider">${item.tipo_atendimento} • ${item.tipo_servico}${formatInclusionDate(item.created_at)}</div>
                         </div>
                     </div>
                     <div class="flex gap-2">
@@ -892,7 +903,7 @@
                 div.innerHTML = `
                     <div class="flex-1">
                         <div class="font-bold ${textClass} text-lg">${item.nome_completo} ${badge}</div>
-                        <div class="text-sm ${textClass} opacity-80">${item.tipo_servico}</div>
+                        <div class="text-sm ${textClass} opacity-80">${item.tipo_servico}${formatInclusionDate(item.created_at)}</div>
                         ${extraInfo}
                     </div>
                     <div class="flex items-center gap-4">
