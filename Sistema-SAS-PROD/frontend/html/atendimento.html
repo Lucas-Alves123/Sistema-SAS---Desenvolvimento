@@ -1061,15 +1061,16 @@
                                     <option value="Plantão Extraordinário" ${item.tipo_servico === 'Plantão Extraordinário' ? 'selected' : ''}>Plantão Extraordinário</option>
                                 </select>
                             </div>
+                            <div class="mt-2 group relative">
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Número de Telefone/WhatsApp:</label>
+                                <input type="text" id="telefoneCorrigido" oninput="saveServiceDraft('${item.id}')" value="${item.telefone || ''}" class="w-full p-2 border border-blue-200 rounded-lg bg-blue-50 text-blue-800 font-bold outline-none focus:ring-2 focus:ring-blue-500" placeholder="(XX) 9XXXX-XXXX" />
+                            </div>
                             <div class="flex gap-2 flex-wrap mt-4">
                                 <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-xs font-bold border border-blue-100 shadow-sm">
                                     <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Vínculo: ${item.vinculo || '-'}
                                 </span>
                                 <span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 px-4 py-1.5 rounded-full text-xs font-bold border border-slate-200 shadow-sm">
                                     <i data-lucide="star" class="w-3.5 h-3.5"></i> Nível: ${item.prioridade}
-                                </span>
-                                <span class="inline-flex items-center gap-1.5 bg-green-50 text-green-700 px-4 py-1.5 rounded-full text-xs font-bold border border-green-100 shadow-sm">
-                                    <i data-lucide="phone" class="w-3.5 h-3.5"></i> Tel: ${item.telefone || '-'}
                                 </span>
                             </div>
                         </div>
@@ -1238,6 +1239,7 @@
             const obs1 = document.getElementById('obs1')?.value || '';
             const obs2 = document.getElementById('obs2')?.value || '';
             const servicoCorrigido = document.getElementById('servicoCorrigido')?.value || '';
+            const telefoneCorrigido = document.getElementById('telefoneCorrigido')?.value || '';
             
             const assuntoRows = document.querySelectorAll('.assunto-row');
             const assuntosAdicionais = [];
@@ -1251,6 +1253,7 @@
                 obs1,
                 obs2,
                 servicoCorrigido,
+                telefoneCorrigido,
                 assuntosAdicionais,
                 timestamp: new Date().getTime()
             };
@@ -1267,6 +1270,7 @@
                 if (draft.obs1) document.getElementById('obs1').value = draft.obs1;
                 if (draft.obs2) document.getElementById('obs2').value = draft.obs2;
                 if (draft.servicoCorrigido) document.getElementById('servicoCorrigido').value = draft.servicoCorrigido;
+                if (draft.telefoneCorrigido && document.getElementById('telefoneCorrigido')) document.getElementById('telefoneCorrigido').value = draft.telefoneCorrigido;
 
                 if (draft.assuntosAdicionais && draft.assuntosAdicionais.length > 0) {
                     const container = document.getElementById('assuntosContainer');
@@ -1311,6 +1315,7 @@
             const obs1 = document.getElementById('obs1').value;
             const obs2 = document.getElementById('obs2').value;
             const servicoCorrigido = document.getElementById('servicoCorrigido').value;
+            const telefoneCorrigido = document.getElementById('telefoneCorrigido') ? document.getElementById('telefoneCorrigido').value : undefined;
             
             // Coleta de assuntos adicionais dinâmicos
             const assuntoRows = document.querySelectorAll('.assunto-row');
@@ -1350,10 +1355,14 @@
                     assuntos_adicionais: assuntosAdicionais.length > 0 ? JSON.stringify(assuntosAdicionais) : null
                 };
 
-                // Se não tem dono, o atual assume. Se já tem e é outro, marca como modificador.
+                if (telefoneCorrigido !== undefined) {
+                    updates.telefone = telefoneCorrigido;
+                }
+
+                // Se não tem dono, o atual assume. Se já tem, marca como modificado (mesmo se for o mesmo usuário, para manter o rastro de que houve edição).
                 if (!currentAg.atendente_id) {
                     updates.atendente_id = user.id;
-                } else if (String(currentAg.atendente_id) !== String(user.id)) {
+                } else if (isResumedService || String(currentAg.atendente_id) !== String(user.id)) {
                     updates.modified_by = user.id;
                     updates.modified_at = new Date().toISOString().replace('T', ' ').split('.')[0];
                 }
@@ -1516,7 +1525,7 @@
                 // Lógica de "dono" vs "editor"
                 if (!ag.atendente_id) {
                     updates.atendente_id = user.id;
-                } else if (String(ag.atendente_id) !== String(user.id)) {
+                } else {
                     updates.modified_by = user.id;
                     updates.modified_at = new Date().toISOString().replace('T', ' ').split('.')[0];
                 }
