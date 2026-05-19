@@ -49,7 +49,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <!-- Status Cards -->
                 <div class="space-y-4">
-                    ${renderStatusCard('Movimentação do Dia', 'activity', 'blue', 'agendado')}
+                    ${renderStatusCard('Movimentação do Dia', 'activity', 'blue', 'total')}
                     ${renderStatusCard('Aguardando', 'clock', 'yellow', 'chegou')}
                     ${renderStatusCard('Pendentes', 'alert-circle', 'orange', 'pendente')}
                     ${renderStatusCard('Em Andamento', 'play', 'blue', 'em_andamento')}
@@ -60,8 +60,8 @@
                 <!-- Table -->
                 <div class="lg:col-span-3">
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div class="p-4 border-b border-slate-100 flex justify-between items-center">
-                            <h3 class="font-bold text-gray-800">Todos os Atendimentos</h3>
+                        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                            <h3 id="tableTitle" class="font-bold text-gray-800">Todos os Atendimentos</h3>
                             <button id="refreshBtn" class="text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-colors">
                                 <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                             </button>
@@ -94,13 +94,13 @@
 
         function renderStatusCard(label, icon, color, statusKey) {
             return `
-                <div class="bg-white border-l-4 border-${color}-400 rounded-lg p-4 shadow-sm flex items-center gap-3">
+                <div id="card-${statusKey}" class="status-card bg-white border-l-4 border-${color}-400 rounded-lg p-4 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-all select-none" ondblclick="filterByStatus('${statusKey}')" title="Duplo clique para filtrar a tabela">
                     <div class="p-2 bg-${color}-50 rounded-full text-${color}-600">
                         <i data-lucide="${icon}" class="w-5 h-5"></i>
                     </div>
                     <div>
                         <div id="count-${statusKey}" class="text-2xl font-bold text-${color}-600">0</div>
-                        <div class="text-sm text-gray-600">${label}</div>
+                        <div class="text-sm text-gray-600 font-medium">${label}</div>
                     </div>
                 </div>
             `;
@@ -116,6 +116,56 @@
         let currentPage = 1;
         const itemsPerPage = 10;
         let fullFilteredData = [];
+        let displayData = [];
+        let activeStatusFilter = 'total'; // default filter
+        let lastDataHash = '';
+
+        window.filterByStatus = (status) => {
+            activeStatusFilter = status;
+            applyFiltersAndRender();
+        };
+
+        const applyFiltersAndRender = () => {
+            let filtered = fullFilteredData;
+            let title = 'Todos os Atendimentos';
+            
+            document.querySelectorAll('.status-card').forEach(el => {
+                el.classList.remove('scale-105', 'shadow-md', 'ml-2', 'ring-1', 'ring-slate-200');
+                el.classList.add('shadow-sm');
+            });
+            
+            if (activeStatusFilter) {
+                const card = document.getElementById(`card-${activeStatusFilter}`);
+                if (card) {
+                    card.classList.remove('shadow-sm');
+                    card.classList.add('scale-105', 'shadow-md', 'ml-2', 'ring-1', 'ring-slate-200');
+                }
+            }
+
+            if (activeStatusFilter && activeStatusFilter !== 'total') {
+                filtered = fullFilteredData.filter(a => {
+                    if (activeStatusFilter === 'cancelado') return a.status === 'cancelado' || a.status === 'nao_compareceu';
+                    if (activeStatusFilter === 'pendente') return a.status === 'pendente' || a.status === 'pendente_resposta';
+                    return a.status === activeStatusFilter;
+                });
+                
+                const labels = {
+                    'chegou': 'Aguardando na Recepção',
+                    'pendente': 'Pendentes e Aguardando Resposta',
+                    'em_andamento': 'Em Andamento',
+                    'concluido': 'Concluídos',
+                    'cancelado': 'Cancelados / Não Compareceu'
+                };
+                title = `Atendimentos — ${labels[activeStatusFilter]}`;
+            }
+
+            const titleEl = document.getElementById('tableTitle');
+            if (titleEl) titleEl.textContent = title;
+            
+            displayData = filtered;
+            currentPage = 1;
+            renderTable();
+        };
 
         // Filter Logic
         if (attendantFilter) {
@@ -133,7 +183,16 @@
                     attendantFilter.appendChild(option);
                 });
             }
+            
             let atendimentos = await window.SAS.base44.entities.Agendamento.list('-created_date');
+
+            // Checagem inteligente para não piscar a tela
+            const currentHash = JSON.stringify(atendimentos);
+            // Se for chamado pelo auto-refresh (sem botão) e não houver mudança, ignora
+            if (lastDataHash === currentHash && attendantFilter && attendantFilter.options.length > 1) {
+                return;
+            }
+            lastDataHash = currentHash;
 
             if (attendantFilter && attendantFilter.value !== 'all') {
                 atendimentos = atendimentos.filter(a => String(a.atendente_id) === String(attendantFilter.value));
@@ -143,6 +202,7 @@
             const counts = {
                 total: 0, agendado: 0, chegou: 0, pendente: 0, em_andamento: 0, concluido: 0, cancelado: 0
             };
+            const pendentesRespostaCards = [];
             atendimentos.forEach(a => {
                 if (a.is_import) return; // Ignora carga do CSV
 
@@ -163,7 +223,7 @@
                 }
             });
 
-            document.getElementById('count-agendado').textContent = counts.total;
+            document.getElementById('count-total').textContent = counts.total;
             document.getElementById('count-chegou').textContent = counts.chegou;
             document.getElementById('count-pendente').textContent = counts.pendente;
             document.getElementById('count-em_andamento').textContent = counts.em_andamento;
@@ -171,13 +231,13 @@
             document.getElementById('count-cancelado').textContent = counts.cancelado;
 
             fullFilteredData = atendimentos;
-            renderTable();
+            applyFiltersAndRender();
         };
 
         const renderTable = () => {
             const start = (currentPage - 1) * itemsPerPage;
             const end = start + itemsPerPage;
-            const atendimentos = fullFilteredData.slice(start, end);
+            const atendimentos = displayData.slice(start, end);
 
             tableBody.innerHTML = '';
             if (atendimentos.length === 0) {
@@ -185,7 +245,9 @@
             } else {
                 atendimentos.forEach(item => {
                     const tr = document.createElement('tr');
-                    tr.className = 'hover:bg-slate-50 transition-colors';
+                    tr.className = 'hover:bg-slate-50 transition-colors cursor-pointer';
+                    tr.ondblclick = () => openDetailsModal(item.id);
+                    tr.title = 'Duplo clique para ver detalhes';
 
                     let statusColor = 'bg-gray-100 text-gray-800';
                     if (item.status === 'concluido') statusColor = 'bg-green-100 text-green-800';
@@ -243,7 +305,7 @@
             if (!container) return;
             container.innerHTML = '';
             
-            const totalPages = Math.ceil(fullFilteredData.length / itemsPerPage);
+            const totalPages = Math.ceil(displayData.length / itemsPerPage);
             if (totalPages <= 1) return;
 
             const nav = document.createElement('div');
@@ -408,8 +470,14 @@
 
         refreshBtn.addEventListener('click', () => {
             refreshBtn.classList.add('animate-spin');
+            lastDataHash = ''; // Força o re-render
             loadData().then(() => setTimeout(() => refreshBtn.classList.remove('animate-spin'), 500));
         });
+
+        // Auto-refresh inteligente e silencioso a cada 3 segundos
+        setInterval(() => {
+            loadData();
+        }, 3000);
 
         // PDF Download Handlers
         window.downloadComprovante = async (id) => {
