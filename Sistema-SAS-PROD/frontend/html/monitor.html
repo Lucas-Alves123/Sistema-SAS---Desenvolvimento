@@ -60,6 +60,7 @@
                 <!-- Status Cards -->
                 <div class="space-y-4">
                     ${renderStatusCard('Movimentação do Dia', 'activity', 'blue', 'total')}
+                    ${renderStatusCard('Agendados', 'calendar', 'purple', 'agendado')}
                     ${renderStatusCard('Aguardando', 'clock', 'yellow', 'chegou')}
                     ${renderStatusCard('Pendentes', 'alert-circle', 'orange', 'pendente')}
                     ${renderStatusCard('Em Andamento', 'play', 'blue', 'em_andamento')}
@@ -157,6 +158,8 @@
                 filtered = fullFilteredData.filter(a => {
                     if (activeStatusFilter === 'cancelado') return a.status === 'cancelado' || a.status === 'nao_compareceu';
                     if (activeStatusFilter === 'pendente') return a.status === 'pendente' || a.status === 'pendente_resposta';
+                    if (activeStatusFilter === 'chegou') return a.status === 'chegou' || (a.status === 'agendado' && (a.tipo_atendimento === 'Whatsapp' || a.tipo_atendimento === 'E-mail' || a.tipo_atendimento === 'Telefônico'));
+                    if (activeStatusFilter === 'agendado') return a.status === 'agendado' && a.tipo_atendimento !== 'Whatsapp' && a.tipo_atendimento !== 'E-mail' && a.tipo_atendimento !== 'Telefônico';
                     return a.status === activeStatusFilter;
                 });
                 
@@ -165,7 +168,8 @@
                     'pendente': 'Pendentes e Aguardando Resposta',
                     'em_andamento': 'Em Andamento',
                     'concluido': 'Concluídos',
-                    'cancelado': 'Cancelados / Não Compareceu'
+                    'cancelado': 'Cancelados / Não Compareceu',
+                    'agendado': 'Agendados'
                 };
                 title = `Atendimentos — ${labels[activeStatusFilter]}`;
             }
@@ -236,18 +240,38 @@
                 const isConclusionToday = a.hora_conclusao && a.hora_conclusao.startsWith(today);
                 const isPendingPast = a.data_agendamento < today && ['agendado', 'chegou', 'pendente', 'em_andamento', 'pendente_resposta', 'na_fila_do_painel'].includes(a.status);
 
-                const isMovementToday = isScheduledToday || isCreatedToday || isArrivalToday || isConclusionToday;
+                let isMovementToday = isScheduledToday || isCreatedToday || isArrivalToday || isConclusionToday;
+                
+                // Se for concluído, remove a movimentação se for um processo REABERTO
+                if (a.status === 'concluido' && a.modified_by) {
+                    isMovementToday = false;
+                }
+
                 const isActiveToday = isMovementToday || isPendingPast;
 
                 if (isActiveToday) {
                     if (isMovementToday) counts.total++;
-                    if (counts[a.status] !== undefined) counts[a.status]++;
-                    else if (a.status === 'nao_compareceu') counts.cancelado++;
-                    else if (a.status === 'pendente_resposta') counts.pendente++;
+                    
+                    // Se for concluído, conta desde que não seja reaberto (o que já foi filtrado no isMovementToday)
+                    if (a.status === 'concluido') {
+                        if (!a.modified_by && (isScheduledToday || isCreatedToday || isConclusionToday)) {
+                            counts.concluido++;
+                        }
+                    } else if (a.status === 'agendado') {
+                        if (a.tipo_atendimento === 'Whatsapp' || a.tipo_atendimento === 'E-mail' || a.tipo_atendimento === 'Telefônico') counts.chegou++;
+                        else counts.agendado++;
+                    } else if (counts[a.status] !== undefined) {
+                        counts[a.status]++;
+                    } else if (a.status === 'nao_compareceu') {
+                        counts.cancelado++;
+                    } else if (a.status === 'pendente_resposta') {
+                        counts.pendente++;
+                    }
                 }
             });
 
             document.getElementById('count-total').textContent = counts.total;
+            document.getElementById('count-agendado').textContent = counts.agendado;
             document.getElementById('count-chegou').textContent = counts.chegou;
             document.getElementById('count-pendente').textContent = counts.pendente;
             document.getElementById('count-em_andamento').textContent = counts.em_andamento;
@@ -256,6 +280,14 @@
 
             fullFilteredData = atendimentos;
             applyFiltersAndRender();
+        };
+
+        const formatInclusionDate = (createdAt) => {
+            if (!createdAt) return '';
+            const today = new Date().toISOString().split('T')[0];
+            const datePart = createdAt.includes('T') ? createdAt.split('T')[0] : createdAt.split(' ')[0];
+            if (datePart === today) return '';
+            return `<span class="text-orange-600 font-bold ml-2 text-[10px] italic">(incluído ${window.SAS.utils.formatDate(datePart)})</span>`;
         };
 
         const renderTable = () => {
@@ -300,10 +332,16 @@
                                 <i data-lucide="eye" class="w-5 h-5"></i>
                             </button>
                         `;
+                    } else if (item.status === 'pendente_resposta') {
+                        actionBtn = `
+                            <button onclick="assumirAtendimento('${item.id}', '${item.atendente_nome || 'Desconhecido'}')" class="text-orange-600 hover:bg-orange-100 p-1.5 rounded-lg transition-colors" title="Retornar Atendimento">
+                                <i data-lucide="corner-down-left" class="w-5 h-5"></i>
+                            </button>
+                        `;
                     }
 
                     tr.innerHTML = `
-                        <td class="px-4 py-3 font-medium text-gray-900">${item.nome_completo}</td>
+                        <td class="px-4 py-3 font-medium text-gray-900">${item.nome_completo} ${formatInclusionDate(item.created_at)}</td>
                         <td class="px-4 py-3 text-gray-600">${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio || '-'}</td>
                         <td class="px-4 py-3 text-gray-600">${item.tipo_servico}</td>
                         <td class="px-4 py-3 text-gray-600">${item.atendente_nome || '-'}</td>
@@ -361,6 +399,18 @@
             nav.appendChild(createBtn('<i data-lucide="chevron-right" class="w-4 h-4"></i>', currentPage + 1, currentPage === totalPages));
             container.appendChild(nav);
             lucide.createIcons();
+        };
+
+        window.assumirAtendimento = (id, atendenteOriginal) => {
+            window.SAS.utils.modal.confirm(
+                'Retornar Atendimento',
+                `Este atendimento foi colocado em 'Aguardando Resposta' por ${atendenteOriginal}. Deseja retornar este atendimento?`,
+                () => {
+                    const baseUrl = window.SAS.utils.createPageUrl('Atendimento');
+                    window.location.href = `${baseUrl}?resume=${id}`;
+                },
+                'info'
+            );
         };
 
         window.openDetailsModal = async (id) => {

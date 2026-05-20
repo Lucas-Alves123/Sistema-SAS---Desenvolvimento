@@ -29,6 +29,8 @@
         let isResumedService = false; // Flag para controlar se é um retorno do histórico
         let resumedOriginalDate = null; // Armazena a data original para não perdê-la
         let shouldFocusResumed = false; // Flag para focar no campo após retomar
+        let currentDonePage = 1;
+        const doneItemsPerPage = 10;
         
         const todayStr = () => {
             const d = new Date();
@@ -190,6 +192,7 @@
                         <h2 class="text-xl font-bold text-gray-800">Atendidos Hoje</h2>
                     </div>
                     <div id="doneTodayList" class="space-y-2"></div>
+                    <div id="doneTodayPagination" class="flex justify-center items-center gap-2 mt-4 text-sm hidden"></div>
                 </div>
             </div>
 
@@ -730,6 +733,13 @@
                 const isCreatedToday = a.created_at && a.created_at.startsWith(today);
                 const isArrivalToday = a.hora_chegada && a.hora_chegada.startsWith(today);
                 const isConclusionToday = a.hora_conclusao && a.hora_conclusao.startsWith(today);
+                
+                // Se for concluído, conta se foi finalizado hoje E NÃO foi reaberto
+                if (a.status === 'concluido') {
+                    return (isScheduledToday || isCreatedToday || isConclusionToday) && !a.modified_by;
+                }
+                
+                // Para outros status, considera se foi agendado, criado, chegou ou concluiu hoje
                 return isScheduledToday || isCreatedToday || isArrivalToday || isConclusionToday;
             });
             totalAgendadosEl.textContent = actualTodayMovement.length;
@@ -737,7 +747,8 @@
 
             const arrivals = todayAppointments.filter(a => 
                 a.status === 'agendado' &&
-                (a.tipo_atendimento && a.tipo_atendimento.toLowerCase() === currentQueueTab.toLowerCase() || (!a.tipo_atendimento && currentQueueTab === 'Presencial'))
+                (a.tipo_atendimento && a.tipo_atendimento.toLowerCase() === currentQueueTab.toLowerCase() || (!a.tipo_atendimento && currentQueueTab === 'Presencial')) &&
+                (currentQueueTab !== 'Whatsapp' && currentQueueTab !== 'E-mail' && currentQueueTab !== 'Telefônico')
             ).sort((a, b) => {
                 const dateA = a.data_agendamento + ' ' + (a.hora_inicio || '23:59');
                 const dateB = b.data_agendamento + ' ' + (b.hora_inicio || '23:59');
@@ -745,8 +756,8 @@
             });
 
             const queue = todayAppointments.filter(a =>
-                a.status === 'chegou' &&
-                (a.tipo_atendimento && a.tipo_atendimento.toLowerCase() === currentQueueTab.toLowerCase() || (!a.tipo_atendimento && currentQueueTab === 'Presencial'))
+                (a.tipo_atendimento && a.tipo_atendimento.toLowerCase() === currentQueueTab.toLowerCase() || (!a.tipo_atendimento && currentQueueTab === 'Presencial')) &&
+                (a.status === 'chegou' || ((currentQueueTab === 'Whatsapp' || currentQueueTab === 'E-mail' || currentQueueTab === 'Telefônico') && a.status === 'agendado'))
             ).sort((a, b) => {
                 const dateA = a.data_agendamento + ' ' + (a.hora_inicio || '00:00');
                 const dateB = b.data_agendamento + ' ' + (b.hora_inicio || '00:00');
@@ -764,7 +775,7 @@
             ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
             const doneToday = all.filter(a => 
-                !a.is_import &&
+                !a.is_import && !a.modified_by &&
                 (a.data_agendamento === today || (a.hora_conclusao && a.hora_conclusao.startsWith(today)) || (a.created_at && a.created_at.startsWith(today) && a.status === 'concluido')) && 
                 a.status === 'concluido'
             ).sort((a, b) => {
@@ -906,6 +917,28 @@
                         ${extraInfo}
                     </div>
                     <div class="flex items-center gap-4">
+                        ${(() => {
+                            if (currentQueueTab === 'Whatsapp') {
+                                return `
+                                    <button onclick="manualCall('${item.id}')" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-widest flex items-center gap-1 transition-all shadow-sm">
+                                        <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Atender
+                                    </button>
+                                `;
+                            } else if (currentQueueTab === 'E-mail') {
+                                return `
+                                    <button onclick="manualCall('${item.id}')" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-widest flex items-center gap-1 transition-all shadow-sm">
+                                        <i data-lucide="mail" class="w-3.5 h-3.5"></i> Responder
+                                    </button>
+                                `;
+                            } else if (currentQueueTab === 'Telefônico') {
+                                return `
+                                    <button onclick="manualCall('${item.id}')" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-widest flex items-center gap-1 transition-all shadow-sm">
+                                        <i data-lucide="phone" class="w-3.5 h-3.5"></i> Atender
+                                    </button>
+                                `;
+                            }
+                            return '';
+                        })()}
                         <div class="text-right">
                             <div class="font-bold ${textClass}">Aguardando</div>
                             <div class="text-xs ${textClass} opacity-80">Nível: ${item.prioridade}</div>
@@ -919,14 +952,24 @@
 
         const renderDoneToday = (items) => {
             const doneList = document.getElementById('doneTodayList');
+            const paginationContainer = document.getElementById('doneTodayPagination');
             doneList.innerHTML = '';
             
             if (items.length === 0) {
                 doneList.innerHTML = '<p class="text-slate-400 italic text-sm text-center py-4">Nenhum atendimento finalizado hoje.</p>';
+                paginationContainer.classList.add('hidden');
                 return;
             }
 
-            items.forEach(item => {
+            const totalPages = Math.ceil(items.length / doneItemsPerPage);
+            if (currentDonePage > totalPages) currentDonePage = totalPages;
+            if (currentDonePage < 1) currentDonePage = 1;
+
+            const startIndex = (currentDonePage - 1) * doneItemsPerPage;
+            const endIndex = startIndex + doneItemsPerPage;
+            const paginatedItems = items.slice(startIndex, endIndex);
+
+            paginatedItems.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'flex justify-between items-center p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors bg-white shadow-sm';
                 div.innerHTML = `
@@ -951,7 +994,24 @@
                 `;
                 doneList.appendChild(div);
             });
+            
+            if (totalPages > 1) {
+                paginationContainer.classList.remove('hidden');
+                paginationContainer.innerHTML = `
+                    <button onclick="changeDonePage(-1)" class="px-3 py-1.5 rounded bg-slate-100 hover:bg-blue-100 text-slate-600 font-bold transition-colors border border-slate-200 disabled:opacity-50" ${currentDonePage === 1 ? 'disabled' : ''}>Anterior</button>
+                    <span class="text-slate-500 font-bold px-3">Página ${currentDonePage} de ${totalPages}</span>
+                    <button onclick="changeDonePage(1)" class="px-3 py-1.5 rounded bg-slate-100 hover:bg-blue-100 text-slate-600 font-bold transition-colors border border-slate-200 disabled:opacity-50" ${currentDonePage === totalPages ? 'disabled' : ''}>Próxima</button>
+                `;
+            } else {
+                paginationContainer.classList.add('hidden');
+            }
+
             lucide.createIcons();
+        };
+
+        window.changeDonePage = (delta) => {
+            currentDonePage += delta;
+            loadData();
         };
 
         const renderActiveCall = (item) => {
