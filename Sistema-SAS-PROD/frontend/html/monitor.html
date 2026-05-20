@@ -38,11 +38,21 @@
                     <div class="h-1.5 w-32 bg-gradient-to-r from-blue-600 via-yellow-400 to-red-500 rounded-full"></div>
                 </div>
 
-                <div class="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm border">
-                    <span class="text-sm text-gray-600">Filtrar por:</span>
-                    <select id="attendantFilter" class="border-none bg-transparent font-medium text-blue-700 focus:ring-0 cursor-pointer">
-                        <option value="all">Todos os Atendentes</option>
-                    </select>
+                <div class="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+                    <!-- Busca Rápida -->
+                    <div class="relative w-full md:w-72">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                        <input type="text" id="quickSearch" placeholder="Busca rápida (Nome, CPF, etc)..." 
+                            class="w-full bg-white border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm">
+                    </div>
+
+                    <!-- Attendant Filter -->
+                    <div class="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm border w-full md:w-auto">
+                        <span class="text-sm text-gray-600 whitespace-nowrap">Filtrar por:</span>
+                        <select id="attendantFilter" class="border-none bg-transparent font-medium text-blue-700 focus:ring-0 cursor-pointer w-full">
+                            <option value="all">Todos os Atendentes</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -110,6 +120,7 @@
 
         // Logic
         const attendantFilter = document.getElementById('attendantFilter');
+        const quickSearch = document.getElementById('quickSearch');
         const refreshBtn = document.getElementById('refreshBtn');
         const tableBody = document.getElementById('tableBody');
 
@@ -159,6 +170,16 @@
                 title = `Atendimentos — ${labels[activeStatusFilter]}`;
             }
 
+            const searchTerm = quickSearch ? quickSearch.value.toLowerCase().trim() : '';
+            if (searchTerm) {
+                filtered = filtered.filter(a => 
+                    (a.nome_completo && a.nome_completo.toLowerCase().includes(searchTerm)) ||
+                    (a.cpf && a.cpf.includes(searchTerm)) ||
+                    (a.matricula && a.matricula.includes(searchTerm)) ||
+                    (a.email && a.email.toLowerCase().includes(searchTerm))
+                );
+            }
+
             const titleEl = document.getElementById('tableTitle');
             if (titleEl) titleEl.textContent = title;
             
@@ -170,6 +191,9 @@
         // Filter Logic
         if (attendantFilter) {
             attendantFilter.addEventListener('change', () => loadData());
+        }
+        if (quickSearch) {
+            quickSearch.addEventListener('input', () => applyFiltersAndRender());
         }
 
         const loadData = async () => {

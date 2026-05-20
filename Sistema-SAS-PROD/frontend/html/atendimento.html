@@ -765,7 +765,6 @@
 
             const doneToday = all.filter(a => 
                 !a.is_import &&
-                (String(a.atendente_id) === String(user.id) || String(a.created_by) === String(user.id) || (!a.atendente_id && !a.created_by)) &&
                 (a.data_agendamento === today || (a.hora_conclusao && a.hora_conclusao.startsWith(today)) || (a.created_at && a.created_at.startsWith(today) && a.status === 'concluido')) && 
                 a.status === 'concluido'
             ).sort((a, b) => {
@@ -923,7 +922,7 @@
             doneList.innerHTML = '';
             
             if (items.length === 0) {
-                doneList.innerHTML = '<p class="text-slate-400 italic text-sm text-center py-4">Nenhum atendimento finalizado por você hoje.</p>';
+                doneList.innerHTML = '<p class="text-slate-400 italic text-sm text-center py-4">Nenhum atendimento finalizado hoje.</p>';
                 return;
             }
 
@@ -940,7 +939,11 @@
                             <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">${item.tipo_servico}</div>
                         </div>
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex gap-4 items-center">
+                        <div class="text-right hidden sm:block">
+                            <div class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Atendente</div>
+                            <div class="text-xs font-bold text-slate-700">${item.atendente_nome || '-'}</div>
+                        </div>
                         <button onclick="resumeService('${item.id}')" class="bg-slate-100 hover:bg-blue-100 text-slate-600 hover:text-blue-700 px-4 py-1.5 rounded-lg transition-all flex items-center gap-1 text-[10px] font-black uppercase tracking-widest border border-slate-200">
                             <i data-lucide="play" class="w-3.5 h-3.5"></i> Retomar
                         </button>
