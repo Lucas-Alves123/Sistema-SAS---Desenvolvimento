@@ -716,7 +716,7 @@
             
             // Inclui agendamentos de HOJE ou agendamentos do PASSADO que ainda estão pendentes
             const todayAppointments = all.filter(a => {
-                if (a.is_import) return false; // Ignora carga do CSV
+                if (a.is_import && a.status === 'concluido') return false; // Ignora carga do CSV apenas se concluído
 
                 const isScheduledToday = a.data_agendamento === today;
                 const isCreatedToday = a.created_at && a.created_at.startsWith(today);
@@ -729,6 +729,8 @@
 
             // A "Movimentação do Dia" deve contar apenas o que é DE FATO de hoje, excluindo o backlog pendente que ainda não foi tocado hoje
             const actualTodayMovement = todayAppointments.filter(a => {
+                if (a.is_import) return false; // Nunca contar imports como movimentação de hoje
+                
                 const isScheduledToday = a.data_agendamento === today;
                 const isCreatedToday = a.created_at && a.created_at.startsWith(today);
                 const isArrivalToday = a.hora_chegada && a.hora_chegada.startsWith(today);

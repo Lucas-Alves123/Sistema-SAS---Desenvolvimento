@@ -187,8 +187,10 @@ def list_agendamentos():
         params = []
         
         if cpf:
-            query += " AND a.cpf = %s"
-            params.append(cpf)
+            import re
+            clean_cpf = re.sub(r'\D', '', cpf)
+            query += " AND REPLACE(REPLACE(a.cpf, '.', ''), '-', '') = %s"
+            params.append(clean_cpf)
         if matricula:
             query += " AND a.matricula = %s"
             params.append(matricula)

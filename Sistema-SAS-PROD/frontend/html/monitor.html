@@ -84,10 +84,10 @@
                                         <th class="px-4 py-3">Nome</th>
                                         <th class="px-4 py-3">Data/Hora</th>
                                         <th class="px-4 py-3">Serviço</th>
-                                        <th class="px-4 py-3">Atendente</th>
-                                        <th class="px-4 py-3">Guichê</th>
+                                        <th class="px-4 py-3" id="th-atendente">Atendente</th>
+                                        <th class="px-4 py-3" id="th-guiche">Guichê</th>
                                         <th class="px-4 py-3">Status</th>
-                                        <th class="px-4 py-3">Ações</th>
+                                        <th class="px-4 py-3" id="th-acoes">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableBody" class="divide-y divide-slate-100">
@@ -164,14 +164,14 @@
                 });
                 
                 const labels = {
-                    'chegou': 'Aguardando na Recepção',
+                    'chegou': 'Aguardando Atendimento',
                     'pendente': 'Pendentes e Aguardando Resposta',
                     'em_andamento': 'Em Andamento',
                     'concluido': 'Concluídos',
                     'cancelado': 'Cancelados / Não Compareceu',
                     'agendado': 'Agendados'
                 };
-                title = `Atendimentos — ${labels[activeStatusFilter]}`;
+                title = activeStatusFilter === 'chegou' ? labels[activeStatusFilter] : `Atendimentos — ${labels[activeStatusFilter]}`;
             }
 
             const searchTerm = quickSearch ? quickSearch.value.toLowerCase().trim() : '';
@@ -232,7 +232,7 @@
             };
             const pendentesRespostaCards = [];
             atendimentos.forEach(a => {
-                if (a.is_import) return; // Ignora carga do CSV
+                if (a.is_import && a.status === 'concluido') return; // Ignora carga do CSV apenas se concluído
 
                 const isScheduledToday = a.data_agendamento === today;
                 const isCreatedToday = a.created_at && a.created_at.startsWith(today);
@@ -244,6 +244,11 @@
                 
                 // Se for concluído, remove a movimentação se for um processo REABERTO
                 if (a.status === 'concluido' && a.modified_by) {
+                    isMovementToday = false;
+                }
+
+                // Importados não contam para a Movimentação do Dia (Total)
+                if (a.is_import) {
                     isMovementToday = false;
                 }
 
@@ -278,7 +283,7 @@
             document.getElementById('count-concluido').textContent = counts.concluido;
             document.getElementById('count-cancelado').textContent = counts.cancelado;
 
-            fullFilteredData = atendimentos;
+            fullFilteredData = atendimentos.filter(a => !(a.is_import && a.status === 'concluido'));
             applyFiltersAndRender();
         };
 
@@ -295,9 +300,20 @@
             const end = start + itemsPerPage;
             const atendimentos = displayData.slice(start, end);
 
+            const thGuiche = document.getElementById('th-guiche');
+            const thAtendente = document.getElementById('th-atendente');
+            const thAcoes = document.getElementById('th-acoes');
+            
+            const hideAguardandoCols = activeStatusFilter === 'chegou';
+            
+            if (thGuiche) thGuiche.style.display = hideAguardandoCols ? 'none' : '';
+            if (thAtendente) thAtendente.style.display = hideAguardandoCols ? 'none' : '';
+            if (thAcoes) thAcoes.style.display = hideAguardandoCols ? 'none' : '';
+
             tableBody.innerHTML = '';
             if (atendimentos.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Nenhum registro encontrado.</td></tr>';
+                const colspan = hideAguardandoCols ? '4' : '7';
+                tableBody.innerHTML = `<tr><td colspan="${colspan}" class="px-4 py-8 text-center text-gray-500">Nenhum registro encontrado.</td></tr>`;
             } else {
                 atendimentos.forEach(item => {
                     const tr = document.createElement('tr');
@@ -306,10 +322,20 @@
                     tr.title = 'Duplo clique para ver detalhes';
 
                     let statusColor = 'bg-gray-100 text-gray-800';
-                    if (item.status === 'concluido') statusColor = 'bg-green-100 text-green-800';
-                    else if (item.status === 'em_andamento') statusColor = 'bg-blue-100 text-blue-800';
-                    else if (item.status === 'pendente') statusColor = 'bg-orange-100 text-orange-800';
-                    else if (item.status === 'cancelado' || item.status === 'nao_compareceu') statusColor = 'bg-red-100 text-red-800';
+                    let displayStatus = item.status.replace('_', ' ');
+
+                    if (item.status === 'concluido') {
+                        statusColor = 'bg-green-100 text-green-800';
+                    } else if (item.status === 'em_andamento') {
+                        statusColor = 'bg-blue-100 text-blue-800';
+                    } else if (item.status === 'pendente' || item.status === 'pendente_resposta') {
+                        statusColor = 'bg-orange-100 text-orange-800';
+                    } else if (item.status === 'cancelado' || item.status === 'nao_compareceu') {
+                        statusColor = 'bg-red-100 text-red-800';
+                    } else if (item.status === 'chegou' || (item.status === 'agendado' && ['Whatsapp', 'E-mail', 'Telefônico'].includes(item.tipo_atendimento))) {
+                        statusColor = 'bg-yellow-100 text-yellow-800';
+                        displayStatus = 'aguardando';
+                    }
 
                     let actionBtn = '';
                     if (item.status === 'concluido') {
@@ -344,16 +370,16 @@
                         <td class="px-4 py-3 font-medium text-gray-900">${item.nome_completo} ${formatInclusionDate(item.created_at)}</td>
                         <td class="px-4 py-3 text-gray-600">${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio || '-'}</td>
                         <td class="px-4 py-3 text-gray-600">${item.tipo_servico}</td>
-                        <td class="px-4 py-3 text-gray-600">${item.atendente_nome || '-'}</td>
-                        <td class="px-4 py-3 text-gray-600">${item.guiche || '-'}</td>
+                        ${hideAguardandoCols ? '' : `<td class="px-4 py-3 text-gray-600">${item.atendente_nome || '-'}</td>`}
+                        ${hideAguardandoCols ? '' : `<td class="px-4 py-3 text-gray-600">${item.guiche || '-'}</td>`}
                         <td class="px-4 py-3">
                             <span class="px-2 py-1 rounded-full text-xs font-medium ${statusColor} capitalize">
-                                ${item.status.replace('_', ' ')}
+                                ${displayStatus}
                             </span>
                         </td>
-                        <td class="px-4 py-3">
+                        ${hideAguardandoCols ? '' : `<td class="px-4 py-3">
                             ${actionBtn}
-                        </td>
+                        </td>`}
                     `;
                     tableBody.appendChild(tr);
                 });

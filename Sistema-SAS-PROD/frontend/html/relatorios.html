@@ -449,7 +449,13 @@
                     'nao_compareceu': 'Não Compareceu'
                 };
                 data.forEach(d => {
-                    const statusKey = d.status.toLowerCase();
+                    let statusKey = d.status.toLowerCase();
+                    
+                    // Unify digital channel 'agendado' as 'chegou' (Aguardando)
+                    if (statusKey === 'agendado' && (d.tipo_atendimento === 'Whatsapp' || d.tipo_atendimento === 'E-mail' || d.tipo_atendimento === 'Telefônico')) {
+                        statusKey = 'chegou';
+                    }
+
                     const s = statusMap[statusKey] || statusKey.toUpperCase();
                     counts[s] = (counts[s] || 0) + 1;
                 });

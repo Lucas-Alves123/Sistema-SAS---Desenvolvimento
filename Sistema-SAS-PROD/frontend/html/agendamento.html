@@ -190,6 +190,32 @@
                         </button>
                     </div>
                 </form>
+
+                <!-- Histórico Container -->
+                <div id="historicoContainer" class="hidden mt-8 pt-8 border-t border-slate-200 animate-fade-in">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i data-lucide="history" class="w-5 h-5 text-blue-600"></i>
+                        Histórico de Atendimentos
+                    </h3>
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-slate-50 text-slate-700 font-bold">
+                                <tr>
+                                    <th class="px-4 py-3 border-b">Data/Hora</th>
+                                    <th class="px-4 py-3 border-b">Serviço</th>
+                                    <th class="px-4 py-3 border-b">Atendente</th>
+                                    <th class="px-4 py-3 border-b">Status</th>
+                                    <th class="px-4 py-3 border-b">Obs Problema</th>
+                                    <th class="px-4 py-3 border-b">Obs Solução</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historicoTableBody" class="divide-y divide-slate-100 bg-white">
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Modal Seleção de Vínculo -->
@@ -228,6 +254,7 @@
         // State for search results
         let searchResults = [];
         let isSearching = false;
+        let currentHistory = []; // Add history state
 
         // CPF Mask
         cpfInput.addEventListener('input', (e) => {
@@ -269,6 +296,7 @@
             fecharModalVinculos();
             window.SAS.utils.notify('success', 'Dados preenchidos com sucesso!');
             await buscarAgendamentosFuturos(dados.cpf, dados.matricula);
+            await buscarHistorico(dados.cpf);
         };
 
         window.fecharModalVinculos = () => {
@@ -308,6 +336,174 @@
             }
         };
 
+        const buscarHistorico = async (cpf) => {
+            if (!cpf) return;
+            const container = document.getElementById('historicoContainer');
+            const tbody = document.getElementById('historicoTableBody');
+            
+            try {
+                const res = await fetch(`/api/agendamentos?cpf=${encodeURIComponent(cpf)}`);
+                if (res.ok) {
+                    let appointments = await res.json();
+                    
+                    // Filter concluded or cancelled to show in history
+                    appointments = appointments.filter(a => ['concluido', 'cancelado', 'nao_compareceu'].includes(a.status));
+                    // Sort descending by data_agendamento
+                    appointments.sort((a, b) => new Date(b.data_agendamento) - new Date(a.data_agendamento));
+
+                    if (appointments.length > 0) {
+                        currentHistory = appointments; // Store history for modal
+                        tbody.innerHTML = '';
+                        appointments.forEach(a => {
+                            let statusColor = 'text-gray-600';
+                            if (a.status === 'concluido') statusColor = 'text-green-600 font-bold';
+                            else if (['cancelado', 'nao_compareceu'].includes(a.status)) statusColor = 'text-red-600 font-bold';
+                            
+                            const tr = document.createElement('tr');
+                            tr.className = 'hover:bg-slate-50 transition-colors cursor-pointer';
+                            tr.title = 'Duplo clique para ver detalhes';
+                            tr.ondblclick = () => openDetailsModal(a.id);
+                            tr.innerHTML = `
+                                <td class="px-4 py-3">${window.SAS.utils.formatDate(a.data_agendamento)} ${a.hora_inicio || ''}</td>
+                                <td class="px-4 py-3">${a.tipo_servico || '-'}</td>
+                                <td class="px-4 py-3">${a.atendente_nome || '-'}</td>
+                                <td class="px-4 py-3 ${statusColor} capitalize">${a.status.replace('_', ' ')}</td>
+                                <td class="px-4 py-3 text-xs max-w-xs truncate" title="${a.observacao_problema || ''}">${a.observacao_problema || '-'}</td>
+                                <td class="px-4 py-3 text-xs max-w-xs truncate" title="${a.observacao_solucao || ''}">${a.observacao_solucao || '-'}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                        container.classList.remove('hidden');
+                        if (window.lucide) window.lucide.createIcons();
+                    } else {
+                        container.classList.add('hidden');
+                    }
+                }
+            } catch (err) {
+                console.error('Erro ao buscar histórico:', err);
+                container.classList.add('hidden');
+            }
+        };
+
+        window.openDetailsModal = (id) => {
+            try {
+                const item = currentHistory.find(a => String(a.id) === String(id));
+                if (!item) return;
+
+                const html = `
+                    <div class="space-y-6">
+                    <div class="space-y-5">
+                        <!-- Section 1: Identificação -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-2 pb-0.5 border-b border-slate-100">
+                                <i data-lucide="user" class="w-3.5 h-3.5 text-blue-600"></i>
+                                <h4 class="text-[10px] font-bold text-blue-900 uppercase tracking-widest">Identificação</h4>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
+                                <div class="col-span-2">
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Nome Completo</label>
+                                    <div class="text-[11px] text-gray-800 font-bold">${item.nome_completo}</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">CPF</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${window.SAS.utils.formatCPF(item.cpf || '') || '-'}</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Matrícula</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${item.matricula || '-'}</div>
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">E-mail</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${item.email || '-'}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Vínculo -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-2 pb-0.5 border-b border-slate-100">
+                                <i data-lucide="briefcase" class="w-3.5 h-3.5 text-blue-600"></i>
+                                <h4 class="text-[10px] font-bold text-blue-900 uppercase tracking-widest">Vínculo</h4>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Cargo</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${item.cargo || '-'}</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Tipo</label>
+                                    <div class="text-[11px] text-gray-800 font-medium capitalize">${item.vinculo || '-'}</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Local</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${item.local_trabalho || '-'}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Dados do Atendimento -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-2 pb-0.5 border-b border-slate-100">
+                                <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-600"></i>
+                                <h4 class="text-[10px] font-bold text-blue-900 uppercase tracking-widest">Atendimento</h4>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Serviço</label>
+                                    <div class="text-[11px] text-blue-700 font-bold">${item.tipo_servico}</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Atendimento</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${item.tipo_atendimento || '-'}</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Nível</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${item.prioridade || 'Normal'}</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Atendente</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${item.atendente_nome || '-'}</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Data/Hora</label>
+                                    <div class="text-[11px] text-gray-800 font-medium">${window.SAS.utils.formatDate(item.data_agendamento)} às ${item.hora_inicio ? item.hora_inicio.substring(0, 5) : '-'}</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase">Status</label>
+                                    <div class="text-[11px] font-bold capitalize ${item.status === 'concluido' ? 'text-green-600' : 'text-blue-600'}">${item.status.replace('_', ' ')}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Observations -->
+                        <div class="space-y-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <!-- Obs 1 -->
+                            <div class="space-y-1.5 border-b border-slate-200/60 pb-4">
+                                <label class="block text-[9px] font-bold text-blue-700 uppercase tracking-widest px-1">Obs 1 — Problema</label>
+                                <div class="bg-white/60 p-2.5 rounded-lg border border-slate-200/60 max-h-24 overflow-y-auto custom-scrollbar shadow-sm">
+                                    <p class="text-[11px] text-gray-600 whitespace-pre-wrap leading-relaxed">${item.observacao_problema || 'Nenhuma registrada.'}</p>
+                                </div>
+                            </div>
+                            <!-- Obs 2 -->
+                            <div class="space-y-1.5">
+                                <label class="block text-[9px] font-bold text-green-700 uppercase tracking-widest px-1">Obs 2 — Solução</label>
+                                <div class="bg-white/60 p-2.5 rounded-lg border border-slate-200/60 max-h-24 overflow-y-auto custom-scrollbar shadow-sm">
+                                    <p class="text-[11px] text-gray-600 whitespace-pre-wrap leading-relaxed">${item.observacao_solucao || 'Nenhuma registrada.'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                `;
+
+                window.SAS.utils.modal.alert('Detalhes do Atendimento', html, 'info-no-icon');
+                if (window.lucide) window.lucide.createIcons();
+            } catch (e) {
+                console.error('Error opening modal:', e);
+                window.SAS.utils.modal.alert('Erro', 'Erro ao carregar detalhes.', 'danger');
+            }
+        };
+
         const buscarServidor = async () => {
             const valor = cpfInput.value.replace(/\D/g, '');
             if (valor.length < 5 || isSearching) return; 
@@ -330,6 +526,7 @@
                         window.SAS.utils.notify('success', 'Dados carregados automaticamente!');
                         // Check for future appointments
                         await buscarAgendamentosFuturos(results[0].cpf, results[0].matricula);
+                        await buscarHistorico(results[0].cpf);
                     } else if (results.length > 1) {
                         // Modal selection will handle preencherForm which should check future appts too
                         listaVinculos.innerHTML = '';
@@ -520,6 +717,7 @@
             window.SAS.utils.modal.confirm('Limpar Campos', 'Deseja limpar todos os campos?', () => {
                 form.reset();
                 updateTimeSlots();
+                document.getElementById('historicoContainer').classList.add('hidden');
             });
         });
 
@@ -573,6 +771,7 @@
                     window.SAS.utils.modal.alert('Sucesso', 'Agendamento feito com sucesso!', 'info');
                     form.reset();
                     updateTimeSlots();
+                    document.getElementById('historicoContainer').classList.add('hidden');
                 } catch (err) {
                     console.error('Submit Error:', err);
                     const errorData = err.data || {};
