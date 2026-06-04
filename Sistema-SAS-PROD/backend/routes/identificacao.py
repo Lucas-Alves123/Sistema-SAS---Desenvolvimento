@@ -57,6 +57,37 @@ def validar_servidor():
         except Exception as e:
             print(f"Matricula Query Error: {e}")
 
+    # 3. Se ainda não achou, tenta no histórico de agendamentos/atendimentos
+    if not server_data and (valor_limpo and len(valor_limpo) == 11):
+        query_historico = """
+            SELECT 
+                nome_completo, 
+                cpf, 
+                email, 
+                matricula, 
+                cargo, 
+                vinculo, 
+                local_trabalho,
+                telefone
+            FROM agendamentos
+            WHERE cpf = %s OR cpf = %s
+            ORDER BY id DESC
+        """
+        try:
+            raw_historico = query_db(query_historico, (valor_limpo, valor))
+            if raw_historico:
+                unique_vinculos = []
+                seen = set()
+                for h in raw_historico:
+                    # Cria uma chave única baseada na matrícula e vínculo
+                    v_key = f"{h.get('matricula') or ''}-{h.get('vinculo') or ''}".strip()
+                    if v_key not in seen:
+                        seen.add(v_key)
+                        unique_vinculos.append(h)
+                server_data = unique_vinculos
+        except Exception as e:
+            print(f"Historico Query Error: {e}")
+
     if server_data:
         return jsonify({
             'success': True,
