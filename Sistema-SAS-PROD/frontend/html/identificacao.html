@@ -174,14 +174,28 @@
 
                         <!-- Error State -->
                         <div id="errorState"
-                            class="hidden bg-red-50 border border-red-100 rounded-xl p-4 flex items-start gap-3">
-                            <div class="bg-red-100 p-2 rounded-full shrink-0">
-                                <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
+                            class="hidden bg-red-50 border border-red-100 rounded-xl p-4 flex flex-col gap-3">
+                            <div class="flex items-start gap-3">
+                                <div class="bg-red-100 p-2 rounded-full shrink-0">
+                                    <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-red-900">Não encontrado</h3>
+                                    <p class="text-sm text-red-700 mt-0.5" id="errorMessage">Verifique os dados e tente novamente.</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 class="font-bold text-red-900">Não encontrado</h3>
-                                <p class="text-sm text-red-700 mt-0.5" id="errorMessage">Verifique os dados e tente
-                                    novamente.</p>
+                            
+                            <!-- Botoes de Acao de Erro -->
+                            <div class="flex gap-2 w-full mt-2">
+                                <button type="button" id="btnAtendimentoPublico"
+                                    class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-2 rounded-lg text-sm transition-all shadow-sm flex justify-center items-center gap-2">
+                                    <i data-lucide="users" class="w-4 h-4"></i>
+                                    Abrir Atendimento ao Público
+                                </button>
+                                <button type="button" id="btnCancelarErro"
+                                    class="bg-white border border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-lg text-sm hover:bg-slate-50 transition-colors shadow-sm">
+                                    Cancelar
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -477,6 +491,8 @@
         const nomeServidor = document.getElementById('nomeServidor');
         const dadosServidor = document.getElementById('dadosServidor');
         const errorMessage = document.getElementById('errorMessage');
+        const btnAtendimentoPublico = document.getElementById('btnAtendimentoPublico');
+        const btnCancelarErro = document.getElementById('btnCancelarErro');
 
         // Elements - Step 2
         const step2Content = document.getElementById('step2-content');
@@ -681,6 +697,16 @@
                     lucide.createIcons();
                 }
             }
+        });
+
+        // Eventos dos novos botões
+        btnCancelarErro.addEventListener('click', () => {
+            errorState.classList.add('hidden');
+        });
+
+        btnAtendimentoPublico.addEventListener('click', () => {
+            const valor = inputIdentificacao.value.trim();
+            window.location.href = `atendimento_publico.html?identificacao=${encodeURIComponent(valor)}`;
         });
 
         const urlParams = new URL(window.location.href).searchParams;

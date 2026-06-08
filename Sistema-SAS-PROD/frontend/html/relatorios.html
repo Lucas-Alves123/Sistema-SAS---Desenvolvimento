@@ -116,7 +116,7 @@
                     <!-- Modern Filter Panel (Collapsible) -->
                     <div id="filterPanel" class="overflow-hidden transition-all duration-300 ease-in-out max-h-0 opacity-0">
                         <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 mb-6 shadow-sm">
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
                                 <!-- Date Range -->
                                 <div class="space-y-1">
                                     <label class="block text-[10px] font-black text-slate-400 uppercase">Período Inicial</label>
@@ -176,6 +176,17 @@
                                         </select>
                                     </div>
                                 </div>
+
+                                <div class="space-y-1">
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase">Público Alvo</label>
+                                    <div class="relative">
+                                        <i data-lucide="users" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                        <select id="filterAudience" class="w-full bg-white border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none transition-all">
+                                            <option value="Servidores">Somente Servidores</option>
+                                            <option value="Publico">Somente Público Externo</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -208,29 +219,8 @@
                     <!-- Table Container -->
                     <div id="mainTableContainer" class="overflow-auto max-h-[700px] border border-slate-200 rounded-xl shadow-sm bg-white mb-6 relative">
                         <table class="w-full text-[11px] text-left border-separate border-spacing-0">
-                            <thead class="sticky top-0 z-20 bg-slate-100 text-slate-700 font-bold">
-                                <tr>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Data/Hora</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Nome</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">CPF</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Matrícula</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Cargo</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Tipo de Vínculo</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Local</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">E-mail</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Telefone</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Atendente</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Serviço</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Assuntos Extras</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Atendimento</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Nível de Atendimento</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Status</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Concluído em</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20 text-center">Ações</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Obs 1 (Prob)</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Obs 2 (Sol)</th>
-                                    <th class="sticky top-0 bg-slate-100 px-3 py-3 border-b border-slate-300 z-20">Obs Extras</th>
-                                </tr>
+                            <thead id="reportTableHeader" class="sticky top-0 z-20 bg-slate-100 text-slate-700 font-bold">
+                                <!-- Dynamically generated based on audience filter -->
                             </thead>
                             <tbody id="reportTableBody" class="divide-y divide-slate-200">
                                 <!-- Rows -->
@@ -512,6 +502,7 @@
         const filterAttendant = document.getElementById('filterAttendant');
         const filterService = document.getElementById('filterService');
         const filterType = document.getElementById('filterType');
+        const filterAudience = document.getElementById('filterAudience');
         const filterBtn = document.getElementById('filterBtn');
         const reportTableBody = document.getElementById('reportTableBody');
 
@@ -770,8 +761,60 @@
             if (typeValue) {
                 data = data.filter(d => (d.tipo_atendimento || 'Presencial') === typeValue);
             }
+            
+            const audience = filterAudience ? filterAudience.value : 'Servidores';
+            if (audience === 'Servidores') {
+                data = data.filter(d => d.tipo_atendimento !== 'Ao Público');
+            } else if (audience === 'Publico') {
+                data = data.filter(d => d.tipo_atendimento === 'Ao Público');
+            }
 
             fullFilteredData = data;
+            
+            // Build Table Headers
+            const thead = document.getElementById('reportTableHeader');
+            if (audience === 'Servidores') {
+                thead.innerHTML = `
+                    <tr>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Data/Hora</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Nome</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">CPF</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Matrícula</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Cargo</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Tipo de Vínculo</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Local</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">E-mail</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Telefone</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Atendente</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Serviço</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Status</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20 text-center">Ações</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Assuntos Extras</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Obs 1 (Prob)</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Obs 2 (Sol)</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-b border-slate-300 z-20">Obs Extras</th>
+                    </tr>
+                `;
+            } else {
+                thead.innerHTML = `
+                    <tr>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Data/Hora</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Solicitante</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">CPF do Solicitante</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Telefone</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">E-mail</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Servidor Relacionado</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Matrícula (Servidor)</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Órgão</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Atendente</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Demanda</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Status</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20 text-center">Ações</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Observação</th>
+                    </tr>
+                `;
+            }
+
             renderPagination();
             renderTablePage(currentPage);
         };
@@ -842,57 +885,92 @@
                     editIndicator = `<span class="inline-block w-2.5 h-2.5 bg-blue-500 rounded-full ml-1 cursor-help" title="${tooltipText}"></span>`;
                 }
 
-                tr.innerHTML = `
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600 whitespace-nowrap">${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio ? item.hora_inicio.substring(0, 5) : ''}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 font-medium text-gray-800">${item.nome_completo || '-'} ${importIndicator} ${editIndicator}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${window.SAS.utils.formatCPF(item.cpf || '') || '-'}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.matricula || '-'}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.cargo || '-'}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600 capitalize">${item.vinculo || '-'}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.local_trabalho || '-'}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.email || '-'}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.telefone || '-'}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 font-bold text-blue-700">${item.atendente_nome || '-'}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.tipo_servico || '-'}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-800 font-medium min-w-[150px]">${extrasServHtml}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600 capitalize">${item.tipo_atendimento || '-'}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.prioridade || 'Normal'}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 ${statusColor} font-bold capitalize">
-                        ${({
-                            'concluido': 'Concluido',
-                            'agendado': 'Agendado',
-                            'pendente': 'Pendente Resposta',
-                            'chegou': 'Aguardando',
-                            'em_andamento': 'Em Andamento',
-                            'cancelado': 'Cancelado',
-                            'nao_compareceu': 'Não Compareceu',
-                            'cancelado_pelo_servidor': 'Cancelado Serv.'
-                        })[item.status.toLowerCase()] || item.status.replace(/_/g, ' ')}
-                    </td>
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-600 whitespace-nowrap">
-                        ${item.hora_conclusao ? window.SAS.utils.formatDate(item.hora_conclusao.split(' ')[0]) + ' ' + item.hora_conclusao.split(' ')[1].substring(0, 5) : '-'}
-                    </td>
-                    <td class="px-2 py-3 border-r border-slate-100 flex gap-1 justify-center items-center min-w-[120px]">
-                        <button onclick="viewDetails('${item.id}')" title="Ver Detalhes" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-                            <i data-lucide="eye" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="openAnexosModal('${item.id}', '${item.nome_completo}')" title="Anexos" class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-md transition-colors relative">
-                            <i data-lucide="paperclip" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="generateRequerimentoA_local('${item.id}')" title="Gerar Requerimento A" class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors">
-                            <i data-lucide="file-text" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="generateComprovante_local('${item.id}')" title="Gerar Comprovante" class="p-1.5 text-orange-600 hover:bg-orange-50 rounded-md transition-colors">
-                            <i data-lucide="award" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="reopenService('${item.id}')" title="Reabrir/Editar Atendimento" class="p-1.5 text-orange-500 hover:bg-orange-50 rounded-md transition-colors">
-                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                        </button>
-                    </td>
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${item.observacao_problema || '-'}</td>
-                    <td class="px-2 py-3 border-r border-slate-100 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${item.observacao_solucao || '-'}</td>
-                    <td class="px-2 py-3 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${extrasObsHtml}</td>
-                `;
+                const audience = filterAudience ? filterAudience.value : 'Servidores';
+                if (audience === 'Servidores') {
+                    tr.innerHTML = `
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600 whitespace-nowrap">${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio ? item.hora_inicio.substring(0, 5) : ''}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 font-medium text-gray-800">${item.nome_completo || '-'} ${importIndicator} ${editIndicator}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${window.SAS.utils.formatCPF(item.cpf || '') || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.matricula || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.cargo || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600 capitalize">${item.vinculo || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.local_trabalho || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.email || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.telefone || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 font-bold text-blue-700">${item.atendente_nome || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.tipo_servico || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 ${statusColor} font-bold capitalize">
+                            ${({
+                                'concluido': 'Concluido',
+                                'agendado': 'Agendado',
+                                'pendente': 'Pendente Resposta',
+                                'chegou': 'Aguardando',
+                                'em_andamento': 'Em Andamento',
+                                'cancelado': 'Cancelado',
+                                'nao_compareceu': 'Não Compareceu',
+                                'cancelado_pelo_servidor': 'Cancelado Serv.'
+                            })[item.status.toLowerCase()] || item.status.replace(/_/g, ' ')}
+                        </td>
+                        <td class="px-2 py-3 border-r border-slate-100 flex gap-1 justify-center items-center min-w-[120px]">
+                            <button onclick="viewDetails('${item.id}')" title="Ver Detalhes" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="openAnexosModal('${item.id}', '${item.nome_completo}')" title="Anexos" class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-md transition-colors relative">
+                                <i data-lucide="paperclip" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="generateRequerimentoA_local('${item.id}')" title="Gerar Requerimento A" class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors">
+                                <i data-lucide="file-text" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="generateComprovante_local('${item.id}')" title="Gerar Comprovante" class="p-1.5 text-orange-600 hover:bg-orange-50 rounded-md transition-colors">
+                                <i data-lucide="award" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="reopenService('${item.id}')" title="Reabrir/Editar Atendimento" class="p-1.5 text-orange-500 hover:bg-orange-50 rounded-md transition-colors">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-800 font-medium min-w-[150px]">${extrasServHtml}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${item.observacao_problema || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${item.observacao_solucao || '-'}</td>
+                        <td class="px-2 py-3 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${extrasObsHtml}</td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600 whitespace-nowrap">${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio ? item.hora_inicio.substring(0, 5) : ''}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 font-medium text-gray-800">${item.solicitante_nome || '-'} ${importIndicator} ${editIndicator}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${window.SAS.utils.formatCPF(item.solicitante_cpf || '') || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.solicitante_telefone || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.solicitante_email || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 font-medium text-blue-700">${item.nome_completo || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.matricula || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.servidor_orgao || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 font-bold text-blue-700">${item.atendente_nome || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.tipo_servico || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 ${statusColor} font-bold capitalize">
+                            ${({
+                                'concluido': 'Concluido',
+                                'agendado': 'Agendado',
+                                'pendente': 'Pendente Resposta',
+                                'chegou': 'Aguardando',
+                                'em_andamento': 'Em Andamento',
+                                'cancelado': 'Cancelado',
+                                'nao_compareceu': 'Não Compareceu',
+                                'cancelado_pelo_servidor': 'Cancelado Serv.'
+                            })[item.status.toLowerCase()] || item.status.replace(/_/g, ' ')}
+                        </td>
+                        <td class="px-2 py-3 border-r border-slate-100 flex gap-1 justify-center items-center min-w-[120px]">
+                            <button onclick="viewDetails('${item.id}')" title="Ver Detalhes" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="openAnexosModal('${item.id}', '${item.nome_completo}')" title="Anexos" class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-md transition-colors relative">
+                                <i data-lucide="paperclip" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="reopenService('${item.id}')" title="Reabrir/Editar Atendimento" class="p-1.5 text-orange-500 hover:bg-orange-50 rounded-md transition-colors">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                        <td class="px-2 py-3 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${item.assunto_secundario || '-'}</td>
+                    `;
+                }
                 reportTableBody.appendChild(tr);
             });
 

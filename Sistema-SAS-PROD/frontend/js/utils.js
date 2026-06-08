@@ -41,8 +41,20 @@
     };
 
     window.SAS.utils.formatCPF = (value) => {
-        const nums = value.replace(/\D/g, '');
-        return nums.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4').substring(0, 14);
+        let nums = value.replace(/\D/g, '').substring(0, 11);
+        if (nums.length <= 3) return nums;
+        if (nums.length <= 6) return nums.replace(/(\d{3})(\d+)/, '$1.$2');
+        if (nums.length <= 9) return nums.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
+        return nums.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3-$4');
+    };
+
+    window.SAS.utils.formatTelefone = (value) => {
+        let nums = value.replace(/\D/g, '').substring(0, 11);
+        if (nums.length === 0) return '';
+        if (nums.length <= 2) return `(${nums}`;
+        if (nums.length <= 6) return `(${nums.substring(0,2)}) ${nums.substring(2)}`;
+        if (nums.length <= 10) return `(${nums.substring(0,2)}) ${nums.substring(2,6)}-${nums.substring(6)}`;
+        return `(${nums.substring(0,2)}) ${nums.substring(2,7)}-${nums.substring(7)}`;
     };
 
     window.SAS.utils.cn = (...classes) => {

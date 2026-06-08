@@ -114,6 +114,11 @@ def create_app():
     def solicitar_page():
         return app.send_static_file('html/solicitar.html')
 
+    @app.route('/atendimento_publico')
+    @app.route('/atendimento_publico.html')
+    def atendimento_publico_page():
+        return app.send_static_file('html/atendimento_publico.html')
+
     @app.route('/chat_cliente')
     def chat_cliente_page():
         return app.send_static_file('html/chat_cliente.html')

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atendimento ao Público — SAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sonner@1.4.0/dist/sonner.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body {
+            background-color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .sas-blue { background-color: #2563eb; }
+        .glass-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .field-label { 
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 8px;
+            margin-left: 4px;
+        }
+        .input-base { 
+            width: 100%;
+            padding: 12px 16px;
+            background-color: #ffffff;
+            border: 1.5px solid #cbd5e1 !important;
+            border-radius: 8px;
+            color: #475569;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .input-base:focus {
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .grid-custom { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 20px; 
+            margin-bottom: 20px;
+        }
+        @media (max-width: 768px) { 
+            .grid-custom { grid-template-columns: 1fr; } 
+            .glass-card { padding: 24px; }
+        }
+    </style>
+</head>
+<body class="min-h-screen py-10 px-4">
+
+    <div class="max-w-6xl mx-auto space-y-6">
+        <div class="w-full flex justify-start mb-2">
+            <button onclick="window.location.href='/atendimento'" class="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-sm hover:bg-slate-50 transition-colors border border-slate-200 text-slate-700" title="Voltar ao Painel">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="flex flex-col items-center justify-center mb-8 animate-fade-in relative">
+            <div class="flex items-center gap-3 mb-2">
+                <i data-lucide="users" class="w-8 h-8 text-blue-700"></i>
+                <h1 class="text-3xl font-bold text-blue-700">Atendimento ao Público</h1>
+            </div>
+            <!-- Decorative Line (Pernambuco Colors) -->
+            <div class="flex justify-center items-center">
+                <div class="h-1.5 w-32 bg-gradient-to-r from-blue-600 via-yellow-400 to-red-500 rounded-full"></div>
+            </div>
+        </div>
+
+        <div class="glass-card shadow-lg">
+            <form id="publicoForm" class="space-y-8">
+                
+                <!-- Secao: Dados do Solicitante -->
+                <div>
+                    <h2 class="section-title">
+                        <i data-lucide="user" class="w-5 h-5 text-blue-600"></i>
+                        Dados do Solicitante
+                    </h2>
+                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                        <div class="grid-custom">
+                            <div class="space-y-1">
+                                <label class="field-label">Nome Completo</label>
+                                <input type="text" id="solic_nome" required class="input-base">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="field-label">CPF</label>
+                                <input type="text" id="solic_cpf" maxlength="14" class="input-base">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="field-label">Telefone</label>
+                                <input type="text" id="solic_telefone" maxlength="15" placeholder="(00) 00000-0000" class="input-base">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-[20px]">
+                            <div class="space-y-1">
+                                <label class="field-label">E-mail</label>
+                                <input type="email" id="solic_email" class="input-base">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="field-label">Tipo de Solicitante</label>
+                                <select id="solic_tipo" required class="input-base">
+                                    <option value="">Selecione...</option>
+                                    <option value="Ex-servidor">Ex-servidor</option>
+                                    <option value="Representante legal">Representante legal</option>
+                                    <option value="Herdeiro">Herdeiro</option>
+                                    <option value="Dependente">Dependente</option>
+                                    <option value="Outro">Outro</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secao: Dados do Servidor Relacionado -->
+                <div>
+                    <h2 class="section-title">
+                        <i data-lucide="contact-2" class="w-5 h-5 text-indigo-600"></i>
+                        Dados do Servidor Relacionado
+                    </h2>
+                    <div class="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100/50">
+                        <div class="grid-custom">
+                            <div class="space-y-1">
+                                <label class="field-label">Nome do Servidor</label>
+                                <input type="text" id="servidor_nome" class="input-base">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="field-label">CPF do Servidor</label>
+                                <input type="text" id="servidor_cpf" maxlength="14" class="input-base">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="field-label">Matrícula</label>
+                                <input type="text" id="servidor_matricula" class="input-base">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-[20px]">
+                            <div class="space-y-1">
+                                <label class="field-label">Órgão de Origem</label>
+                                <input type="text" id="servidor_orgao" class="input-base">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="field-label">Situação</label>
+                                <select id="servidor_situacao" class="input-base">
+                                    <option value="">Selecione...</option>
+                                    <option value="Ativo">Ativo</option>
+                                    <option value="Aposentado">Aposentado</option>
+                                    <option value="Falecido">Falecido</option>
+                                    <option value="Exonerado">Exonerado</option>
+                                    <option value="Desconhecida">Desconhecida</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secao: Demanda -->
+                <div>
+                    <h2 class="section-title">
+                        <i data-lucide="file-text" class="w-5 h-5 text-orange-600"></i>
+                        Detalhes da Solicitação
+                    </h2>
+                    <div class="bg-orange-50/30 p-6 rounded-2xl border border-orange-100/50 space-y-4">
+                        <div class="space-y-1">
+                            <label class="field-label">Tipo da Demanda</label>
+                            <select id="tipo_demanda" required class="input-base font-bold text-slate-800">
+                                <option value="">Selecione...</option>
+                                <optgroup label="Financeiras">
+                                    <option value="Dias deixados a receber">Dias deixados a receber</option>
+                                    <option value="Licença-prêmio em pecúnia">Licença-prêmio em pecúnia</option>
+                                    <option value="Pagamento a herdeiros">Pagamento a herdeiros</option>
+                                    <option value="Outros valores pendentes">Outros valores pendentes</option>
+                                </optgroup>
+                                <optgroup label="Benefícios e Direitos">
+                                    <option value="Auxílio-funeral">Auxílio-funeral</option>
+                                </optgroup>
+                                <optgroup label="Certidões e Documentação">
+                                    <option value="CTC (Certidão de Tempo de Contribuição)">CTC (Certidão de Tempo de Contribuição)</option>
+                                    <option value="CTS">CTS</option>
+                                    <option value="DTC">DTC</option>
+                                    <option value="Outras certidões relacionadas ao vínculo funcional">Outras certidões relacionadas ao vínculo funcional</option>
+                                </optgroup>
+                                <optgroup label="Administrativas">
+                                    <option value="Baixa na Carteira de Trabalho Digital">Baixa na Carteira de Trabalho Digital</option>
+                                    <option value="Atualização ou regularização de registros funcionais">Atualização ou regularização de registros funcionais</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-[20px]">
+                            <div class="space-y-1">
+                                <label class="field-label">Descrição da Solicitação</label>
+                                <textarea id="descricao" required placeholder="Relato detalhado da demanda..." 
+                                    class="input-base resize-none h-32"></textarea>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="field-label">Observação</label>
+                                <textarea id="informacoes_complementares" placeholder="Outras informações relevantes (opcional)..." 
+                                    class="input-base resize-none h-32"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secao: Anexos -->
+                <div>
+                    <h2 class="section-title">
+                        <i data-lucide="paperclip" class="w-5 h-5 text-emerald-600"></i>
+                        Anexos
+                    </h2>
+                    <div class="bg-emerald-50/30 p-6 rounded-2xl border border-emerald-100/50">
+                        <div class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 rounded-xl bg-white hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer relative">
+                            <input type="file" id="fileInput" multiple class="absolute inset-0 opacity-0 cursor-pointer">
+                            <div class="bg-emerald-100 p-3 rounded-full text-emerald-600 mb-2">
+                                <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                            </div>
+                            <p class="font-bold text-slate-700">Clique ou arraste arquivos aqui</p>
+                            <p class="text-xs text-slate-500 mt-1">Ex: Identidade, Certidão de Óbito, Procuração</p>
+                        </div>
+                        <div id="fileList" class="mt-4 space-y-2"></div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="pt-6">
+                    <button type="button" id="btnSubmit" 
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-black shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 text-lg">
+                        <i data-lucide="save" class="w-5 h-5"></i>
+                        REGISTRAR ATENDIMENTO
+                    </button>
+                    
+                    <div id="loadingState" class="hidden flex justify-center py-4">
+                        <div class="flex items-center gap-3 text-blue-600 font-bold">
+                            <i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i>
+                            Salvando registro...
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successOverlay" class="fixed inset-0 bg-slate-900/80 z-[999] hidden flex items-center justify-center p-6 backdrop-blur-sm">
+        <div class="bg-white rounded-[2rem] p-10 max-w-sm w-full text-center space-y-6 animate-fade-in shadow-2xl">
+            <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
+                <i data-lucide="check" class="w-10 h-10"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-black text-slate-800">Registrado!</h2>
+                <p class="text-slate-500 mt-2">O atendimento ao público externo foi concluído e salvo com sucesso.</p>
+            </div>
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Protocolo</p>
+                <p class="text-2xl font-black text-slate-800" id="protocolDisplay">#000000</p>
+            </div>
+            <div class="pt-4 flex flex-col gap-3">
+                <button onclick="window.location.href='/relatorios'" class="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition-all">
+                    Ir para Relatório
+                </button>
+                <button onclick="window.location.reload()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all">
+                    Novo Registro
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js?v=2"></script>
+    <script src="js/api.js"></script>
+    <script src="js/base44.js"></script>
+    <script>
+        // Check for ?id= parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const ticketId = urlParams.get('id');
+        let isUpdateMode = !!ticketId;
+        
+        // Setup base44 user
+        window.SAS.base44.auth.check();
+        const user = window.SAS.base44.auth.user;
+        if (user && document.getElementById('user-name')) {
+            document.getElementById('user-name').textContent = user.nome || user.email;
+        }
+
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Load existing ticket data if updating
+        if (isUpdateMode) {
+            (async () => {
+                try {
+                    const res = await fetch(`/api/agendamentos`);
+                    const all = await res.json();
+                    if (!all.error) {
+                        const ticket = all.find(a => String(a.id) === String(ticketId));
+                        if (ticket) {
+                            // Populate known fields
+                            if (ticket.servidor_situacao) document.getElementById('servidor_situacao').value = ticket.servidor_situacao;
+                            if (ticket.solicitante_tipo) document.getElementById('solic_tipo').value = ticket.solicitante_tipo;
+                            if (ticket.tipo_servico && ticket.tipo_servico !== 'Atendimento ao Público (Triagem)' && ticket.tipo_servico !== 'Atendimento ao Público (Direto)') {
+                                document.getElementById('tipo_demanda').value = ticket.tipo_servico;
+                            }
+                            
+                            document.getElementById('servidor_nome').value = ticket.nome_completo || '';
+                            if (ticket.cpf) document.getElementById('servidor_cpf').value = window.SAS.utils.formatCPF(ticket.cpf);
+                            if (ticket.matricula) document.getElementById('servidor_matricula').value = ticket.matricula;
+                            if (ticket.servidor_orgao) document.getElementById('servidor_orgao').value = ticket.servidor_orgao;
+                            
+                            document.getElementById('solic_nome').value = ticket.solicitante_nome || '';
+                            if (ticket.solicitante_cpf) document.getElementById('solic_cpf').value = window.SAS.utils.formatCPF(ticket.solicitante_cpf);
+                            if (ticket.solicitante_telefone) document.getElementById('solic_telefone').value = ticket.solicitante_telefone;
+                            if (ticket.solicitante_email) document.getElementById('solic_email').value = ticket.solicitante_email;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to load existing ticket", e);
+                }
+            })();
+        } else {
+            // New ticket - read params from URL if available
+            const passedNome = urlParams.get('nome');
+            const passedCpf = urlParams.get('cpf');
+            
+            if (passedNome) {
+                document.getElementById('servidor_nome').value = passedNome;
+            }
+            if (passedCpf && passedCpf.replace(/\D/g, '') !== '') {
+                const formattedCpf = window.SAS.utils.formatCPF(passedCpf);
+                document.getElementById('servidor_cpf').value = formattedCpf;
+            }
+        }
+
+        // Format CPFs
+        document.getElementById('solic_cpf').addEventListener('input', e => {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length > 11) val = val.substring(0, 11);
+            e.target.value = window.SAS.utils.formatCPF(val);
+        });
+        document.getElementById('servidor_cpf').addEventListener('input', e => {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length > 11) val = val.substring(0, 11);
+            e.target.value = window.SAS.utils.formatCPF(val);
+        });
+
+        // Format Telefone
+        const telInput = document.getElementById('solic_telefone');
+        if (telInput) {
+            telInput.addEventListener('input', (e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val.length > 11) val = val.substring(0, 11);
+                e.target.value = window.SAS.utils.formatTelefone(val);
+            });
+        }
+
+
+
+        // File handling
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        let selectedFiles = [];
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            for (let f of files) {
+                if (f.size > 10 * 1024 * 1024) {
+                    window.SAS.utils.notify('error', `Arquivo ${f.name} muito grande (máx 10MB)`);
+                    continue;
+                }
+                selectedFiles.push(f);
+            }
+            renderFileList();
+            fileInput.value = ''; // Reset input
+        });
+
+        function renderFileList() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg text-sm';
+                div.innerHTML = `
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <i data-lucide="file" class="w-4 h-4 text-slate-400 shrink-0"></i>
+                        <span class="truncate font-medium text-slate-700">${file.name}</span>
+                    </div>
+                    <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:bg-red-50 p-1 rounded transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                `;
+                fileList.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        window.removeFile = (index) => {
+            selectedFiles.splice(index, 1);
+            renderFileList();
+        };
+
+        const form = document.getElementById('publicoForm');
+        const btnSubmit = document.getElementById('btnSubmit');
+        const loadingState = document.getElementById('loadingState');
+
+        btnSubmit.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            btnSubmit.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+
+            // Construct payload
+            const payload = {
+                // Fields mapped to backend schema
+                nome_completo: document.getElementById('servidor_nome').value.trim() || document.getElementById('solic_nome').value.trim(),
+                cpf: document.getElementById('servidor_cpf').value.replace(/\D/g, ''),
+                matricula: document.getElementById('servidor_matricula').value.trim(),
+                tipo_servico: document.getElementById('tipo_demanda').value,
+                data_agendamento: new Date().toISOString().split('T')[0], // Today
+                hora_inicio: new Date().toLocaleTimeString('pt-BR', { hour12: false }), // Current time
+                tipo_atendimento: 'Ao Público',
+                status: 'concluido', // Goes straight to finished, aba silenciosa
+                created_by: user ? user.id : null,
+                force_duplicate: true, // Allow multiple entries
+                
+                // New specific columns
+                solicitante_nome: document.getElementById('solic_nome').value.trim().substring(0, 255),
+                solicitante_cpf: document.getElementById('solic_cpf').value.replace(/\D/g, '').substring(0, 14),
+                solicitante_telefone: document.getElementById('solic_telefone').value.trim().substring(0, 20),
+                solicitante_email: document.getElementById('solic_email').value.trim().substring(0, 100),
+                solicitante_tipo: document.getElementById('solic_tipo').value,
+                servidor_orgao: document.getElementById('servidor_orgao').value.trim().substring(0, 255),
+                servidor_situacao: document.getElementById('servidor_situacao').value
+            };
+
+            // Hack: put the description in observacao_problema or we can do it via an update after creation, 
+            // but create_agendamento currently doesn't accept observacao_problema directly.
+            // Let's pass it as assunto_secundario or we can just patch it right after.
+            let finalDescricao = document.getElementById('descricao').value.trim();
+            const infoComplementares = document.getElementById('informacoes_complementares').value.trim();
+            
+            if (infoComplementares) {
+                finalDescricao += '\n\n=== Observação ===\n' + infoComplementares;
+            }
+            
+            payload.assunto_secundario = finalDescricao;
+
+            try {
+                let res;
+                // 1. Save Record
+                if (isUpdateMode) {
+                    delete payload.force_duplicate; // Not a DB column
+                    res = await fetch(`/api/agendamentos/${ticketId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    res = await fetch('/api/agendamentos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.error || errData.message || 'Erro ao registrar atendimento');
+                }
+
+                const data = await res.json();
+                const agendamentoId = isUpdateMode ? ticketId : data.id;
+
+                // 2. Upload Anexos if any
+                if (selectedFiles.length > 0) {
+                    for (let file of selectedFiles) {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        await fetch(`/api/agendamentos/${agendamentoId}/anexos`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                    }
+                }
+
+                // Show Success
+                document.getElementById('protocolDisplay').textContent = `#${String(agendamentoId).padStart(6, '0')}`;
+                document.getElementById('successOverlay').classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                window.SAS.utils.notify('error', err.message);
+                btnSubmit.classList.remove('hidden');
+                loadingState.classList.add('hidden');
+            }
+        });
+
+    </script>
+</body>
+</html>

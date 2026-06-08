@@ -141,8 +141,11 @@
                         <button onclick="switchTab('Telefônico')" id="tab-Telefônico" class="px-4 py-2 font-bold text-sm rounded-t-lg transition-all border-b-2 border-transparent text-gray-400 hover:bg-gray-50 whitespace-nowrap">
                             Telefônico (<span id="count-Telefônico">0</span>)
                         </button>
-                        <button onclick="switchTab('Online')" id="tab-Online" class="px-4 py-2 font-bold text-sm rounded-t-lg transition-all border-b-2 border-transparent text-gray-400 hover:bg-gray-50 whitespace-nowrap">
-                            Online (<span id="count-Online">0</span>)
+                        <button onclick="switchTab('Externo')" id="tab-Externo" class="px-4 py-2 font-bold text-sm rounded-t-lg transition-all border-b-2 border-transparent text-gray-400 hover:bg-gray-50 whitespace-nowrap">
+                            Externo (<span id="count-Externo">0</span>)
+                        </button>
+                        <button onclick="switchTab('Ao Público')" id="tab-Ao Público" class="px-4 py-2 font-bold text-sm rounded-t-lg transition-all border-b-2 border-transparent text-gray-400 hover:bg-gray-50 whitespace-nowrap">
+                            Ao Público (<span id="count-Ao Público">0</span>)
                         </button>
                     </div>
 
@@ -456,6 +459,9 @@
                 'Deseja chamar este servidor agora?',
                 async () => {
                     try {
+                        // Locate item to check its type
+                        const item = await window.SAS.base44.entities.Agendamento.get(id);
+
                         const isDigital = currentQueueTab !== 'Presencial';
                         const targetStatus = isDigital ? 'em_andamento' : 'na_fila_do_painel';
                         
@@ -464,6 +470,12 @@
                             atendente_id: user.id,
                             guiche: currentGuiche
                         });
+                        
+                        if (item && item.tipo_atendimento === 'Ao Público') {
+                            window.location.href = `atendimento_publico.html?id=${id}`;
+                            return;
+                        }
+
                         isResumedService = false; // Chamada normal, não é retorno
                         loadData();
                         window.SAS.utils.notify('success', isDigital ? 'Atendimento iniciado!' : 'Chamando servidor...');
@@ -759,7 +771,11 @@
 
             const queue = todayAppointments.filter(a =>
                 (a.tipo_atendimento && a.tipo_atendimento.toLowerCase() === currentQueueTab.toLowerCase() || (!a.tipo_atendimento && currentQueueTab === 'Presencial')) &&
-                (a.status === 'chegou' || ((currentQueueTab === 'Whatsapp' || currentQueueTab === 'E-mail' || currentQueueTab === 'Telefônico') && a.status === 'agendado'))
+                (
+                  a.status === 'chegou' || 
+                  ((currentQueueTab === 'Whatsapp' || currentQueueTab === 'E-mail' || currentQueueTab === 'Telefônico') && a.status === 'agendado') ||
+                  (currentQueueTab === 'Ao Público' && (a.status === 'chegou' || a.status === 'em_andamento'))
+                )
             ).sort((a, b) => {
                 const dateA = a.data_agendamento + ' ' + (a.hora_inicio || '00:00');
                 const dateB = b.data_agendamento + ' ' + (b.hora_inicio || '00:00');
@@ -768,7 +784,8 @@
 
             const active = all.find(a =>
                 (a.status === 'pendente' || a.status === 'em_andamento' || a.status === 'na_fila_do_painel') &&
-                (String(a.atendente_id) === String(user.id) || String(a.modified_by) === String(user.id))
+                (String(a.atendente_id) === String(user.id) || String(a.modified_by) === String(user.id)) &&
+                (a.tipo_atendimento !== 'Ao Público') // Ao Público tickets stay in the queue
             );
 
             const waitingResponse = all.filter(a => 
@@ -789,7 +806,7 @@
             totalAguardandoEl.textContent = queue.length;
 
             // Atualiza contadores das abas (Agendados + Chegou)
-            const counts = { 'Presencial': 0, 'Whatsapp': 0, 'E-mail': 0, 'Telefônico': 0, 'Online': 0 };
+            const counts = { 'Presencial': 0, 'Whatsapp': 0, 'E-mail': 0, 'Telefônico': 0, 'Externo': 0, 'Ao Público': 0 };
             todayAppointments.filter(a => ['agendado', 'chegou'].includes(a.status)).forEach(a => {
                 const canal = a.tipo_atendimento || 'Presencial';
                 if (counts[canal] !== undefined) counts[canal]++;
@@ -808,7 +825,7 @@
 
         window.switchTab = (tab) => {
             currentQueueTab = tab;
-            ['Presencial', 'Whatsapp', 'E-mail', 'Telefônico', 'Online'].forEach(t => {
+            ['Presencial', 'Whatsapp', 'E-mail', 'Telefônico', 'Externo', 'Ao Público'].forEach(t => {
                 const btn = document.getElementById(`tab-${t}`);
                 if (btn) {
                     if (t === tab) {
@@ -936,6 +953,15 @@
                                 return `
                                     <button onclick="manualCall('${item.id}')" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-widest flex items-center gap-1 transition-all shadow-sm">
                                         <i data-lucide="phone" class="w-3.5 h-3.5"></i> Atender
+                                    </button>
+                                `;
+                            } else if (currentQueueTab === 'Ao Público') {
+                                const btnText = item.status === 'em_andamento' ? 'Continuar' : 'Atender';
+                                const btnIcon = item.status === 'em_andamento' ? 'play' : 'users';
+                                const btnBg = item.status === 'em_andamento' ? 'bg-orange-100 hover:bg-orange-200 text-orange-700' : 'bg-blue-100 hover:bg-blue-200 text-blue-700';
+                                return `
+                                    <button onclick="manualCall('${item.id}')" class="${btnBg} px-3 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-widest flex items-center gap-1 transition-all shadow-sm">
+                                        <i data-lucide="${btnIcon}" class="w-3.5 h-3.5"></i> ${btnText}
                                     </button>
                                 `;
                             }
@@ -1105,7 +1131,19 @@
                             </div>
                         ` : ''}
                         <div class="mb-6 border-b pb-4">
-                            <div class="flex justify-between items-start mb-1">
+                            ${item.tipo_atendimento === 'Ao Público' ? `
+                                <div class="mb-4 p-6 bg-orange-50 border border-orange-200 rounded-xl text-center space-y-4">
+                                    <div class="bg-orange-100 p-4 rounded-full w-16 h-16 mx-auto text-orange-600 flex items-center justify-center mb-2">
+                                        <i data-lucide="users" class="w-8 h-8"></i>
+                                    </div>
+                                    <h3 class="font-black text-xl text-orange-800">Atendimento Externo em Andamento</h3>
+                                    <p class="text-orange-900">O preenchimento deste atendimento deve ser feito no formulário específico.</p>
+                                    <button onclick="window.location.href='atendimento_publico.html?id=${item.id}'" class="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-md">
+                                        Abrir Formulário de Atendimento <i data-lucide="external-link" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            ` : ''}
+                            <div class="${(item.tipo_atendimento === 'Ao Público') ? 'hidden' : 'flex justify-between items-start mb-1'}">
                                 <h2 class="text-3xl font-bold text-blue-800">${item.nome_completo}</h2>
                                 ${(isResumedService && (item.tipo_atendimento === 'Presencial' || !item.tipo_atendimento)) ? `
                                     <button onclick="recallToPanel_local('${item.id}')" class="flex items-center gap-2 bg-slate-100 hover:bg-blue-100 text-slate-600 hover:text-blue-700 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border border-slate-200">
@@ -1113,7 +1151,7 @@
                                     </button>
                                 ` : ''}
                             </div>
-                            <div class="mt-2 group relative">
+                            <div class="${(item.tipo_atendimento === 'Ao Público') ? 'hidden' : 'mt-2 group relative'}">
                                 <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Tipo de Serviço (Clique para alterar se necessário):</label>
                                 <select id="servicoCorrigido" class="w-full p-2 border border-blue-200 rounded-lg bg-blue-50 text-blue-800 font-bold outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="">Selecione...</option>
@@ -1126,11 +1164,11 @@
                                     <option value="Plantão Extraordinário" ${item.tipo_servico === 'Plantão Extraordinário' ? 'selected' : ''}>Plantão Extraordinário</option>
                                 </select>
                             </div>
-                            <div class="mt-2 group relative">
+                            <div class="${(item.tipo_atendimento === 'Ao Público') ? 'hidden' : 'mt-2 group relative'}">
                                 <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Número de Telefone/WhatsApp:</label>
                                 <input type="text" id="telefoneCorrigido" oninput="saveServiceDraft('${item.id}')" value="${item.telefone || ''}" class="w-full p-2 border border-blue-200 rounded-lg bg-blue-50 text-blue-800 font-bold outline-none focus:ring-2 focus:ring-blue-500" placeholder="(XX) 9XXXX-XXXX" />
                             </div>
-                            <div class="flex gap-2 flex-wrap mt-4">
+                            <div class="${(item.tipo_atendimento === 'Ao Público') ? 'hidden' : 'flex gap-2 flex-wrap mt-4'}">
                                 <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-xs font-bold border border-blue-100 shadow-sm">
                                     <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Vínculo: ${item.vinculo || '-'}
                                 </span>
@@ -1139,7 +1177,7 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="space-y-6">
+                        <div class="${(item.tipo_atendimento === 'Ao Público') ? 'hidden' : 'space-y-6'}">
                             <!-- Assuntos Dinâmicos -->
                             <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
                                 <div class="flex justify-between items-center mb-3">
@@ -1158,16 +1196,16 @@
                                 </div>
                             </div>
 
-                            <div class="${(item.tipo_atendimento === 'Online' || item.tipo_atendimento === 'WhatsApp/Sistema') ? 'hidden' : ''}">
+                            <div class="${(item.tipo_atendimento === 'Online' || item.tipo_atendimento === 'WhatsApp/Sistema' || item.tipo_atendimento === 'Ao Público') ? 'hidden' : ''}">
                                 <label class="block text-blue-700 font-bold mb-2">Observação 1 - Problema relatado pelo cliente</label>
                                 <textarea id="obs1" oninput="saveServiceDraft('${item.id}')" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Descreva o problema relatado...">${item.observacao_problema || ''}</textarea>
                             </div>
-                            <div class="${(item.tipo_atendimento === 'Online' || item.tipo_atendimento === 'WhatsApp/Sistema') ? 'hidden' : ''}">
+                            <div class="${(item.tipo_atendimento === 'Online' || item.tipo_atendimento === 'WhatsApp/Sistema' || item.tipo_atendimento === 'Ao Público') ? 'hidden' : ''}">
                                 <label class="block text-blue-700 font-bold mb-2">Observação 2 - Resposta/Solução dada pelo atendente</label>
                                 <textarea id="obs2" oninput="saveServiceDraft('${item.id}')" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Descreva a solução fornecida...">${item.observacao_solucao || ''}</textarea>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div class="${(item.tipo_atendimento === 'Ao Público') ? 'hidden' : 'grid grid-cols-1 md:grid-cols-2 gap-4 mt-4'}">
                                 <button onclick="finishService('${item.id}')" class="w-full bg-gray-300 hover:bg-blue-600 hover:text-white text-gray-700 font-bold py-4 rounded-lg transition-all flex justify-center items-center gap-2" id="finishBtn">
                                     <i data-lucide="check-circle" class="w-5 h-5"></i> Encerrar Atendimento
                                 </button>
@@ -1396,7 +1434,7 @@
                 assuntosAdicionais.push({ categoria, descricao });
             });
 
-            const isChat = currentActiveItem && (currentActiveItem.tipo_atendimento === 'Online' || currentActiveItem.tipo_atendimento === 'WhatsApp/Sistema');
+            const isChat = currentActiveItem && (currentActiveItem.tipo_atendimento === 'Externo' || currentActiveItem.tipo_atendimento === 'WhatsApp/Sistema');
             if (!isChat && (!obs1.trim() || !obs2.trim())) {
                 window.SAS.utils.notify('warning', 'É preciso preencher as duas observações para encerrar.');
                 return;

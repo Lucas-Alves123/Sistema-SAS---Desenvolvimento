@@ -123,7 +123,7 @@
                                     <option value="Whatsapp">Whatsapp</option>
                                     <option value="E-mail">E-mail</option>
                                     <option value="Telefônico">Telefônico</option>
-                                    <option value="Online">Online</option>
+                                    <option value="Externo">Externo</option>
                                 </select>
                                 <div class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-600">
                                     <i data-lucide="chevron-down" class="w-4 h-4"></i>
@@ -238,6 +238,54 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Modal Não Encontrado -->
+            <div id="modalNaoEncontrado" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in flex flex-col items-center text-center p-8">
+                    <div class="bg-blue-100 p-3 rounded-full mb-4">
+                        <i data-lucide="alert-circle" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-2">Aviso</h3>
+                    <p class="text-slate-600 mb-6 leading-relaxed">
+                        Servidor não encontrado no banco de dados. Você pode preencher os dados manualmente.
+                        <br><br>
+                        <strong>Deseja registrar um Atendimento ao Público?</strong>
+                    </p>
+                    <div class="w-full space-y-3">
+                        <button onclick="colocarNaFilaAtendimentoPublico()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md flex justify-center items-center gap-2">
+                            <i data-lucide="list-plus" class="w-5 h-5"></i>
+                            Colocar na Fila de Atendimento ao Público
+                        </button>
+                        <button id="btnAtendimentoPublicoModal" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md flex justify-center items-center gap-2">
+                            <i data-lucide="users" class="w-5 h-5"></i>
+                            Abrir Atendimento ao Público
+                        </button>
+                        <button onclick="fecharModalNaoEncontrado()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl transition-all border border-slate-200">
+                            Preencher
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Nome para Fila -->
+            <div id="modalNomeFila" class="fixed inset-0 bg-black/50 z-[110] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in p-8 text-center">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-2">Nova Demanda</h3>
+                    <p class="text-slate-600 mb-6">
+                        Digite o nome do(a) Servidor(a) ou Ex-Servidor(a) para colocar na fila:
+                    </p>
+                    <input type="text" id="inputNomeFila" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none mb-6 font-bold text-slate-800 text-center text-lg" placeholder="Nome completo...">
+                    
+                    <div class="flex gap-4">
+                        <button onclick="fecharModalNomeFila()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition-all border border-slate-200">
+                            Cancelar
+                        </button>
+                        <button onclick="confirmarNomeFila()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-md">
+                            Confirmar
+                        </button>
+                    </div>
+                </div>
+            </div>
         `;
 
         lucide.createIcons();
@@ -250,6 +298,8 @@
         const clearBtn = document.getElementById('clearBtn');
         const modalVinculos = document.getElementById('modalVinculos');
         const listaVinculos = document.getElementById('listaVinculos');
+        const modalNaoEncontrado = document.getElementById('modalNaoEncontrado');
+        const btnAtendimentoPublicoModal = document.getElementById('btnAtendimentoPublicoModal');
         
         // State for search results
         let searchResults = [];
@@ -302,6 +352,97 @@
         window.fecharModalVinculos = () => {
             modalVinculos.classList.add('hidden');
         };
+
+        window.abrirModalNaoEncontrado = () => {
+            const modal = document.getElementById('modalNaoEncontrado');
+            if (modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => lucide.createIcons(), 50); // reload icons for new buttons
+            }
+        };
+
+        window.fecharModalNaoEncontrado = () => {
+            const modal = document.getElementById('modalNaoEncontrado');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.fecharModalNomeFila = () => {
+            const modal = document.getElementById('modalNomeFila');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.colocarNaFilaAtendimentoPublico = () => {
+            fecharModalNaoEncontrado();
+            const inputNome = document.getElementById('inputNomeFila');
+            if (inputNome) inputNome.value = '';
+            
+            const modal = document.getElementById('modalNomeFila');
+            if (modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => inputNome && inputNome.focus(), 100);
+            }
+        };
+
+        window.confirmarNomeFila = async () => {
+            const inputNome = document.getElementById('inputNomeFila');
+            const nomeServidor = inputNome ? inputNome.value : '';
+            
+            if (!nomeServidor || nomeServidor.trim() === '') {
+                window.SAS.utils.notify('warning', 'Nome inválido. Ação cancelada.');
+                return;
+            }
+            
+            fecharModalNomeFila();
+            
+            try {
+                const payload = {
+                    nome_completo: nomeServidor.trim(),
+                    cpf: "000.000.000-00", // Dummy CPF required by DB
+                    tipo_servico: 'Atendimento ao Público (Triagem)',
+                    tipo_atendimento: 'Ao Público',
+                    status: 'chegou', // Goes to Fila de Espera
+                    data_agendamento: new Date().toISOString().split('T')[0],
+                    hora_inicio: new Date().toLocaleTimeString('pt-BR', { hour12: false }),
+                    created_by: user ? user.id : null,
+                    force_duplicate: true
+                };
+                const res = await fetch('/api/agendamentos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    window.SAS.utils.modal.confirm(
+                        'Adicionado à Fila',
+                        `"${nomeServidor.trim()}" foi colocado na fila de espera. Deseja iniciar o atendimento agora?`,
+                        async () => {
+                            try {
+                                await window.SAS.base44.entities.Agendamento.update(data.id, { status: 'em_andamento' });
+                                window.location.href = `/atendimento_publico?id=${data.id}`;
+                            } catch (e) {
+                                window.SAS.utils.notify('error', 'Erro ao iniciar atendimento.');
+                            }
+                        },
+                        'success'
+                    );
+                } else {
+                    throw new Error(data.error || 'Erro ao registrar');
+                }
+            } catch (err) {
+                console.error(err);
+                window.SAS.utils.notify('error', err.message);
+            }
+        };
+
+        if (btnAtendimentoPublicoModal) {
+            btnAtendimentoPublicoModal.addEventListener('click', async () => {
+                fecharModalNaoEncontrado();
+                const nome = document.getElementById('nome').value.trim() || '';
+                const cpf = document.getElementById('cpf').value.replace(/\D/g, '') || '';
+                window.location.href = `/atendimento_publico?nome=${encodeURIComponent(nome)}&cpf=${encodeURIComponent(cpf)}`;
+            });
+        }
 
         const buscarAgendamentosFuturos = async (cpf, matricula) => {
             try {
@@ -512,7 +653,7 @@
             try {
                 const res = await fetch(`/api/identificacao/validar?valor=${encodeURIComponent(valor)}`);
                 if (res.status === 404) {
-                    window.SAS.utils.notify('warning', 'Servidor não encontrado no banco de dados. Você pode preencher os dados manualmente.');
+                    modalNaoEncontrado.classList.remove('hidden');
                     return;
                 }
                 

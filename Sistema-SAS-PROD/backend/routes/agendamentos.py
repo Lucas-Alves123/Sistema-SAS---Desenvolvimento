@@ -207,18 +207,20 @@ def list_agendamentos():
         # Convert date/time objects to string for JSON serialization
         if agendamentos:
             for a in agendamentos:
-                if a.get('data_agendamento'):
+                if a.get('data_agendamento') is not None:
                     a['data_agendamento'] = str(a['data_agendamento'])
-                if a.get('hora_inicio'):
+                if a.get('hora_inicio') is not None:
                     a['hora_inicio'] = str(a['hora_inicio'])
-                if a.get('created_at'):
+                if a.get('created_at') is not None:
                     a['created_at'] = str(a['created_at'])
-                if a.get('hora_chegada'):
+                if a.get('hora_chegada') is not None:
                     a['hora_chegada'] = str(a['hora_chegada'])
-                if a.get('hora_atendimento'):
+                if a.get('hora_atendimento') is not None:
                     a['hora_atendimento'] = str(a['hora_atendimento'])
-                if a.get('hora_conclusao'):
+                if a.get('hora_conclusao') is not None:
                     a['hora_conclusao'] = str(a['hora_conclusao'])
+                if a.get('updated_at') is not None:
+                    a['updated_at'] = str(a['updated_at'])
                     
         return jsonify(agendamentos)
     except Exception as e:
@@ -231,7 +233,10 @@ def list_agendamentos():
 def create_agendamento():
     data = request.json
     # 'hora_inicio' is required by DB constraint
-    required_fields = ['nome_completo', 'cpf', 'tipo_servico', 'data_agendamento']
+    required_fields = ['nome_completo', 'tipo_servico', 'data_agendamento']
+    
+    if data.get('tipo_atendimento') != 'Ao Público':
+        required_fields.append('cpf')
     
     for field in required_fields:
         if field not in data:
@@ -331,7 +336,9 @@ def create_agendamento():
         fields = [
             'nome_completo', 'cpf', 'matricula', 'cargo', 'vinculo', 'local_trabalho', 'email', 'telefone',
             'tipo_servico', 'assunto_secundario', 'tipo_atendimento', 'prioridade', 'data_agendamento', 'hora_inicio',
-            'status', 'created_by', 'atendente_id', 'sessao_id'
+            'status', 'created_by', 'atendente_id', 'sessao_id',
+            'solicitante_nome', 'solicitante_cpf', 'solicitante_telefone', 'solicitante_email', 'solicitante_tipo',
+            'servidor_orgao', 'servidor_situacao'
         ]
         
         placeholders = ["%s"] * len(fields)
@@ -354,7 +361,14 @@ def create_agendamento():
             data.get('status', 'agendado'),
             data.get('created_by'),
             data.get('atendente_id'),
-            data.get('sessao_id')
+            data.get('sessao_id'),
+            data.get('solicitante_nome'),
+            data.get('solicitante_cpf'),
+            data.get('solicitante_telefone'),
+            data.get('solicitante_email'),
+            data.get('solicitante_tipo'),
+            data.get('servidor_orgao'),
+            data.get('servidor_situacao')
         ]
         
         query = f"""
