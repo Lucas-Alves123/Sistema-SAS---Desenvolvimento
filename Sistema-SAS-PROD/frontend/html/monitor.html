@@ -233,6 +233,7 @@
             const pendentesRespostaCards = [];
             atendimentos.forEach(a => {
                 if (a.is_import && a.status === 'concluido') return; // Ignora carga do CSV apenas se concluído
+                if (a.tipo_atendimento === 'Ao Público') return; // Ignora Atendimento ao Público no monitor
 
                 const isScheduledToday = a.data_agendamento === today;
                 const isCreatedToday = a.created_at && a.created_at.startsWith(today);
@@ -283,7 +284,7 @@
             document.getElementById('count-concluido').textContent = counts.concluido;
             document.getElementById('count-cancelado').textContent = counts.cancelado;
 
-            fullFilteredData = atendimentos.filter(a => !(a.is_import && a.status === 'concluido'));
+            fullFilteredData = atendimentos.filter(a => !(a.is_import && a.status === 'concluido') && a.tipo_atendimento !== 'Ao Público');
             applyFiltersAndRender();
         };
 

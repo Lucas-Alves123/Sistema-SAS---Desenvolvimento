@@ -52,6 +52,24 @@ def check_and_fix():
         else:
             print("sessao_id column exists in agendamentos.")
 
+        # Check for publico columns in agendamentos
+        publico_columns = {
+            'solicitante_nome': 'VARCHAR(255)',
+            'solicitante_cpf': 'VARCHAR(14)',
+            'solicitante_telefone': 'VARCHAR(20)',
+            'solicitante_email': 'VARCHAR(100)',
+            'solicitante_tipo': 'VARCHAR(50)',
+            'servidor_orgao': 'VARCHAR(255)',
+            'servidor_situacao': 'VARCHAR(50)'
+        }
+        for col, col_type in publico_columns.items():
+            cur.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='agendamentos' AND COLUMN_NAME=%s AND TABLE_SCHEMA=%s", (col, Config.DB_NAME))
+            if not cur.fetchone():
+                print(f"Adding {col} column to agendamentos...")
+                cur.execute(f"ALTER TABLE agendamentos ADD COLUMN {col} {col_type}")
+            else:
+                print(f"{col} column exists in agendamentos.")
+
         conn.commit()
         cur.close()
         conn.close()

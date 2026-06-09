@@ -1477,6 +1477,12 @@
                 const agAll = await respAll.json();
                 const updatedAg = agAll.find(a => String(a.id) === String(id));
 
+                if (currentActiveItem && currentActiveItem.tipo_atendimento === 'Ao Público') {
+                    window.SAS.utils.notify('success', 'Atendimento ao público finalizado! Ele agora está disponível no Relatório de Atendimento Público.');
+                } else {
+                    window.SAS.utils.notify('success', 'Atendimento finalizado com sucesso!');
+                }
+
                 // Atualiza o painel de download manual (sem modal automático)
                 const lastServiceSection = document.getElementById('lastServiceSection');
                 const lastServiceName = document.getElementById('lastServiceName');

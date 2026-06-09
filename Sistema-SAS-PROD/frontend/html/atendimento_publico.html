@@ -127,9 +127,7 @@
                                     <option value="">Selecione...</option>
                                     <option value="Ex-servidor">Ex-servidor</option>
                                     <option value="Representante legal">Representante legal</option>
-                                    <option value="Herdeiro">Herdeiro</option>
-                                    <option value="Dependente">Dependente</option>
-                                    <option value="Outro">Outro</option>
+                                    <option value="Herdeiro/Dependente">Herdeiro/Dependente</option>
                                 </select>
                             </div>
                         </div>
@@ -166,11 +164,9 @@
                                 <label class="field-label">Situação</label>
                                 <select id="servidor_situacao" class="input-base">
                                     <option value="">Selecione...</option>
-                                    <option value="Ativo">Ativo</option>
                                     <option value="Aposentado">Aposentado</option>
                                     <option value="Falecido">Falecido</option>
                                     <option value="Exonerado">Exonerado</option>
-                                    <option value="Desconhecida">Desconhecida</option>
                                 </select>
                             </div>
                         </div>
@@ -192,7 +188,6 @@
                                     <option value="Dias deixados a receber">Dias deixados a receber</option>
                                     <option value="Licença-prêmio em pecúnia">Licença-prêmio em pecúnia</option>
                                     <option value="Pagamento a herdeiros">Pagamento a herdeiros</option>
-                                    <option value="Outros valores pendentes">Outros valores pendentes</option>
                                 </optgroup>
                                 <optgroup label="Benefícios e Direitos">
                                     <option value="Auxílio-funeral">Auxílio-funeral</option>
@@ -201,11 +196,9 @@
                                     <option value="CTC (Certidão de Tempo de Contribuição)">CTC (Certidão de Tempo de Contribuição)</option>
                                     <option value="CTS">CTS</option>
                                     <option value="DTC">DTC</option>
-                                    <option value="Outras certidões relacionadas ao vínculo funcional">Outras certidões relacionadas ao vínculo funcional</option>
                                 </optgroup>
                                 <optgroup label="Administrativas">
                                     <option value="Baixa na Carteira de Trabalho Digital">Baixa na Carteira de Trabalho Digital</option>
-                                    <option value="Atualização ou regularização de registros funcionais">Atualização ou regularização de registros funcionais</option>
                                 </optgroup>
                             </select>
                         </div>
@@ -278,11 +271,8 @@
                 <p class="text-2xl font-black text-slate-800" id="protocolDisplay">#000000</p>
             </div>
             <div class="pt-4 flex flex-col gap-3">
-                <button onclick="window.location.href='/relatorios'" class="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition-all">
-                    Ir para Relatório
-                </button>
-                <button onclick="window.location.reload()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all">
-                    Novo Registro
+                <button onclick="window.location.href='/atendimento'" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all">
+                    Voltar para o Painel
                 </button>
             </div>
         </div>
@@ -424,9 +414,38 @@
 
         btnSubmit.addEventListener('click', async (e) => {
             e.preventDefault();
+
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
             
             btnSubmit.classList.add('hidden');
             loadingState.classList.remove('hidden');
+
+            const solic_cpf_raw = document.getElementById('solic_cpf').value.replace(/\D/g, '');
+            if (solic_cpf_raw && solic_cpf_raw.length !== 11) {
+                window.SAS.utils.notify('error', 'CPF do solicitante incompleto');
+                btnSubmit.classList.remove('hidden');
+                loadingState.classList.add('hidden');
+                return;
+            }
+            
+            const servidor_cpf_raw = document.getElementById('servidor_cpf').value.replace(/\D/g, '');
+            if (servidor_cpf_raw && servidor_cpf_raw.length !== 11) {
+                window.SAS.utils.notify('error', 'CPF do servidor incompleto');
+                btnSubmit.classList.remove('hidden');
+                loadingState.classList.add('hidden');
+                return;
+            }
+
+            const telefone_raw = document.getElementById('solic_telefone').value.replace(/\D/g, '');
+            if (telefone_raw && telefone_raw.length < 10) {
+                window.SAS.utils.notify('error', 'Telefone incompleto');
+                btnSubmit.classList.remove('hidden');
+                loadingState.classList.add('hidden');
+                return;
+            }
 
             // Construct payload
             const payload = {
@@ -438,7 +457,7 @@
                 data_agendamento: new Date().toISOString().split('T')[0], // Today
                 hora_inicio: new Date().toLocaleTimeString('pt-BR', { hour12: false }), // Current time
                 tipo_atendimento: 'Ao Público',
-                status: 'concluido', // Goes straight to finished, aba silenciosa
+                status: 'agendado', // Goes to the queue normally
                 created_by: user ? user.id : null,
                 force_duplicate: true, // Allow multiple entries
                 

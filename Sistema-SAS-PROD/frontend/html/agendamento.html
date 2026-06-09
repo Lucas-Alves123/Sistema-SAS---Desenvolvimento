@@ -413,17 +413,9 @@
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    window.SAS.utils.modal.confirm(
+                    window.SAS.utils.modal.alert(
                         'Adicionado à Fila',
-                        `"${nomeServidor.trim()}" foi colocado na fila de espera. Deseja iniciar o atendimento agora?`,
-                        async () => {
-                            try {
-                                await window.SAS.base44.entities.Agendamento.update(data.id, { status: 'em_andamento' });
-                                window.location.href = `/atendimento_publico?id=${data.id}`;
-                            } catch (e) {
-                                window.SAS.utils.notify('error', 'Erro ao iniciar atendimento.');
-                            }
-                        },
+                        `"${nomeServidor.trim()}" foi colocado na fila de espera com sucesso.`,
                         'success'
                     );
                 } else {
