@@ -742,6 +742,7 @@
             // A "Movimentação do Dia" deve contar apenas o que é DE FATO de hoje, excluindo o backlog pendente que ainda não foi tocado hoje
             const actualTodayMovement = todayAppointments.filter(a => {
                 if (a.is_import) return false; // Nunca contar imports como movimentação de hoje
+                if (a.tipo_atendimento === 'Ao Público') return false; // Temporário: Ocultar do contador
                 
                 const isScheduledToday = a.data_agendamento === today;
                 const isCreatedToday = a.created_at && a.created_at.startsWith(today);
@@ -794,7 +795,7 @@
             ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
             const doneToday = all.filter(a => 
-                !a.is_import && !a.modified_by &&
+                !a.is_import &&
                 (a.data_agendamento === today || (a.hora_conclusao && a.hora_conclusao.startsWith(today)) || (a.created_at && a.created_at.startsWith(today) && a.status === 'concluido')) && 
                 a.status === 'concluido'
             ).sort((a, b) => {

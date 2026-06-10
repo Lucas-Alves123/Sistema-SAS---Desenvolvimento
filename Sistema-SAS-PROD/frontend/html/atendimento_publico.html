@@ -416,6 +416,7 @@
             e.preventDefault();
 
             if (!form.checkValidity()) {
+                window.SAS.utils.notify('error', 'Por favor, preencha todos os campos obrigatórios marcados com asterisco (especialmente os Dados do Solicitante lá no topo).');
                 form.reportValidity();
                 return;
             }
@@ -465,15 +466,12 @@
                 solicitante_nome: document.getElementById('solic_nome').value.trim().substring(0, 255),
                 solicitante_cpf: document.getElementById('solic_cpf').value.replace(/\D/g, '').substring(0, 14),
                 solicitante_telefone: document.getElementById('solic_telefone').value.trim().substring(0, 20),
-                solicitante_email: document.getElementById('solic_email').value.trim().substring(0, 100),
-                solicitante_tipo: document.getElementById('solic_tipo').value,
-                servidor_orgao: document.getElementById('servidor_orgao').value.trim().substring(0, 255),
-                servidor_situacao: document.getElementById('servidor_situacao').value
+                solicitante_email: document.getElementById('solic_email').value.trim().substring(0, 255),
+                solicitante_tipo: document.getElementById('solic_tipo').value.substring(0, 50),
+                servidor_orgao: document.getElementById('servidor_orgao').value.trim().substring(0, 100),
+                servidor_situacao: document.getElementById('servidor_situacao').value.substring(0, 50)
             };
 
-            // Hack: put the description in observacao_problema or we can do it via an update after creation, 
-            // but create_agendamento currently doesn't accept observacao_problema directly.
-            // Let's pass it as assunto_secundario or we can just patch it right after.
             let finalDescricao = document.getElementById('descricao').value.trim();
             const infoComplementares = document.getElementById('informacoes_complementares').value.trim();
             
@@ -481,13 +479,23 @@
                 finalDescricao += '\n\n=== Observação ===\n' + infoComplementares;
             }
             
-            payload.assunto_secundario = finalDescricao;
+            if (isUpdateMode) {
+                payload.status = 'concluido'; // Finaliza o atendimento de vez
+                payload.atendente_id = user ? user.id : null;
+                payload.modified_by = user ? user.id : null;
+                payload.observacao_problema = finalDescricao;
+                delete payload.force_duplicate;
+                delete payload.data_agendamento;
+                delete payload.hora_inicio;
+            } else {
+                // Em criação normal (sem isUpdateMode), usa assunto_secundario com limite de 255 chars para evitar crash
+                payload.assunto_secundario = finalDescricao.substring(0, 255);
+            }
 
             try {
                 let res;
                 // 1. Save Record
                 if (isUpdateMode) {
-                    delete payload.force_duplicate; // Not a DB column
                     res = await fetch(`/api/agendamentos/${ticketId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
