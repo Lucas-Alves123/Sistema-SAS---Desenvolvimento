@@ -1007,7 +1007,10 @@
                             <i data-lucide="check" class="w-4 h-4"></i>
                         </div>
                         <div>
-                            <div class="font-bold text-slate-800 text-sm">${item.nome_completo}</div>
+                            <div class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                ${item.nome_completo}
+                                ${item.tipo_atendimento === 'Ao Público' ? '<span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">Ao Público</span>' : ''}
+                            </div>
                             <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">${item.tipo_servico}</div>
                         </div>
                     </div>
@@ -1641,6 +1644,12 @@
                 }
 
                 await window.SAS.base44.entities.Agendamento.update(id, updates);
+                
+                if (ag && ag.tipo_atendimento === 'Ao Público') {
+                    window.location.href = `atendimento_publico.html?id=${id}`;
+                    return;
+                }
+
                 isResumedService = true; // Ativa flag de retorno
                 shouldFocusResumed = true; // Ativa flag de foco
                 window.SAS.utils.notify('success', 'Atendimento retomado!');

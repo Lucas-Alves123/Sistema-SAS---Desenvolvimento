@@ -99,13 +99,13 @@
                 <div>
                     <h2 class="section-title">
                         <i data-lucide="user" class="w-5 h-5 text-blue-600"></i>
-                        Dados do Solicitante
+                        Dados do Requerente
                     </h2>
                     <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
                         <div class="grid-custom">
                             <div class="space-y-1">
                                 <label class="field-label">Nome Completo</label>
-                                <input type="text" id="solic_nome" required class="input-base">
+                                <input type="text" id="solic_nome" class="input-base">
                             </div>
                             <div class="space-y-1">
                                 <label class="field-label">CPF</label>
@@ -122,10 +122,9 @@
                                 <input type="email" id="solic_email" class="input-base">
                             </div>
                             <div class="space-y-1">
-                                <label class="field-label">Tipo de Solicitante</label>
-                                <select id="solic_tipo" required class="input-base">
+                                <label class="field-label">Tipo de Requerente</label>
+                                <select id="solic_tipo" class="input-base">
                                     <option value="">Selecione...</option>
-                                    <option value="Ex-servidor">Ex-servidor</option>
                                     <option value="Representante legal">Representante legal</option>
                                     <option value="Herdeiro/Dependente">Herdeiro/Dependente</option>
                                 </select>
@@ -134,11 +133,11 @@
                     </div>
                 </div>
 
-                <!-- Secao: Dados do Servidor Relacionado -->
+                <!-- Secao: Dados do Ex Servidor Relacionado -->
                 <div>
                     <h2 class="section-title">
                         <i data-lucide="contact-2" class="w-5 h-5 text-indigo-600"></i>
-                        Dados do Servidor Relacionado
+                        Dados do Ex Servidor Relacionado
                     </h2>
                     <div class="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100/50">
                         <div class="grid-custom">
@@ -168,6 +167,16 @@
                                     <option value="Falecido">Falecido</option>
                                     <option value="Exonerado">Exonerado</option>
                                 </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-[20px] mt-[20px]">
+                            <div class="space-y-1">
+                                <label class="field-label">Telefone do Servidor</label>
+                                <input type="text" id="servidor_telefone" maxlength="15" placeholder="(00) 00000-0000" class="input-base">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="field-label">E-mail do Servidor</label>
+                                <input type="email" id="servidor_email" class="input-base">
                             </div>
                         </div>
                     </div>
@@ -320,6 +329,15 @@
                             if (ticket.solicitante_cpf) document.getElementById('solic_cpf').value = window.SAS.utils.formatCPF(ticket.solicitante_cpf);
                             if (ticket.solicitante_telefone) document.getElementById('solic_telefone').value = ticket.solicitante_telefone;
                             if (ticket.solicitante_email) document.getElementById('solic_email').value = ticket.solicitante_email;
+
+                            let desc = ticket.observacao_problema || ticket.assunto_secundario || '';
+                            if (desc.includes('=== Observação ===')) {
+                                const parts = desc.split(/\s*===\s*Observação\s*===\s*/);
+                                document.getElementById('descricao').value = parts[0] || '';
+                                document.getElementById('informacoes_complementares').value = parts[1] || '';
+                            } else {
+                                document.getElementById('descricao').value = desc;
+                            }
                         }
                     }
                 } catch (e) {
@@ -361,7 +379,14 @@
                 e.target.value = window.SAS.utils.formatTelefone(val);
             });
         }
-
+        const servTelInput = document.getElementById('servidor_telefone');
+        if (servTelInput) {
+            servTelInput.addEventListener('input', (e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val.length > 11) val = val.substring(0, 11);
+                e.target.value = window.SAS.utils.formatTelefone(val);
+            });
+        }
 
 
         // File handling
@@ -438,9 +463,17 @@
                 return;
             }
 
-            const telefone_raw = document.getElementById('solic_telefone').value.replace(/\D/g, '');
-            if (telefone_raw && telefone_raw.length < 10) {
-                window.SAS.utils.notify('error', 'Telefone incompleto');
+            const solic_tel = document.getElementById('solic_telefone').value.replace(/\D/g, '');
+            const serv_tel = document.getElementById('servidor_telefone') ? document.getElementById('servidor_telefone').value.replace(/\D/g, '') : '';
+            
+            if (solic_tel && solic_tel.length < 10) {
+                window.SAS.utils.notify('error', 'Telefone do solicitante incompleto');
+                btnSubmit.classList.remove('hidden');
+                loadingState.classList.add('hidden');
+                return;
+            }
+            if (serv_tel && serv_tel.length < 10) {
+                window.SAS.utils.notify('error', 'Telefone do servidor incompleto');
                 btnSubmit.classList.remove('hidden');
                 loadingState.classList.add('hidden');
                 return;
@@ -455,6 +488,8 @@
                 tipo_servico: document.getElementById('tipo_demanda').value,
                 tipo_atendimento: 'Ao Público',
                 created_by: user ? user.id : null,
+                telefone: (document.getElementById('servidor_telefone') ? document.getElementById('servidor_telefone').value.replace(/\D/g, '') : '') || document.getElementById('solic_telefone').value.replace(/\D/g, ''),
+                email: (document.getElementById('servidor_email') ? document.getElementById('servidor_email').value.trim() : '') || document.getElementById('solic_email').value.trim(),
                 
                 // New specific columns
                 solicitante_nome: document.getElementById('solic_nome').value.trim().substring(0, 255),
@@ -476,7 +511,6 @@
             if (isUpdateMode) {
                 payload.status = 'concluido'; // Finaliza o atendimento de vez
                 payload.atendente_id = user ? user.id : null;
-                payload.modified_by = user ? user.id : null;
                 payload.observacao_problema = finalDescricao;
             } else {
                 // Registro direto

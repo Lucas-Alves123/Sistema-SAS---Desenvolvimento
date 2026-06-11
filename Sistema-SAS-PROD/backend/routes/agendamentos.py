@@ -378,6 +378,10 @@ def create_agendamento():
         
         result = query_db(query, tuple(values))
         new_id = result['id']
+        
+        if data.get('status') == 'concluido':
+            query_db("UPDATE agendamentos SET hora_chegada = NOW(), hora_atendimento = NOW(), hora_conclusao = NOW() WHERE id = %s", (new_id,))
+
         new_agendamento = query_db("SELECT * FROM agendamentos WHERE id = %s", (new_id,), one=True)
         
         # Serialize dates

@@ -386,6 +386,7 @@
         window.confirmarNomeFila = async () => {
             const inputNome = document.getElementById('inputNomeFila');
             const nomeServidor = inputNome ? inputNome.value : '';
+            const cpfDigitado = document.getElementById('cpf').value.replace(/\D/g, '') || "00000000000";
             
             if (!nomeServidor || nomeServidor.trim() === '') {
                 window.SAS.utils.notify('warning', 'Nome inválido. Ação cancelada.');
@@ -397,7 +398,7 @@
             try {
                 const payload = {
                     nome_completo: nomeServidor.trim(),
-                    cpf: "000.000.000-00", // Dummy CPF required by DB
+                    cpf: cpfDigitado,
                     tipo_servico: 'Atendimento ao Público (Triagem)',
                     tipo_atendimento: 'Ao Público',
                     status: 'chegou', // Goes to Fila de Espera
