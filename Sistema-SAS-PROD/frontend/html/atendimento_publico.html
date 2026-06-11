@@ -280,16 +280,14 @@
 
     <script src="js/utils.js?v=2"></script>
     <script src="js/api.js"></script>
-    <script src="js/base44.js"></script>
     <script>
         // Check for ?id= parameter
         const urlParams = new URLSearchParams(window.location.search);
         const ticketId = urlParams.get('id');
         let isUpdateMode = !!ticketId;
         
-        // Setup base44 user
-        window.SAS.base44.auth.check();
-        const user = window.SAS.base44.auth.user;
+        // Setup user
+        const user = window.SAS.utils.checkAuth();
         if (user && document.getElementById('user-name')) {
             document.getElementById('user-name').textContent = user.nome || user.email;
         }
@@ -455,12 +453,8 @@
                 cpf: document.getElementById('servidor_cpf').value.replace(/\D/g, ''),
                 matricula: document.getElementById('servidor_matricula').value.trim(),
                 tipo_servico: document.getElementById('tipo_demanda').value,
-                data_agendamento: new Date().toISOString().split('T')[0], // Today
-                hora_inicio: new Date().toLocaleTimeString('pt-BR', { hour12: false }), // Current time
                 tipo_atendimento: 'Ao Público',
-                status: 'agendado', // Goes to the queue normally
                 created_by: user ? user.id : null,
-                force_duplicate: true, // Allow multiple entries
                 
                 // New specific columns
                 solicitante_nome: document.getElementById('solic_nome').value.trim().substring(0, 255),
@@ -484,12 +478,15 @@
                 payload.atendente_id = user ? user.id : null;
                 payload.modified_by = user ? user.id : null;
                 payload.observacao_problema = finalDescricao;
-                delete payload.force_duplicate;
-                delete payload.data_agendamento;
-                delete payload.hora_inicio;
             } else {
-                // Em criação normal (sem isUpdateMode), usa assunto_secundario com limite de 255 chars para evitar crash
+                // Registro direto
+                payload.status = 'concluido'; // Já finaliza logo
+                payload.data_agendamento = new Date().toISOString().split('T')[0];
+                payload.hora_inicio = new Date().toLocaleTimeString('pt-BR', { hour12: false });
+                payload.atendente_id = user ? user.id : null;
                 payload.assunto_secundario = finalDescricao.substring(0, 255);
+                payload.observacao_problema = finalDescricao;
+                payload.force_duplicate = true;
             }
 
             try {
