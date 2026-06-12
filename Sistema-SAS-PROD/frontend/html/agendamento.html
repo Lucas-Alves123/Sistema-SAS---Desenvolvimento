@@ -97,9 +97,9 @@
                             <input type="email" id="email" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-400" placeholder="seuemail@dominio.pe.gov.br">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-sm font-semibold text-gray-700">Tipo de serviço</label>
+                            <label class="text-sm font-semibold text-gray-700">Tipo de serviço <span class="text-red-500">*</span></label>
                             <div class="relative">
-                                <select id="servico" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600 appearance-none">
+                                <select id="servico" required class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-600 appearance-none">
                                     <option value="">Selecione...</option>
                                     <option value="Aposentadoria">Aposentadoria</option>
                                     <option value="Atendimento Geral">Atendimento Geral</option>
@@ -147,8 +147,8 @@
                             </div>
                         </div>
                         <div class="space-y-2">
-                            <label class="text-sm font-semibold text-gray-700">Data do agendamento</label>
-                            <input type="date" id="data" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-600">
+                            <label class="text-sm font-semibold text-gray-700">Data do agendamento <span class="text-red-500">*</span></label>
+                            <input type="date" id="data" required class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-600">
                         </div>
                         <div class="space-y-2">
                             <label class="text-sm font-semibold text-gray-700">Hora de inicio</label>
@@ -231,9 +231,12 @@
                             <!-- Vínculos injetados via JS -->
                         </div>
                     </div>
-                    <div class="bg-gray-50 p-4 flex justify-end">
+                    <div class="bg-gray-50 p-4 flex justify-end gap-3">
                         <button type="button" onclick="fecharModalVinculos()" class="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg font-bold hover:bg-gray-50 transition-colors">
                             Cancelar
+                        </button>
+                        <button type="button" onclick="confirmarSelecaoVinculos()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors">
+                            Confirmar Seleção
                         </button>
                     </div>
                 </div>
@@ -305,6 +308,7 @@
         let searchResults = [];
         let isSearching = false;
         let currentHistory = []; // Add history state
+        let selectedIndices = []; // State for multiple bond selection
 
         // CPF Mask
         cpfInput.addEventListener('input', (e) => {
@@ -340,13 +344,70 @@
             }
         };
 
-        window.selecionarVinculo = async (index) => {
-            const dados = searchResults[index];
-            preencherForm(dados);
+        window.toggleVinculo = (index, divElement) => {
+            const pos = selectedIndices.indexOf(index);
+            const checkContainer = divElement.querySelector('.check-container');
+            const checkIcon = divElement.querySelector('.check-icon');
+            if (pos > -1) {
+                selectedIndices.splice(pos, 1);
+                divElement.classList.remove('ring-2', 'ring-blue-600', 'bg-blue-100');
+                checkContainer.classList.remove('bg-blue-600', 'border-blue-600');
+                checkContainer.classList.add('bg-white', 'border-blue-300');
+                checkIcon.classList.add('hidden');
+                checkIcon.classList.remove('text-white');
+            } else {
+                selectedIndices.push(index);
+                divElement.classList.add('ring-2', 'ring-blue-600', 'bg-blue-100');
+                checkContainer.classList.remove('bg-white', 'border-blue-300');
+                checkContainer.classList.add('bg-blue-600', 'border-blue-600');
+                checkIcon.classList.remove('hidden', 'text-blue-600');
+                checkIcon.classList.add('text-white');
+            }
+        };
+
+        window.confirmarSelecaoVinculos = async () => {
+            if (selectedIndices.length === 0) {
+                window.SAS.utils.notify('warning', 'Selecione pelo menos um vínculo.');
+                return;
+            }
+            
+            selectedIndices.sort((a, b) => a - b);
+            const selecionados = selectedIndices.map(i => searchResults[i]);
+            
+            const base = selecionados[0];
+            document.getElementById('nome').value = base.nome_completo || '';
+            document.getElementById('email').value = base.email || '';
+            document.getElementById('telefone').value = base.telefone || '';
+            
+            const matriculas = [...new Set(selecionados.map(s => s.matricula).filter(Boolean))].join(' / ');
+            const cargos = [...new Set(selecionados.map(s => s.cargo).filter(Boolean))].join(' / ');
+            const locais = [...new Set(selecionados.map(s => s.local_trabalho).filter(Boolean))].join(' / ');
+            
+            document.getElementById('matricula').value = matriculas;
+            document.getElementById('cargo').value = cargos;
+            document.getElementById('local_trabalho').value = locais;
+            
+            const vinculoSelect = document.getElementById('vinculo');
+            const val = (base.vinculo || '').toUpperCase();
+            if (val === 'EST') vinculoSelect.value = 'Estatutário';
+            else if (val === 'EXQ') vinculoSelect.value = 'Extraquadro';
+            else if (val === 'CTD') vinculoSelect.value = 'CTD (Contrato)';
+            else {
+                const options = Array.from(vinculoSelect.options).map(o => o.value);
+                if (options.includes(base.vinculo)) {
+                    vinculoSelect.value = base.vinculo;
+                } else if (base.vinculo) {
+                    if (base.vinculo.toLowerCase().includes('contrato')) vinculoSelect.value = 'CTD (Contrato)';
+                    else if (base.vinculo.toLowerCase().includes('concurso')) vinculoSelect.value = 'Concurso (Nomeado)';
+                    else if (base.vinculo.toLowerCase().includes('estatut')) vinculoSelect.value = 'Estatutário';
+                    else if (base.vinculo.toLowerCase().includes('extraquadro')) vinculoSelect.value = 'Extraquadro';
+                }
+            }
+
             fecharModalVinculos();
             window.SAS.utils.notify('success', 'Dados preenchidos com sucesso!');
-            await buscarAgendamentosFuturos(dados.cpf, dados.matricula);
-            await buscarHistorico(dados.cpf);
+            await buscarAgendamentosFuturos(base.cpf, matriculas);
+            await buscarHistorico(base.cpf);
         };
 
         window.fecharModalVinculos = () => {
@@ -664,16 +725,19 @@
                     } else if (results.length > 1) {
                         // Modal selection will handle preencherForm which should check future appts too
                         listaVinculos.innerHTML = '';
+                        selectedIndices = []; // Reset selected state
                         results.forEach((item, index) => {
                             const div = document.createElement('div');
                             div.className = 'p-4 bg-blue-50 border border-blue-100 rounded-xl hover:bg-blue-100 transition-colors cursor-pointer group flex justify-between items-center';
-                            div.onclick = () => selecionarVinculo(index);
+                            div.onclick = () => toggleVinculo(index, div);
                             div.innerHTML = `
                                 <div>
                                     <p class="font-bold text-blue-900 group-hover:text-blue-700">${item.cargo || 'Cargo não informado'}</p>
                                     <p class="text-sm text-blue-600">Matrícula: ${item.matricula || '-'} | Vínculo: ${item.vinculo || '-'}</p>
                                 </div>
-                                <i data-lucide="chevron-right" class="w-5 h-5 text-blue-400"></i>
+                                <div class="w-6 h-6 rounded-full border-2 border-blue-300 flex items-center justify-center bg-white check-container transition-colors">
+                                    <i data-lucide="check" class="w-4 h-4 text-blue-600 hidden check-icon"></i>
+                                </div>
                             `;
                             listaVinculos.appendChild(div);
                         });
@@ -894,8 +958,20 @@
             }
 
             // Validation before submit
-            if (!payload.data_agendamento || !payload.tipo_servico || !payload.cpf || !payload.tipo_atendimento) {
-                window.SAS.utils.notify('warning', 'Por favor, preencha os campos obrigatórios: CPF, Serviço, Atendimento e Data.');
+            if (!payload.cpf) {
+                window.SAS.utils.notify('warning', 'Por favor, preencha o CPF.');
+                return;
+            }
+            if (!payload.tipo_servico) {
+                window.SAS.utils.notify('warning', 'Por favor, selecione o Tipo de Serviço.');
+                return;
+            }
+            if (!payload.tipo_atendimento) {
+                window.SAS.utils.notify('warning', 'Por favor, selecione o Tipo de Atendimento.');
+                return;
+            }
+            if (!payload.data_agendamento) {
+                window.SAS.utils.notify('warning', 'Por favor, selecione a Data do Agendamento.');
                 return;
             }
 
