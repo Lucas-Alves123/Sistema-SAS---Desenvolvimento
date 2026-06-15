@@ -17,8 +17,9 @@ def validar_servidor():
     
     server_data = None
     
-    # 1. Tentar buscar por CPF (se tiver 11 dígitos ou for numérico)
-    if valor_limpo and len(valor_limpo) == 11:
+    # 1. Tentar buscar por CPF (se tiver até 11 dígitos)
+    if valor_limpo and len(valor_limpo) <= 11:
+        cpf_buscado = valor_limpo.zfill(11)
         query_cpf = """
             SELECT 
                 t.nome_completo, 
@@ -35,7 +36,7 @@ def validar_servidor():
             WHERE (t.cpf = %s OR t.cpf = %s)
         """
         try:
-            raw_data = query_db(query_cpf, (valor_limpo, valor))
+            raw_data = query_db(query_cpf, (cpf_buscado, valor))
             if raw_data:
                 # Filtra apenas ativos
                 server_data = [d for d in raw_data if str(d.get('situacao')).upper() == 'ATIVO' or not d.get('situacao')]
@@ -70,7 +71,8 @@ def validar_servidor():
     is_history = False
     
     # 3. Se ainda não achou, tenta no histórico de agendamentos/atendimentos
-    if not server_data and (valor_limpo and len(valor_limpo) == 11):
+    if not server_data and (valor_limpo and len(valor_limpo) <= 11):
+        cpf_buscado = valor_limpo.zfill(11)
         query_historico = """
             SELECT 
                 nome_completo, 
@@ -86,7 +88,7 @@ def validar_servidor():
             ORDER BY id DESC
         """
         try:
-            raw_historico = query_db(query_historico, (valor_limpo, valor))
+            raw_historico = query_db(query_historico, (cpf_buscado, valor))
             if raw_historico:
                 unique_vinculos = []
                 seen = set()
