@@ -318,6 +318,9 @@
         const preencherForm = (dados) => {
             if (!dados) return;
             document.getElementById('nome').value = dados.nome_completo || '';
+            if (dados.cpf) {
+                document.getElementById('cpf').value = window.SAS.utils.formatCPF(dados.cpf);
+            }
             document.getElementById('matricula').value = dados.matricula || '';
             document.getElementById('cargo').value = dados.cargo || '';
             document.getElementById('email').value = dados.email || '';
