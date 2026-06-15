@@ -348,6 +348,9 @@
             // New ticket - read params from URL if available
             const passedNome = urlParams.get('nome');
             const passedCpf = urlParams.get('cpf');
+            const passedTelefone = urlParams.get('telefone');
+            const passedEmail = urlParams.get('email');
+            const passedMatricula = urlParams.get('matricula');
             
             if (passedNome) {
                 document.getElementById('servidor_nome').value = passedNome;
@@ -355,6 +358,15 @@
             if (passedCpf && passedCpf.replace(/\D/g, '') !== '') {
                 const formattedCpf = window.SAS.utils.formatCPF(passedCpf);
                 document.getElementById('servidor_cpf').value = formattedCpf;
+            }
+            if (passedTelefone && document.getElementById('servidor_telefone')) {
+                document.getElementById('servidor_telefone').value = window.SAS.utils.formatTelefone(passedTelefone);
+            }
+            if (passedEmail && document.getElementById('servidor_email')) {
+                document.getElementById('servidor_email').value = passedEmail;
+            }
+            if (passedMatricula && document.getElementById('servidor_matricula')) {
+                document.getElementById('servidor_matricula').value = passedMatricula;
             }
         }
 

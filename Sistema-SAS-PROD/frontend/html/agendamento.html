@@ -492,9 +492,20 @@
         if (btnAtendimentoPublicoModal) {
             btnAtendimentoPublicoModal.addEventListener('click', async () => {
                 fecharModalNaoEncontrado();
-                const nome = document.getElementById('nome').value.trim() || '';
                 const cpf = document.getElementById('cpf').value.replace(/\D/g, '') || '';
-                window.location.href = `/atendimento_publico?nome=${encodeURIComponent(nome)}&cpf=${encodeURIComponent(cpf)}`;
+                let nome = document.getElementById('nome').value.trim() || '';
+                
+                let queryStr = `cpf=${encodeURIComponent(cpf)}`;
+                if (window.historyData) {
+                    if (window.historyData.nome_completo) queryStr += `&nome=${encodeURIComponent(window.historyData.nome_completo)}`;
+                    if (window.historyData.telefone) queryStr += `&telefone=${encodeURIComponent(window.historyData.telefone)}`;
+                    if (window.historyData.email) queryStr += `&email=${encodeURIComponent(window.historyData.email)}`;
+                    if (window.historyData.matricula) queryStr += `&matricula=${encodeURIComponent(window.historyData.matricula)}`;
+                } else {
+                    if (nome) queryStr += `&nome=${encodeURIComponent(nome)}`;
+                }
+                
+                window.location.href = `/atendimento_publico?${queryStr}`;
             });
         }
 
@@ -707,12 +718,19 @@
             try {
                 const res = await fetch(`/api/identificacao/validar?valor=${encodeURIComponent(valor)}`);
                 if (res.status === 404) {
+                    window.historyData = null;
                     modalNaoEncontrado.classList.remove('hidden');
                     return;
                 }
                 
                 const data = await res.json();
                 if (data.success && data.data) {
+                    if (data.is_history) {
+                        window.historyData = Array.isArray(data.data) ? data.data[0] : data.data;
+                        modalNaoEncontrado.classList.remove('hidden');
+                        return;
+                    }
+                    
                     const results = Array.isArray(data.data) ? data.data : [data.data];
                     searchResults = results;
 
