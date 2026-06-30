@@ -810,7 +810,8 @@
                         <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Demanda</th>
                         <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Status</th>
                         <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20 text-center">Ações</th>
-                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Observação</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Descrição</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-b border-slate-300 z-20">Observação</th>
                     </tr>
                 `;
             }
@@ -883,6 +884,24 @@
                 if (item.modified_by) {
                     const tooltipText = `Modificado por: ${item.modifier_nome || 'Atendente'} em ${item.modified_at ? new Date(item.modified_at).toLocaleString() : 'Data desconhecida'}\nAtendente Original: ${item.atendente_nome || '?'}`;
                     editIndicator = `<span class="inline-block w-2.5 h-2.5 bg-blue-500 rounded-full ml-1 cursor-help" title="${tooltipText}"></span>`;
+                }
+
+                let publicDesc1 = '-';
+                let publicDesc2 = '-';
+                if (item.observacao_problema) {
+                    if (item.observacao_problema.includes('=== Observação ===')) {
+                        const parts = item.observacao_problema.split(/\s*===\s*Observação\s*===\s*/);
+                        publicDesc1 = parts[0] || '-';
+                        publicDesc2 = parts[1] || '-';
+                    } else {
+                        publicDesc1 = item.observacao_problema;
+                    }
+                } else if (item.assunto_secundario) {
+                    publicDesc1 = item.assunto_secundario;
+                }
+                
+                if ((publicDesc2 === '-' || !publicDesc2) && item.observacao_solucao) {
+                    publicDesc2 = item.observacao_solucao;
                 }
 
                 const audience = filterAudience ? filterAudience.value : 'Servidores';
@@ -968,7 +987,8 @@
                                 <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                             </button>
                         </td>
-                        <td class="px-2 py-3 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${item.assunto_secundario || '-'}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${publicDesc1}</td>
+                        <td class="px-2 py-3 text-gray-500 text-[10px] italic min-w-[200px] whitespace-normal text-left">${publicDesc2}</td>
                     `;
                 }
                 reportTableBody.appendChild(tr);
