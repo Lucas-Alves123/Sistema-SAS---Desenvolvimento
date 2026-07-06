@@ -107,7 +107,7 @@ def promote_next_to_panel(atendente_id, guiche=None, channel='Presencial'):
             target_status = 'em_andamento' if is_digital else 'pendente'
             sql = f"UPDATE agendamentos SET status = %s, hora_atendimento = NOW(), atendente_id = %s, chamada_count = chamada_count + 1"
             params = [target_status, atendente_id]
-            if guiche:
+            if guiche is not None and str(guiche).strip() != "":
                 sql += ", guiche = %s"
                 params.append(guiche)
             sql += " WHERE id = %s"

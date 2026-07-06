@@ -1,6 +1,11 @@
 // Painel de Chamada - SAS 360
 // Desenvolvido para Secretaria de Saúde de Pernambuco
 
+function toTitleCase(str) {
+    if (!str) return "";
+    return str.toLowerCase().replace(/(?:^|\s)\S/g, function(a) { return a.toUpperCase(); });
+}
+
 let lastCallId = null;
 let lastCallCount = null;
 let isFirstRun = true;
@@ -81,7 +86,7 @@ function updateUI(name, guiche) {
 
     // Update text
     nameEl.textContent = name;
-    guicheEl.textContent = guiche;
+    guicheEl.textContent = (guiche !== null && guiche !== undefined && String(guiche).trim() !== "") ? guiche : "-";
 
     // Trigger animation
     if (name !== "Aguardando...") {
@@ -158,22 +163,32 @@ function announceCall(name, guiche, onFinishedCallback = null) {
     if (announcementTimeout) clearTimeout(announcementTimeout);
     
     announcementTimeout = setTimeout(() => {
-        const cleanGuiche = String(guiche).replace(/\D/g, '') || guiche;
-        const phrase = `${name}, dirigir-se ao guichê ${cleanGuiche}.`;
+        let cleanGuiche = String(guiche || "").replace(/\D/g, '') || guiche;
+        if (!cleanGuiche || cleanGuiche === "null" || cleanGuiche === "undefined") {
+            cleanGuiche = "-";
+        }
+
+        // Convert name to Title Case to prevent TTS engine from spelling out all-caps text
+        const displayName = toTitleCase(name);
+        
+        const phrase = cleanGuiche && cleanGuiche !== "-" 
+            ? `${displayName}, dirigir-se ao guichê ${cleanGuiche}.`
+            : `${displayName}.`;
         
         const utterance = new SpeechSynthesisUtterance(phrase);
         utterance.lang = 'pt-BR';
         utterance.rate = 0.82;
         utterance.pitch = 1.0;
 
-        const performSpeech = () => {
+        const getPtVoice = () => {
             const voices = window.speechSynthesis.getVoices();
-            console.log(`[TTS] Total de vozes encontradas: ${voices.length}`);
-            
-            // Tenta encontrar a voz ideal (Brasil > Portugal > Qualquer PT)
-            const ptVoice = voices.find(v => v.name.includes('Google') && v.lang.startsWith('pt')) ||
-                           voices.find(v => v.lang.includes('pt-BR') || v.lang.includes('pt_BR')) ||
-                           voices.find(v => v.lang.startsWith('pt'));
+            return voices.find(v => v.name.includes('Google') && v.lang.startsWith('pt')) ||
+                   voices.find(v => v.lang.includes('pt-BR') || v.lang.includes('pt_BR') || v.lang.includes('pt-pt') || v.lang.includes('pt_PT')) ||
+                   voices.find(v => v.lang.startsWith('pt'));
+        };
+
+        const performSpeech = () => {
+            const ptVoice = getPtVoice();
 
             if (ptVoice) {
                 utterance.voice = ptVoice;
@@ -182,6 +197,7 @@ function announceCall(name, guiche, onFinishedCallback = null) {
             } else {
                 console.error("[TTS] CRÍTICO: Nenhuma voz em português foi encontrada no sistema!");
                 // Se não achar nada, vamos listar as 3 primeiras vozes apenas para diagnóstico no console
+                const voices = window.speechSynthesis.getVoices();
                 console.log("[TTS] Vozes disponíveis para diagnóstico:", voices.slice(0, 3).map(v => `${v.name} (${v.lang})`));
             }
 
@@ -197,7 +213,7 @@ function announceCall(name, guiche, onFinishedCallback = null) {
             window.speechSynthesis.speak(utterance);
         };
 
-        if (window.speechSynthesis.getVoices().length === 0) {
+        if (window.speechSynthesis.getVoices().length === 0 || !getPtVoice()) {
             window.speechSynthesis.onvoiceschanged = () => {
                 window.speechSynthesis.onvoiceschanged = null;
                 performSpeech();
