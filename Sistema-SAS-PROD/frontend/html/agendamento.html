@@ -124,6 +124,7 @@
                                     <option value="E-mail">E-mail</option>
                                     <option value="Telefônico">Telefônico</option>
                                     <option value="Externo">Externo</option>
+                                    <option value="Ao Público">Ao Público</option>
                                 </select>
                                 <div class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-600">
                                     <i data-lucide="chevron-down" class="w-4 h-4"></i>
@@ -945,6 +946,8 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            const tipoAtendimento = document.getElementById('tipo_atendimento').value;
+            const horaInicio = document.getElementById('hora').value || (tipoAtendimento === 'Ao Público' ? new Date().toLocaleTimeString('pt-BR', { hour12: false }) : null);
 
             const payload = {
                 nome_completo: document.getElementById('nome').value,
@@ -956,11 +959,11 @@
                 email: document.getElementById('email').value,
                 telefone: document.getElementById('telefone').value,
                 tipo_servico: document.getElementById('servico').value,
-                tipo_atendimento: document.getElementById('tipo_atendimento').value,
+                tipo_atendimento: tipoAtendimento,
                 prioridade: document.getElementById('prioridade').value,
                 data_agendamento: document.getElementById('data').value,
-                hora_inicio: document.getElementById('hora').value || null,
-                status: 'agendado',
+                hora_inicio: horaInicio,
+                status: tipoAtendimento === 'Ao Público' ? 'chegou' : 'agendado',
                 created_by: user.id
             };
 
@@ -979,7 +982,7 @@
             }
 
             // Validation before submit
-            if (!payload.cpf) {
+            if (payload.tipo_atendimento !== 'Ao Público' && !payload.cpf) {
                 window.SAS.utils.notify('warning', 'Por favor, preencha o CPF.');
                 return;
             }

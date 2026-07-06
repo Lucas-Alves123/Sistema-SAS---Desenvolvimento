@@ -371,7 +371,7 @@ window.SAS.pdf = {
     },
 
     /**
-     * Comprovante Oficial de Comparecimento (Declaração)
+     * Comprovante Oficial de Atendimento (Declaração)
      */
     generateComprovante: async (ag, atendenteNome) => {
         const { jsPDF } = window.jspdf;
@@ -395,7 +395,7 @@ window.SAS.pdf = {
         // 3. Título
         doc.setFontSize(14);
         doc.setFont("helvetica", "bold");
-        doc.text("DECLARAÇÃO DE COMPARECIMENTO", 105, 55, { align: "center" });
+        doc.text("DECLARAÇÃO DE ATENDIMENTO", 105, 55, { align: "center" });
 
         // 4. Texto Formal Mesclado
         doc.setFontSize(11);
