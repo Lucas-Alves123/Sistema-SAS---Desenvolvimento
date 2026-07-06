@@ -75,7 +75,7 @@ def get_next_in_queue(today, channel=None):
         print(f"[QUEUE ERROR] Error in get_next_in_queue: {e}")
         return None
 
-def promote_next_to_panel(atendente_id, guiche=None, channel='Presencial'):
+def promote_next_to_panel(atendente_id=None, guiche=None, channel='Presencial'):
     """
     Promotes the next person from the queue.
     If channel is 'Presencial', it goes to 'pendente' (calls the monitor).
@@ -509,9 +509,9 @@ def update_agendamento(id):
 
         # 5. Post-Update Promotion & User Status
         if old_status == 'pendente' and new_status != 'pendente':
-            promote_next_to_panel()
+            promote_next_to_panel(old_record.get('atendente_id'), old_record.get('guiche'))
         elif old_status == 'na_fila_do_painel' and new_status != 'na_fila_do_painel' and new_status != 'pendente':
-            promote_next_to_panel()
+            promote_next_to_panel(old_record.get('atendente_id'), old_record.get('guiche'))
 
         if new_status == 'em_andamento':
             current_atendente = data.get('atendente_id') or old_record.get('atendente_id')
