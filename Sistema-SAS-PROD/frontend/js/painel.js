@@ -173,7 +173,7 @@ function announceCall(name, guiche, onFinishedCallback = null) {
         
         const phrase = cleanGuiche && cleanGuiche !== "-" 
             ? `${displayName}, dirigir-se ao guichê ${cleanGuiche}.`
-            : `${displayName}.`;
+            : `${displayName}, dirigir-se ao atendimento.`;
         
         const utterance = new SpeechSynthesisUtterance(phrase);
         utterance.lang = 'pt-BR';
