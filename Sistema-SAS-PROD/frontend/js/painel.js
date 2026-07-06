@@ -117,7 +117,7 @@ function startRepeatingAnnouncement(name, guiche) {
             if (!isAnnouncing) return;
             console.log("[TTS Cycle] Disparando repetição agendada...");
             announceCall(name, guiche, scheduleNext);
-        }, 2000); // 2 seconds interval AFTER it finishes speaking
+        }, 500); // 500ms delay, which combined with initial commas yields a real ~2s pause
     };
 
     // First announcement immediate
