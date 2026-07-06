@@ -172,8 +172,8 @@ function announceCall(name, guiche, onFinishedCallback = null) {
         const displayName = toTitleCase(name);
         
         const phrase = cleanGuiche && cleanGuiche !== "-" 
-            ? `${displayName}, dirigir-se ao guichê ${cleanGuiche}.`
-            : `${displayName}, dirigir-se ao atendimento.`;
+            ? `, , , ${displayName}, dirigir-se ao guichê ${cleanGuiche}.`
+            : `, , , ${displayName}, dirigir-se ao atendimento.`;
         
         const utterance = new SpeechSynthesisUtterance(phrase);
         utterance.lang = 'pt-BR';
@@ -189,13 +189,16 @@ function announceCall(name, guiche, onFinishedCallback = null) {
 
         const performSpeech = () => {
             const ptVoice = getPtVoice();
+            const warningEl = document.getElementById('voice-warning');
 
             if (ptVoice) {
                 utterance.voice = ptVoice;
                 utterance.lang = ptVoice.lang;
                 console.log(`[TTS] EXECUTANDO COM VOZ: ${ptVoice.name} (${ptVoice.lang})`);
+                if (warningEl) warningEl.style.display = 'none';
             } else {
                 console.error("[TTS] CRÍTICO: Nenhuma voz em português foi encontrada no sistema!");
+                if (warningEl) warningEl.style.display = 'block';
                 // Se não achar nada, vamos listar as 3 primeiras vozes apenas para diagnóstico no console
                 const voices = window.speechSynthesis.getVoices();
                 console.log("[TTS] Vozes disponíveis para diagnóstico:", voices.slice(0, 3).map(v => `${v.name} (${v.lang})`));
