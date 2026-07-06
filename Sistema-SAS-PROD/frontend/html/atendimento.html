@@ -775,7 +775,7 @@
                 (
                   a.status === 'chegou' || 
                   ((currentQueueTab === 'Whatsapp' || currentQueueTab === 'E-mail' || currentQueueTab === 'Telefônico') && a.status === 'agendado') ||
-                  (currentQueueTab === 'Ao Público' && (a.status === 'chegou' || a.status === 'em_andamento'))
+                  (currentQueueTab === 'Ao Público' && a.status === 'chegou')
                 )
             ).sort((a, b) => {
                 const dateA = a.data_agendamento + ' ' + (a.hora_inicio || '00:00');
@@ -808,7 +808,10 @@
 
             // Atualiza contadores das abas (Agendados + Chegou)
             const counts = { 'Presencial': 0, 'Whatsapp': 0, 'E-mail': 0, 'Telefônico': 0, 'Externo': 0, 'Ao Público': 0 };
-            todayAppointments.filter(a => ['agendado', 'chegou'].includes(a.status)).forEach(a => {
+            todayAppointments.filter(a => {
+                if (a.tipo_atendimento === 'Ao Público') return a.status === 'chegou';
+                return ['agendado', 'chegou'].includes(a.status);
+            }).forEach(a => {
                 const canal = a.tipo_atendimento || 'Presencial';
                 if (counts[canal] !== undefined) counts[canal]++;
             });
@@ -957,12 +960,9 @@
                                     </button>
                                 `;
                             } else if (currentQueueTab === 'Ao Público') {
-                                const btnText = item.status === 'em_andamento' ? 'Continuar' : 'Atender';
-                                const btnIcon = item.status === 'em_andamento' ? 'play' : 'users';
-                                const btnBg = item.status === 'em_andamento' ? 'bg-orange-100 hover:bg-orange-200 text-orange-700' : 'bg-blue-100 hover:bg-blue-200 text-blue-700';
                                 return `
-                                    <button onclick="manualCall('${item.id}')" class="${btnBg} px-3 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-widest flex items-center gap-1 transition-all shadow-sm">
-                                        <i data-lucide="${btnIcon}" class="w-3.5 h-3.5"></i> ${btnText}
+                                    <button onclick="manualCall('${item.id}')" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-widest flex items-center gap-1 transition-all shadow-sm">
+                                        <i data-lucide="users" class="w-3.5 h-3.5"></i> Atender
                                     </button>
                                 `;
                             }

@@ -199,15 +199,17 @@ window.SAS.pdf = {
         doc.setDrawColor(0, 0, 0);
 
         doc.setFont("helvetica", "normal");
+        // Ocultado a pedido: as observações do sistema não devem ir para o PDF do Requerimento A
+        /*
         const obs1 = (ag.observacao_problema || '').trim();
         const obs2 = (ag.observacao_solucao || '').trim();
         let fullObs = obs1 + (obs1 && obs2 ? "\n" : "") + obs2;
         
-        // Filtro: Se for apenas uma letra isolada ou lixo de teste (I, II, etc), limpamos
         if (fullObs.length > 5) { 
             const splitObs = doc.splitTextToSize(fullObs, 175);
             doc.text(splitObs, marginX + 2, y + 4);
         }
+        */
         y += infoBoxH + 4;
 
         // --- BLOCO DE ASSINATURAS (Protegido contra corte) ---
