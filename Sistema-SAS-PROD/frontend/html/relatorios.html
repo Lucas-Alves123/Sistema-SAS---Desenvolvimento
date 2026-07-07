@@ -209,7 +209,10 @@
                     </div>
 
                     <!-- Pagination (Top) -->
-                    <div id="paginationTop" class="flex justify-center mb-6"></div>
+                    <div class="relative w-full flex justify-center mb-6">
+                        <div id="paginationTop" class="flex justify-center"></div>
+                        <div id="totalRecords" class="absolute right-0 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500"></div>
+                    </div>
 
                     <!-- Top Scrollbar (Synced with table) -->
                     <div id="topScrollContainer" class="overflow-x-auto overflow-y-hidden h-2 w-full mb-1 bg-slate-50/50 rounded-full hidden lg:block">
@@ -849,6 +852,13 @@
             }
 
             fullFilteredData = data;
+            
+            // Atualizar o contador de registros no topo
+            const totalCount = fullFilteredData.length;
+            const totalRecordsEl = document.getElementById('totalRecords');
+            if (totalRecordsEl) {
+                totalRecordsEl.textContent = `(${totalCount} ${totalCount === 1 ? 'registro' : 'registros'})`;
+            }
             
             // Build Table Headers
             const thead = document.getElementById('reportTableHeader');

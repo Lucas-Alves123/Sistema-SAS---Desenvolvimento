@@ -52,6 +52,14 @@ def check_and_fix():
         else:
             print("sessao_id column exists in agendamentos.")
 
+        # Check for requerimento_a_data in agendamentos
+        cur.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='agendamentos' AND COLUMN_NAME='requerimento_a_data' AND TABLE_SCHEMA=%s", (Config.DB_NAME,))
+        if not cur.fetchone():
+            print("Adding requerimento_a_data column to agendamentos...")
+            cur.execute("ALTER TABLE agendamentos ADD COLUMN requerimento_a_data TEXT")
+        else:
+            print("requerimento_a_data column exists in agendamentos.")
+
         # Check for publico columns in agendamentos
         publico_columns = {
             'solicitante_nome': 'VARCHAR(255)',

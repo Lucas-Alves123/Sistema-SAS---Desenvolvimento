@@ -168,12 +168,12 @@ function announceCall(name, guiche, onFinishedCallback = null) {
             cleanGuiche = "-";
         }
 
-        // Convert name to Title Case to prevent TTS engine from spelling out all-caps text
-        const displayName = toTitleCase(name);
+        // Convert name to lowercase for the TTS engine to ensure it does not spell it out (some engines treat capitalized words as acronyms/abbreviations).
+        const spokenName = String(name || "").toLowerCase().trim();
         
         const phrase = cleanGuiche && cleanGuiche !== "-" 
-            ? `, , , ${displayName}, dirigir-se ao guichê ${cleanGuiche}.`
-            : `, , , ${displayName}, dirigir-se ao atendimento.`;
+            ? `${spokenName}, dirigir-se ao guichê ${cleanGuiche}.`
+            : `${spokenName}, dirigir-se ao atendimento.`;
         
         const utterance = new SpeechSynthesisUtterance(phrase);
         utterance.lang = 'pt-BR';
@@ -213,6 +213,14 @@ function announceCall(name, guiche, onFinishedCallback = null) {
             }
 
             window.speechSynthesis.resume();
+
+            // Wake up the audio context silently before speaking the main utterance to prevent cutting off the first letter.
+            const wakeUp = new SpeechSynthesisUtterance("a");
+            wakeUp.lang = 'pt-BR';
+            wakeUp.volume = 0;
+            if (ptVoice) wakeUp.voice = ptVoice;
+
+            window.speechSynthesis.speak(wakeUp);
             window.speechSynthesis.speak(utterance);
         };
 

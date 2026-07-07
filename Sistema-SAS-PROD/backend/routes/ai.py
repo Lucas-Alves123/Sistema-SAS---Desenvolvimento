@@ -85,7 +85,7 @@ def normalize_message(message, knowledge):
             continue
 
         matches = difflib.get_close_matches(word_no_accents, keywords_no_accents, n=1, cutoff=0.7)
-        if matches:
+        if matches and abs(len(word_no_accents) - len(matches[0])) <= 2:
             idx = keywords_no_accents.index(matches[0])
             final_words.append(keywords_list[idx])
         else:
@@ -301,7 +301,7 @@ def fuzzy_find(raw_message, normalized_message, knowledge, history=None, user_co
             # If it's a clarification, still try Gemini first, but we have this fallback
             if is_clarification:
                 clarification_prompt = f"O usuário pediu mais detalhes sobre {tut['topico']}. Use estes passos: {tut['passos']} e explique de forma humana."
-                res = get_gemini_reply(clarification_prompt, knowledge, history)
+                res = get_gemini_reply(clarification_prompt, knowledge, history, user_context)
                 if res: return res
             
             # Local fallback response (Humanized steps)

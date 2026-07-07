@@ -54,7 +54,7 @@ def load_setores():
             nome_setor = str(row.get('nomesetor', '')).strip()
             if setor_code.endswith('.0'):
                 setor_code = setor_code[:-2]
-            if setor_code:
+            if setor_code and setor_code not in setores:
                 setores[setor_code] = nome_setor
         logging.info(f"{len(setores)} setores carregados do Excel.")
     except Exception as e:
