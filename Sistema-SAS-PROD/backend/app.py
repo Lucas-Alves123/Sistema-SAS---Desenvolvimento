@@ -28,8 +28,14 @@ def create_app():
     # Increase upload limit (32MB)
     app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024
     
-    # Enable CORS for all routes
-    CORS(app)
+    # Enable CORS only for allowed origins
+    allowed_origins_str = os.environ.get('ALLOWED_ORIGINS', '')
+    if allowed_origins_str:
+        allowed_origins = [origin.strip() for origin in allowed_origins_str.split(',') if origin.strip()]
+        CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
+    else:
+        # Defaults to highly restrictive (no cross-origin allowed)
+        CORS(app, resources={r"/api/*": {"origins": []}})
 
     # Disable Caching
     @app.after_request
@@ -137,5 +143,6 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    # Trigger reload v7
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Check FLASK_DEBUG to determine debug mode
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() in ('true', '1', 't')
+    app.run(host='0.0.0.0', port=5000, debug=debug_mode)
