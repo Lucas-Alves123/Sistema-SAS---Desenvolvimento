@@ -22,6 +22,7 @@
     <script src="js/layout.js"></script>
     <script>
         const user = window.SAS.utils.checkAuth();
+        const token = localStorage.getItem('sas_token');
         window.SAS.layout.renderLayout('Atendimento');
         const content = document.getElementById('page-content');
         let currentGuiche = localStorage.getItem('sas_guiche') || '1';
@@ -538,7 +539,9 @@
 
         const fetchStatus = async () => {
             try {
-                const response = await fetch('/api/usuarios/online');
+                const response = await fetch('/api/usuarios/online', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
                 const onlineUsers = await response.json();
                 // Use non-strict comparison to handle potential string/number ID differences
                 const me = onlineUsers.find(u => u.id == user.id);
@@ -796,7 +799,7 @@
 
             const doneToday = all.filter(a => 
                 !a.is_import &&
-                (a.data_agendamento === today || (a.hora_conclusao && a.hora_conclusao.startsWith(today)) || (a.created_at && a.created_at.startsWith(today) && a.status === 'concluido')) && 
+                a.data_agendamento === today && 
                 a.status === 'concluido'
             ).sort((a, b) => {
                 const timeA = a.hora_conclusao || a.created_at;
@@ -1471,13 +1474,16 @@
                     updates.atendente_id = user.id;
                 } else if (isResumedService || String(currentAg.atendente_id) !== String(user.id)) {
                     updates.modified_by = user.id;
-                    updates.modified_at = new Date().toISOString().replace('T', ' ').split('.')[0];
+                    const now = new Date();
+                    updates.modified_at = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().replace('T', ' ').split('.')[0];
                 }
 
                 await window.SAS.base44.entities.Agendamento.update(id, updates);
 
                 // Carrega dados atualizados para download
-                const respAll = await fetch('/api/agendamentos');
+                const respAll = await fetch('/api/agendamentos', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
                 const agAll = await respAll.json();
                 const updatedAg = agAll.find(a => String(a.id) === String(id));
 
@@ -1524,7 +1530,7 @@
             try {
                 const [users, onlineUsers] = await Promise.all([
                     window.SAS.base44.entities.SystemUser.list(),
-                    fetch('/api/usuarios/online').then(res => res.json())
+                    fetch('/api/usuarios/online', { headers: { 'Authorization': 'Bearer ' + token } }).then(res => res.json())
                 ]);
 
                 const excludedNames = [
@@ -1714,7 +1720,10 @@
             try {
                 const response = await fetch('/api/agendamentos/proximo', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
                     body: JSON.stringify({
                         atendente_id: user.id,
                         guiche: currentGuiche,
@@ -1742,7 +1751,10 @@
             try {
                 const response = await fetch('/api/agendamentos/reset-painel', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
                 });
                 
                 const result = await response.json();

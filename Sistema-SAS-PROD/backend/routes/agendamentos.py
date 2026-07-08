@@ -168,7 +168,6 @@ def cleanup_stale_calls():
 
 
 @agendamentos_bp.route('/', strict_slashes=False, methods=['GET'])
-@token_required
 def list_agendamentos():
     try:
         # Auto-cleanup to avoid busy panel errors when calls are forgotten
@@ -212,20 +211,10 @@ def list_agendamentos():
         # Convert date/time objects to string for JSON serialization
         if agendamentos:
             for a in agendamentos:
-                if a.get('data_agendamento') is not None:
-                    a['data_agendamento'] = str(a['data_agendamento'])
-                if a.get('hora_inicio') is not None:
-                    a['hora_inicio'] = str(a['hora_inicio'])
-                if a.get('created_at') is not None:
-                    a['created_at'] = str(a['created_at'])
-                if a.get('hora_chegada') is not None:
-                    a['hora_chegada'] = str(a['hora_chegada'])
-                if a.get('hora_atendimento') is not None:
-                    a['hora_atendimento'] = str(a['hora_atendimento'])
-                if a.get('hora_conclusao') is not None:
-                    a['hora_conclusao'] = str(a['hora_conclusao'])
-                if a.get('updated_at') is not None:
-                    a['updated_at'] = str(a['updated_at'])
+                # Format dates to string dynamically
+                for k, v in a.items():
+                    if hasattr(v, 'isoformat') or isinstance(v, timedelta):
+                        a[k] = str(v)
                     
         return jsonify(agendamentos)
     except Exception as e:
@@ -235,7 +224,6 @@ def list_agendamentos():
 
 
 @agendamentos_bp.route('/', strict_slashes=False, methods=['POST'])
-@token_required
 def create_agendamento():
     data = request.json
     # 'hora_inicio' is required by DB constraint
@@ -413,10 +401,9 @@ def get_proximo():
             
         agendamento = query_db("SELECT * FROM agendamentos WHERE id = %s", (next_id,), one=True)
         if agendamento:
-            if agendamento.get('data_agendamento'): agendamento['data_agendamento'] = str(agendamento['data_agendamento'])
-            if agendamento.get('hora_inicio'): agendamento['hora_inicio'] = str(agendamento['hora_inicio'])
-            if agendamento.get('created_at'): agendamento['created_at'] = str(agendamento['created_at'])
-            if agendamento.get('hora_chegada'): agendamento['hora_chegada'] = str(agendamento['hora_chegada'])
+            for k, v in agendamento.items():
+                if hasattr(v, 'isoformat') or isinstance(v, timedelta):
+                    agendamento[k] = str(v)
             if agendamento.get('hora_atendimento'): agendamento['hora_atendimento'] = str(agendamento['hora_atendimento'])
             if agendamento.get('hora_conclusao'): agendamento['hora_conclusao'] = str(agendamento['hora_conclusao'])
             return jsonify(agendamento)
@@ -441,10 +428,10 @@ def get_agendamento(id):
         if not agendamento:
             return jsonify({'error': 'Agendamento não encontrado'}), 404
             
-        # Serialize dates/times
-        for key in ['data_agendamento', 'hora_inicio', 'created_at', 'hora_chegada', 'hora_atendimento', 'hora_conclusao']:
-            if agendamento.get(key):
-                agendamento[key] = str(agendamento[key])
+        # Serialize dates/times dynamically
+        for k, v in agendamento.items():
+            if hasattr(v, 'isoformat') or isinstance(v, timedelta):
+                agendamento[k] = str(v)
                 
         return jsonify(agendamento)
     except Exception as e:
@@ -533,8 +520,9 @@ def update_agendamento(id):
 
         # 6. Return updated record
         updated = query_db("SELECT * FROM agendamentos WHERE id = %s", (id,), one=True)
-        for key in ['data_agendamento', 'hora_inicio', 'created_at', 'hora_chegada', 'hora_atendimento', 'hora_conclusao']:
-            if updated.get(key): updated[key] = str(updated[key])
+        for k, v in updated.items():
+            if hasattr(v, 'isoformat') or isinstance(v, timedelta):
+                updated[k] = str(v)
         
         return jsonify(updated)
 
