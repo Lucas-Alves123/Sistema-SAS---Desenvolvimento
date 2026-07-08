@@ -6,6 +6,11 @@ import secrets
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from werkzeug.security import generate_password_hash
+
+from backend.routes.auth import token_required
+
+from backend.routes.auth import token_required, admin_required
 
 usuarios_bp = Blueprint('usuarios', __name__)
 
@@ -24,6 +29,7 @@ def serialize_user(u):
     return new_u
 
 @usuarios_bp.route('/', strict_slashes=False, methods=['GET'])
+@token_required
 def list_users():
     try:
         usuario_filter = request.args.get('usuario')
@@ -40,6 +46,7 @@ def list_users():
         return jsonify({'error': str(e)}), 500
 
 @usuarios_bp.route('/', strict_slashes=False, methods=['POST'])
+@admin_required
 def create_user():
     data = request.json
     required_fields = ['nome_completo', 'usuario', 'tipo']
@@ -50,6 +57,8 @@ def create_user():
             
     if 'senha' not in data:
         data['senha'] = secrets.token_urlsafe(16)
+        
+    data['senha'] = generate_password_hash(data['senha'])
             
     try:
         query = """
@@ -89,15 +98,23 @@ def create_user():
         return jsonify({'error': str(e)}), 500
 
 @usuarios_bp.route('/<int:id>', methods=['PUT'])
+@admin_required
 def update_user(id):
     data = request.json
     
-    # Build dynamic query
+    # White-list fields to prevent SQL injection
+    allowed_fields = [
+        'nome_completo', 'usuario', 'senha', 'email', 'cpf', 
+        'tipo', 'situacao', 'guiche_atual', 'status_atendimento'
+    ]
+    
     fields = []
     values = []
     
     for key, value in data.items():
-        if key != 'id': # Don't update ID
+        if key in allowed_fields and key != 'id':
+            if key == 'senha' and value:
+                value = generate_password_hash(value)
             fields.append(f"{key} = %s")
             values.append(value)
             
@@ -120,6 +137,7 @@ def update_user(id):
         return jsonify({'error': str(e)}), 500
 
 @usuarios_bp.route('/<int:id>', methods=['DELETE'])
+@admin_required
 def delete_user(id):
     try:
         # Check if user exists
@@ -132,6 +150,7 @@ def delete_user(id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 @usuarios_bp.route('/<int:id>/status', methods=['PUT'])
+@token_required
 def update_user_status(id):
     data = request.json
     new_status = data.get('status')
@@ -163,6 +182,7 @@ def update_user_status(id):
 ONLINE_USERS = {}
 
 @usuarios_bp.route('/heartbeat', methods=['POST'])
+@token_required
 def heartbeat():
     data = request.json
     user_id = data.get('user_id')
@@ -175,6 +195,7 @@ def heartbeat():
     return jsonify({'error': 'Missing user_id'}), 400
 
 @usuarios_bp.route('/online', strict_slashes=False, methods=['GET'])
+@token_required
 def get_online_users():
     try:
         # Fetch users who are 'ativo' and have type 'usuario' (attendants)
@@ -355,8 +376,9 @@ def reset_with_token():
             return jsonify({'error': 'Token expirado.'}), 400
             
         # Update password and clear token
+        hash_password = generate_password_hash(new_password)
         query_db("UPDATE usuarios SET senha = %s, reset_token = NULL, reset_expires = NULL WHERE id = %s", 
-                 (new_password, user['id']))
+                 (hash_password, user['id']))
                  
         return jsonify({'message': 'Senha redefinida com sucesso.'})
     except Exception as e:

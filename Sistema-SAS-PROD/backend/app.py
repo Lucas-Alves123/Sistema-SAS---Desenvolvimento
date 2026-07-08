@@ -15,6 +15,7 @@ from backend.routes.solicitacoes import solicitacoes_bp
 from backend.routes.ai import ai_bp
 from backend.routes.avaliacoes import avaliacoes_bp
 from backend.routes.chat import chat_bp
+from backend.routes.auth import auth_bp
 
 def create_app():
     # Configure Flask to serve static files from the frontend directory
@@ -47,6 +48,7 @@ def create_app():
     app.register_blueprint(ai_bp, url_prefix='/api/ai')
     app.register_blueprint(avaliacoes_bp, url_prefix='/api/avaliacoes')
     app.register_blueprint(chat_bp, url_prefix='/api/chat')
+    app.register_blueprint(auth_bp, url_prefix='/api')
     
     @app.route('/static/uploads/<path:filename>')
     def serve_uploads(filename):

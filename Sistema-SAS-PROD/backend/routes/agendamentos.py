@@ -3,8 +3,14 @@ from flask import Blueprint, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 from ..db import query_db
 from datetime import datetime, timedelta
+from backend.routes.auth import token_required, admin_required
 
 agendamentos_bp = Blueprint('agendamentos', __name__)
+
+ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def get_next_in_queue(today, channel=None):
@@ -121,12 +127,9 @@ def promote_next_to_panel(atendente_id=None, guiche=None, channel='Presencial'):
         print(f"[QUEUE ERROR] Error in promote_next_to_panel: {e}")
         return False
 
-    except Exception as e:
-        print(f"[QUEUE ERROR] Error in promote_next_to_panel: {e}")
-        return False
-
 @agendamentos_bp.route('/proximo', methods=['POST'])
-def proximo_post():
+@token_required
+def call_next():
     try:
         data = request.json or {}
         atendente_id = data.get('atendente_id')
@@ -139,6 +142,7 @@ def proximo_post():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @agendamentos_bp.route('/reset-painel', methods=['POST'])
+@admin_required
 def reset_painel_route():
     try:
         today = datetime.now().strftime('%Y-%m-%d')
@@ -164,6 +168,7 @@ def cleanup_stale_calls():
 
 
 @agendamentos_bp.route('/', strict_slashes=False, methods=['GET'])
+@token_required
 def list_agendamentos():
     try:
         # Auto-cleanup to avoid busy panel errors when calls are forgotten
@@ -230,6 +235,7 @@ def list_agendamentos():
 
 
 @agendamentos_bp.route('/', strict_slashes=False, methods=['POST'])
+@token_required
 def create_agendamento():
     data = request.json
     # 'hora_inicio' is required by DB constraint
@@ -395,6 +401,7 @@ def create_agendamento():
         return jsonify({'error': str(e)}), 500
 
 @agendamentos_bp.route('/proximo', methods=['GET'])
+@token_required
 def get_proximo():
     try:
         from datetime import datetime
@@ -418,6 +425,7 @@ def get_proximo():
         return jsonify({'error': str(e)}), 500
 
 @agendamentos_bp.route('/<int:id>', methods=['GET'])
+@token_required
 def get_agendamento(id):
     try:
         agendamento = query_db("""
@@ -443,6 +451,7 @@ def get_agendamento(id):
         return jsonify({'error': str(e)}), 500
 
 @agendamentos_bp.route('/<int:id>', methods=['PUT'])
+@token_required
 def update_agendamento(id):
     data = dict(request.json)
     
@@ -534,6 +543,7 @@ def update_agendamento(id):
         return jsonify({'error': str(e)}), 500
 
 @agendamentos_bp.route('/<int:id>', methods=['DELETE'])
+@admin_required
 def delete_agendamento(id):
     try:
         item = query_db("SELECT id, status FROM agendamentos WHERE id = %s", (id,), one=True)
@@ -891,6 +901,7 @@ def get_public_status(id):
 
 
 @agendamentos_bp.route('/<int:agendamento_id>/anexos', methods=['GET'])
+@token_required
 def list_anexos(agendamento_id):
     try:
         anexos = query_db("SELECT id, file_name, file_path, created_at FROM agendamento_anexos WHERE agendamento_id = %s ORDER BY created_at DESC", (agendamento_id,))
@@ -899,6 +910,7 @@ def list_anexos(agendamento_id):
         return jsonify({"error": str(e)}), 500
 
 @agendamentos_bp.route('/<int:agendamento_id>/anexos', methods=['POST'])
+@token_required
 def upload_anexo(agendamento_id):
     try:
         if 'file' not in request.files:
@@ -906,8 +918,11 @@ def upload_anexo(agendamento_id):
         
         file = request.files['file']
         if file.filename == '':
-            return jsonify({"error": "Arquivo sem nome"}), 400
-        
+            return jsonify({"error": "No selected file"}), 400
+            
+        if not allowed_file(file.filename):
+            return jsonify({"error": "Extensão de arquivo não permitida. Apenas PDF e Imagens (JPG/PNG) são aceitos."}), 400
+
         filename = secure_filename(file.filename)
         # Add timestamp to avoid collisions
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_")
@@ -930,6 +945,7 @@ def upload_anexo(agendamento_id):
         return jsonify({"error": str(e)}), 500
 
 @agendamentos_bp.route('/anexos/<int:anexo_id>', methods=['DELETE'])
+@admin_required
 def delete_anexo(anexo_id):
     try:
         anexo = query_db("SELECT file_path FROM agendamento_anexos WHERE id = %s", (anexo_id,), one=True)

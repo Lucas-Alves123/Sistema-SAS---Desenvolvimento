@@ -213,17 +213,22 @@
                 // Simulate network delay for better UX feel
                 await new Promise(resolve => setTimeout(resolve, 800));
 
-                const users = await window.SAS.base44.entities.SystemUser.filter({ usuario });
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ usuario, senha })
+                });
 
-                if (users.length === 0 || users[0].senha !== senha) {
-                    throw new Error('Usuário ou senha incorretos.');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Erro ao fazer login.');
                 }
 
-                if (users[0].situacao === 'inativo') {
-                    throw new Error('Usuário inativo. Contate o administrador.');
-                }
-
-                localStorage.setItem('sas_user', JSON.stringify(users[0]));
+                localStorage.setItem('sas_user', JSON.stringify(data.user));
+                localStorage.setItem('sas_token', data.token);
                 window.location.href = window.SAS.utils.createPageUrl('Home');
 
             } catch (err) {
