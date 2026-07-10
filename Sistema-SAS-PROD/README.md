@@ -23,7 +23,7 @@ O **SAS** é uma plataforma robusta desenvolvida para gerenciar o fluxo de atend
 ## 🛠️ Tecnologias Utilizadas
 
 - **Backend**: Python com framework Flask.
-- **Banco de Dados**: PostgreSQL para armazenamento persistente e seguro.
+- **Banco de Dados**: MySQL para armazenamento persistente e seguro.
 - **Frontend**: 
   - HTML5 e Vanilla JavaScript (sem frameworks pesados para maior performance).
   - Tailwind CSS para interface moderna e responsiva.
@@ -46,12 +46,12 @@ O **SAS** é uma plataforma robusta desenvolvida para gerenciar o fluxo de atend
 
 ## ⚙️ Configuração e Instalação
 
-1. **Requisitos**: Python 3.10+ e PostgreSQL.
+1. **Requisitos**: Python 3.10+ e MySQL.
 2. **Dependências**: Instale as bibliotecas necessárias:
    ```bash
-   pip install flask flask-cors psycopg2-binary
+   pip install -r backend/requirements.txt
    ```
-3. **Banco de Dados**: Configure as credenciais no arquivo `backend/config.py`.
+3. **Banco de Dados**: Configure as credenciais criando um arquivo `.env` na raiz do backend, contendo as chaves do banco de dados (ex: `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME`).
 4. **Execução**:
    ```bash
    python backend/app.py
