@@ -223,8 +223,8 @@ def get_online_users():
                 
                 if isinstance(last_seen, datetime):
                     diff = (datetime.now() - last_seen).total_seconds()
-                    # 120 seconds grace period
-                    is_online = diff < 120
+                    # 900 seconds (15 min) grace period para coincidir com a inatividade do frontend
+                    is_online = diff < 900
 
             u['is_online'] = is_online
             if not is_online and u.get('status_atendimento') != 'pausa':
@@ -233,6 +233,20 @@ def get_online_users():
             final_users.append(serialize_user(u))
             
         return jsonify(final_users)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@usuarios_bp.route('/logout', strict_slashes=False, methods=['POST'])
+@token_required
+def logout_user():
+    try:
+        user_id = request.user.get('id')
+        if not user_id:
+            return jsonify({'error': 'Usuário inválido'}), 400
+        
+        # Reset ultimo_acesso to null to force immediate offline status
+        query_db("UPDATE usuarios SET ultimo_acesso = NULL WHERE id = %s", (int(user_id),))
+        return jsonify({'message': 'Logged out successfully'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

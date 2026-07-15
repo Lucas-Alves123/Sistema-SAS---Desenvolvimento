@@ -14,7 +14,10 @@
         const lastSeenId = localStorage.getItem('sas_last_seen_solicitacao_id') || 0;
 
         try {
-            const response = await fetch(`/api/solicitacoes/unread-count?last_id=${lastSeenId}`);
+            const token = localStorage.getItem('sas_token');
+            const response = await fetch(`/api/solicitacoes/unread-count?last_id=${lastSeenId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
             if (response.ok) {
                 const data = await response.json();
                 const badge = document.getElementById('solicitacoesBadge');
@@ -312,7 +315,10 @@
             if (!currentUser) return;
 
             try {
-                const response = await fetch('/api/usuarios/online');
+                const token = localStorage.getItem('sas_token');
+                const response = await fetch('/api/usuarios/online', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 if (response.ok) {
                     const onlineUsers = await response.json();
                     const me = onlineUsers.find(u => u.id === currentUser.id);
@@ -343,9 +349,13 @@
             const currentUser = JSON.parse(localStorage.getItem('sas_user'));
             if (currentUser) {
                 try {
+                    const token = localStorage.getItem('sas_token');
                     await fetch('/api/usuarios/heartbeat', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
                         body: JSON.stringify({ user_id: currentUser.id })
                     });
                 } catch (e) {

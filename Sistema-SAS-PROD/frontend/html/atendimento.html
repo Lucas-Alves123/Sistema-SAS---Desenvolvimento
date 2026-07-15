@@ -588,9 +588,13 @@
 
             updateStatusUI(newStatus, motivo);
             try {
+                const token = localStorage.getItem('sas_token');
                 const response = await fetch(`/api/usuarios/${user.id}/status`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({ status: newStatus, motivo: motivo })
                 });
                 if (!response.ok) throw new Error('Failed to update status');
@@ -627,7 +631,10 @@
             listEl.innerHTML = '<div class="text-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div></div>';
             
             try {
-                const response = await fetch(`/api/agendamentos/${id}/anexos`);
+                const token = localStorage.getItem('sas_token');
+                const response = await fetch(`/api/agendamentos/${id}/anexos`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 const anexos = await response.json();
                 
                 if (!anexos || anexos.length === 0) {
@@ -682,8 +689,10 @@
 
             try {
                 window.SAS.utils.notify('info', 'Enviando arquivo...');
+                const token = localStorage.getItem('sas_token');
                 const response = await fetch(`/api/agendamentos/${currentAnexosAgendamentoId}/anexos`, {
                     method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
                 });
                 const result = await response.json();
@@ -707,8 +716,10 @@
                 'Tem certeza que deseja remover este arquivo permanentemente?',
                 async () => {
                     try {
+                        const token = localStorage.getItem('sas_token');
                         const response = await fetch(`/api/agendamentos/anexos/${id}`, {
-                            method: 'DELETE'
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}` }
                         });
                         const result = await response.json();
                         if (result.success) {

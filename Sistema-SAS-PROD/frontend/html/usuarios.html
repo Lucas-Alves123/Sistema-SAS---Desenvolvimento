@@ -143,7 +143,10 @@
 
         const fetchOnlineStatus = async () => {
             try {
-                const response = await fetch('/api/usuarios/online');
+                const token = localStorage.getItem('sas_token');
+                const response = await fetch('/api/usuarios/online', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 if (response.ok) {
                     const onlineUsers = await response.json();
                     let changed = false;

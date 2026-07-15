@@ -70,7 +70,19 @@
         return JSON.parse(user);
     };
 
-    window.SAS.utils.logout = () => {
+    window.SAS.utils.logout = async () => {
+        const token = localStorage.getItem('sas_token');
+        if (token) {
+            try {
+                await fetch('/api/usuarios/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } catch (e) {
+                console.error('Logout API failed', e);
+            }
+        }
+        localStorage.removeItem('sas_token');
         localStorage.removeItem('sas_user');
         window.location.href = '/';
     };

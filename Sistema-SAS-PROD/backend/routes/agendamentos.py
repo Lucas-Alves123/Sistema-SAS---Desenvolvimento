@@ -482,13 +482,15 @@ def update_agendamento(id):
 
         # 3. Handle Satisfaction Email
         if new_status == 'concluido' and old_status != 'concluido':
-            user_email = data.get('email') or old_record.get('email')
-            nome = data.get('nome_completo') or old_record.get('nome_completo')
-            if user_email:
-                try:
-                    import threading
-                    threading.Thread(target=send_satisfaction_email, args=(user_email, nome, id, request.url_root)).start()
-                except Exception as e: print(f"Email error: {e}")
+            # Proteção extra: só envia o e-mail se for a PRIMEIRA vez que está sendo concluído
+            if not old_record.get('hora_conclusao'):
+                user_email = data.get('email') or old_record.get('email')
+                nome = data.get('nome_completo') or old_record.get('nome_completo')
+                if user_email:
+                    try:
+                        import threading
+                        threading.Thread(target=send_satisfaction_email, args=(user_email, nome, id, request.url_root)).start()
+                    except Exception as e: print(f"Email error: {e}")
 
         # 4. Perform Update
         fields = []
