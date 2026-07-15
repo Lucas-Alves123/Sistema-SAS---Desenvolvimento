@@ -13,15 +13,21 @@ from backend.config import Config
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 relatorio_dir = os.path.join(os.path.dirname(__file__), '..', 'relatorio.csv')
-arquivos_funcionarios = glob.glob(os.path.join(relatorio_dir, 'LISTA_LISTA_FUNCIONARIOS_*.xlsx'))
+arquivos_funcionarios = [f for f in glob.glob(os.path.join(relatorio_dir, 'LISTA_LISTA_FUNCIONARIOS_*.*')) if f.endswith('.xlsx') or f.endswith('.csv')]
 
 if not arquivos_funcionarios:
-    logging.error("Nenhum arquivo XLSX de funcionários encontrado na pasta relatorio.csv")
+    logging.error("Nenhum arquivo de funcionários (CSV ou XLSX) encontrado na pasta relatorio.csv")
     sys.exit(1)
 
 FILE_FUNCIONARIOS = max(arquivos_funcionarios, key=os.path.getmtime)
-logging.info(f"Arquivo selecionado para importação: {FILE_FUNCIONARIOS}")
-FILE_SETORES = os.path.join(os.path.dirname(__file__), '..', 'relatorio.csv', 'SETORES_SGP - 2026.06.15.xlsx')
+logging.info(f"Arquivo selecionado para importação (Funcionários): {FILE_FUNCIONARIOS}")
+
+arquivos_setores = glob.glob(os.path.join(relatorio_dir, 'SETORES_*.xlsx'))
+if not arquivos_setores:
+    logging.error("Nenhum arquivo de setores encontrado na pasta relatorio.csv")
+    sys.exit(1)
+FILE_SETORES = max(arquivos_setores, key=os.path.getmtime)
+logging.info(f"Arquivo selecionado para importação (Setores): {FILE_SETORES}")
 
 VINCULO_MAP = {
     'EST': 'Estatutário',
@@ -116,11 +122,22 @@ def main():
     vinculos_inseridos = 0
     
     try:
-        df = pd.read_excel(FILE_FUNCIONARIOS, dtype=str)
+        if FILE_FUNCIONARIOS.endswith('.csv'):
+            df = pd.read_csv(FILE_FUNCIONARIOS, sep=';', dtype=str, encoding='utf-8')
+        else:
+            df = pd.read_excel(FILE_FUNCIONARIOS, dtype=str)
         df.fillna('', inplace=True)
     except Exception as e:
-        logging.error(f"Erro ao ler arquivo de funcionários: {e}")
-        return
+        logging.error(f"Erro ao ler arquivo de funcionários com utf-8: {e}")
+        try:
+            if FILE_FUNCIONARIOS.endswith('.csv'):
+                df = pd.read_csv(FILE_FUNCIONARIOS, sep=';', dtype=str, encoding='latin1')
+                df.fillna('', inplace=True)
+            else:
+                return
+        except Exception as e2:
+            logging.error(f"Erro no fallback (latin1) de leitura do arquivo: {e2}")
+            return
 
     insert_worker_query = """
         INSERT INTO trabalhadores (nome_completo, cpf, telefone, email) 
@@ -166,7 +183,7 @@ def main():
         
         lotacao_code = str(row.get('LOTACAO', '')).strip()
         if lotacao_code.endswith('.0'): lotacao_code = lotacao_code[:-2]
-        unidade_lotacao = setores.get(lotacao_code, lotacao_code)
+        unidade_lotacao = setores.get(lotacao_code, '')
         
         trabalhador_id = None
         try:
