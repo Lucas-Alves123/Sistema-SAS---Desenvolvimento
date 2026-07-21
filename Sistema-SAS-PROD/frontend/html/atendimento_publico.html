@@ -69,6 +69,9 @@
             .glass-card { padding: 24px; }
         }
     </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
 </head>
 <body class="min-h-screen py-10 px-4">
 
@@ -95,7 +98,7 @@
         <div class="glass-card shadow-lg">
             <form id="publicoForm" class="space-y-8">
                 
-                <!-- Secao: Dados do Solicitante -->
+                <!-- Secao: Dados do Requerente -->
                 <div>
                     <h2 class="section-title">
                         <i data-lucide="user" class="w-5 h-5 text-blue-600"></i>
@@ -104,22 +107,22 @@
                     <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
                         <div class="grid-custom">
                             <div class="space-y-1">
-                                <label class="field-label">Nome Completo</label>
-                                <input type="text" id="solic_nome" class="input-base">
+                                <label class="field-label">Nome Completo <span class="text-red-500">*</span></label>
+                                <input type="text" id="solic_nome" class="input-base" required>
                             </div>
                             <div class="space-y-1">
                                 <label class="field-label">CPF</label>
                                 <input type="text" id="solic_cpf" maxlength="14" class="input-base">
                             </div>
                             <div class="space-y-1">
-                                <label class="field-label">Telefone</label>
-                                <input type="text" id="solic_telefone" maxlength="15" placeholder="(00) 00000-0000" class="input-base">
+                                <label class="field-label">Matrícula</label>
+                                <input type="text" id="solic_matricula" class="input-base">
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-[20px]">
+                        <div class="grid-custom">
                             <div class="space-y-1">
-                                <label class="field-label">E-mail</label>
-                                <input type="email" id="solic_email" class="input-base">
+                                <label class="field-label">Cargo</label>
+                                <input type="text" id="solic_cargo" class="input-base">
                             </div>
                             <div class="space-y-1">
                                 <label class="field-label">Tipo de Requerente</label>
@@ -128,57 +131,39 @@
                                     <option value="Representante legal">Representante legal</option>
                                     <option value="Herdeiro/Dependente">Herdeiro/Dependente</option>
                                     <option value="Plantão Extra">Plantão Extra</option>
+                                    <option value="EX servidor">EX servidor</option>
                                     <option value="Outros">Outros</option>
                                 </select>
                             </div>
+                            <div class="space-y-1">
+                                <label class="field-label">Local de trabalho</label>
+                                <input type="text" id="solic_local_trabalho" class="input-base">
+                            </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Secao: Dados do Ex Servidor Relacionado -->
-                <div>
-                    <h2 class="section-title">
-                        <i data-lucide="contact-2" class="w-5 h-5 text-indigo-600"></i>
-                        Dados do Ex Servidor Relacionado
-                    </h2>
-                    <div class="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100/50">
                         <div class="grid-custom">
                             <div class="space-y-1">
-                                <label class="field-label">Nome do Servidor</label>
-                                <input type="text" id="servidor_nome" class="input-base">
+                                <label class="field-label">E-mail</label>
+                                <input type="email" id="solic_email" class="input-base">
                             </div>
                             <div class="space-y-1">
-                                <label class="field-label">CPF do Servidor</label>
-                                <input type="text" id="servidor_cpf" maxlength="14" class="input-base">
+                                <label class="field-label">Telefone <span class="text-red-500">*</span></label>
+                                <input type="text" id="solic_telefone" maxlength="15" placeholder="(00) 00000-0000" class="input-base" required>
                             </div>
                             <div class="space-y-1">
-                                <label class="field-label">Matrícula</label>
-                                <input type="text" id="servidor_matricula" class="input-base">
+                                <label class="field-label">Data do agendamento</label>
+                                <input type="date" id="solic_data_agendamento" class="input-base">
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-[20px]">
-                            <div class="space-y-1">
-                                <label class="field-label">Órgão de Origem</label>
-                                <input type="text" id="servidor_orgao" class="input-base">
-                            </div>
+                        <div class="grid-custom">
                             <div class="space-y-1">
                                 <label class="field-label">Situação</label>
-                                <select id="servidor_situacao" class="input-base">
+                                <select id="solic_situacao" class="input-base">
                                     <option value="">Selecione...</option>
+                                    <option value="Ativo">Ativo</option>
                                     <option value="Aposentado">Aposentado</option>
                                     <option value="Falecido">Falecido</option>
                                     <option value="Exonerado">Exonerado</option>
                                 </select>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-[20px] mt-[20px]">
-                            <div class="space-y-1">
-                                <label class="field-label">Telefone do Servidor</label>
-                                <input type="text" id="servidor_telefone" maxlength="15" placeholder="(00) 00000-0000" class="input-base">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="field-label">E-mail do Servidor</label>
-                                <input type="email" id="servidor_email" class="input-base">
                             </div>
                         </div>
                     </div>
@@ -308,6 +293,7 @@
 
         // Initialize Lucide Icons
         lucide.createIcons();
+        window.SAS.utils.initDatePickers();
 
         // Load existing ticket data if updating
         if (isUpdateMode) {
@@ -321,21 +307,20 @@
                         const ticket = all.find(a => String(a.id) === String(ticketId));
                         if (ticket) {
                             // Populate known fields
-                            if (ticket.servidor_situacao) document.getElementById('servidor_situacao').value = ticket.servidor_situacao;
+                            if (ticket.servidor_situacao) document.getElementById('solic_situacao').value = ticket.servidor_situacao;
                             if (ticket.solicitante_tipo) document.getElementById('solic_tipo').value = ticket.solicitante_tipo;
                             if (ticket.tipo_servico && ticket.tipo_servico !== 'Atendimento ao Público (Triagem)' && ticket.tipo_servico !== 'Atendimento ao Público (Direto)') {
                                 document.getElementById('tipo_demanda').value = ticket.tipo_servico;
                             }
                             
-                            document.getElementById('servidor_nome').value = ticket.nome_completo || '';
-                            if (ticket.cpf) document.getElementById('servidor_cpf').value = window.SAS.utils.formatCPF(ticket.cpf);
-                            if (ticket.matricula) document.getElementById('servidor_matricula').value = ticket.matricula;
-                            if (ticket.servidor_orgao) document.getElementById('servidor_orgao').value = ticket.servidor_orgao;
-                            
-                            document.getElementById('solic_nome').value = ticket.solicitante_nome || '';
-                            if (ticket.solicitante_cpf) document.getElementById('solic_cpf').value = window.SAS.utils.formatCPF(ticket.solicitante_cpf);
-                            if (ticket.solicitante_telefone) document.getElementById('solic_telefone').value = ticket.solicitante_telefone;
-                            if (ticket.solicitante_email) document.getElementById('solic_email').value = ticket.solicitante_email;
+                            document.getElementById('solic_nome').value = ticket.nome_completo || ticket.solicitante_nome || '';
+                            if (ticket.cpf || ticket.solicitante_cpf) document.getElementById('solic_cpf').value = window.SAS.utils.formatCPF(ticket.cpf || ticket.solicitante_cpf);
+                            if (ticket.matricula) document.getElementById('solic_matricula').value = ticket.matricula;
+                            if (ticket.cargo) document.getElementById('solic_cargo').value = ticket.cargo;
+                            if (ticket.local_trabalho || ticket.servidor_orgao) document.getElementById('solic_local_trabalho').value = ticket.local_trabalho || ticket.servidor_orgao || '';
+                            if (ticket.telefone || ticket.solicitante_telefone) document.getElementById('solic_telefone').value = ticket.telefone || ticket.solicitante_telefone || '';
+                            if (ticket.email || ticket.solicitante_email) document.getElementById('solic_email').value = ticket.email || ticket.solicitante_email || '';
+                            if (ticket.data_agendamento) document.getElementById('solic_data_agendamento').value = ticket.data_agendamento;
 
                             let desc = ticket.observacao_problema || ticket.assunto_secundario || '';
                             if (desc.includes('=== Observação ===')) {
@@ -360,20 +345,20 @@
             const passedMatricula = urlParams.get('matricula');
             
             if (passedNome) {
-                document.getElementById('servidor_nome').value = passedNome;
+                document.getElementById('solic_nome').value = passedNome;
             }
             if (passedCpf && passedCpf.replace(/\D/g, '') !== '') {
                 const formattedCpf = window.SAS.utils.formatCPF(passedCpf);
-                document.getElementById('servidor_cpf').value = formattedCpf;
+                document.getElementById('solic_cpf').value = formattedCpf;
             }
-            if (passedTelefone && document.getElementById('servidor_telefone')) {
-                document.getElementById('servidor_telefone').value = window.SAS.utils.formatTelefone(passedTelefone);
+            if (passedTelefone && document.getElementById('solic_telefone')) {
+                document.getElementById('solic_telefone').value = window.SAS.utils.formatTelefone(passedTelefone);
             }
-            if (passedEmail && document.getElementById('servidor_email')) {
-                document.getElementById('servidor_email').value = passedEmail;
+            if (passedEmail && document.getElementById('solic_email')) {
+                document.getElementById('solic_email').value = passedEmail;
             }
-            if (passedMatricula && document.getElementById('servidor_matricula')) {
-                document.getElementById('servidor_matricula').value = passedMatricula;
+            if (passedMatricula && document.getElementById('solic_matricula')) {
+                document.getElementById('solic_matricula').value = passedMatricula;
             }
         }
 
@@ -383,24 +368,11 @@
             if (val.length > 11) val = val.substring(0, 11);
             e.target.value = window.SAS.utils.formatCPF(val);
         });
-        document.getElementById('servidor_cpf').addEventListener('input', e => {
-            let val = e.target.value.replace(/\D/g, '');
-            if (val.length > 11) val = val.substring(0, 11);
-            e.target.value = window.SAS.utils.formatCPF(val);
-        });
 
         // Format Telefone
         const telInput = document.getElementById('solic_telefone');
         if (telInput) {
             telInput.addEventListener('input', (e) => {
-                let val = e.target.value.replace(/\D/g, '');
-                if (val.length > 11) val = val.substring(0, 11);
-                e.target.value = window.SAS.utils.formatTelefone(val);
-            });
-        }
-        const servTelInput = document.getElementById('servidor_telefone');
-        if (servTelInput) {
-            servTelInput.addEventListener('input', (e) => {
                 let val = e.target.value.replace(/\D/g, '');
                 if (val.length > 11) val = val.substring(0, 11);
                 e.target.value = window.SAS.utils.formatTelefone(val);
@@ -475,25 +447,10 @@
                 return;
             }
             
-            const servidor_cpf_raw = document.getElementById('servidor_cpf').value.replace(/\D/g, '');
-            if (servidor_cpf_raw && servidor_cpf_raw.length !== 11) {
-                window.SAS.utils.notify('error', 'CPF do servidor incompleto');
-                btnSubmit.classList.remove('hidden');
-                loadingState.classList.add('hidden');
-                return;
-            }
-
             const solic_tel = document.getElementById('solic_telefone').value.replace(/\D/g, '');
-            const serv_tel = document.getElementById('servidor_telefone') ? document.getElementById('servidor_telefone').value.replace(/\D/g, '') : '';
             
             if (solic_tel && solic_tel.length < 10) {
-                window.SAS.utils.notify('error', 'Telefone do solicitante incompleto');
-                btnSubmit.classList.remove('hidden');
-                loadingState.classList.add('hidden');
-                return;
-            }
-            if (serv_tel && serv_tel.length < 10) {
-                window.SAS.utils.notify('error', 'Telefone do servidor incompleto');
+                window.SAS.utils.notify('error', 'Telefone incompleto');
                 btnSubmit.classList.remove('hidden');
                 loadingState.classList.add('hidden');
                 return;
@@ -502,14 +459,15 @@
             // Construct payload
             const payload = {
                 // Fields mapped to backend schema
-                nome_completo: document.getElementById('servidor_nome').value.trim() || document.getElementById('solic_nome').value.trim(),
-                cpf: document.getElementById('servidor_cpf').value.replace(/\D/g, ''),
-                matricula: document.getElementById('servidor_matricula').value.trim(),
+                nome_completo: document.getElementById('solic_nome').value.trim(),
+                cpf: document.getElementById('solic_cpf').value.replace(/\D/g, ''),
+                matricula: document.getElementById('solic_matricula').value.trim(),
+                cargo: document.getElementById('solic_cargo').value.trim(),
                 tipo_servico: document.getElementById('tipo_demanda').value,
                 tipo_atendimento: 'Ao Público',
                 created_by: user ? user.id : null,
-                telefone: (document.getElementById('servidor_telefone') ? document.getElementById('servidor_telefone').value.replace(/\D/g, '') : '') || document.getElementById('solic_telefone').value.replace(/\D/g, ''),
-                email: (document.getElementById('servidor_email') ? document.getElementById('servidor_email').value.trim() : '') || document.getElementById('solic_email').value.trim(),
+                telefone: document.getElementById('solic_telefone').value.replace(/\D/g, ''),
+                email: document.getElementById('solic_email').value.trim(),
                 
                 // New specific columns
                 solicitante_nome: document.getElementById('solic_nome').value.trim().substring(0, 255),
@@ -517,8 +475,8 @@
                 solicitante_telefone: document.getElementById('solic_telefone').value.trim().substring(0, 20),
                 solicitante_email: document.getElementById('solic_email').value.trim().substring(0, 255),
                 solicitante_tipo: document.getElementById('solic_tipo').value.substring(0, 50),
-                servidor_orgao: document.getElementById('servidor_orgao').value.trim().substring(0, 100),
-                servidor_situacao: document.getElementById('servidor_situacao').value.substring(0, 50)
+                servidor_orgao: document.getElementById('solic_local_trabalho').value.trim().substring(0, 100),
+                servidor_situacao: document.getElementById('solic_situacao').value.substring(0, 50)
             };
 
             let finalDescricao = document.getElementById('descricao').value.trim();
@@ -535,7 +493,7 @@
             } else {
                 // Registro direto
                 payload.status = 'concluido'; // Já finaliza logo
-                payload.data_agendamento = new Date().toISOString().split('T')[0];
+                payload.data_agendamento = document.getElementById('solic_data_agendamento').value || new Date().toISOString().split('T')[0];
                 payload.hora_inicio = new Date().toLocaleTimeString('pt-BR', { hour12: false });
                 payload.atendente_id = user ? user.id : null;
                 payload.assunto_secundario = finalDescricao.substring(0, 255);

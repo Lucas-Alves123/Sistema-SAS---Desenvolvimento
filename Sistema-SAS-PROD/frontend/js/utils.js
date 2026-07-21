@@ -123,4 +123,79 @@
             }
         }
     };
+
+    // Holidays (National and Pernambuco)
+    window.SAS.utils.holidays = {
+        '01-01': 'Confraternização Universal',
+        '03-06': 'Data Magna de Pernambuco',
+        '04-21': 'Tiradentes',
+        '05-01': 'Dia do Trabalhador',
+        '06-24': 'São João',
+        '09-07': 'Independência do Brasil',
+        '10-12': 'Nossa Senhora Aparecida',
+        '11-02': 'Finados',
+        '11-15': 'Proclamação da República',
+        '11-20': 'Dia Nacional de Zumbi e da Consciência Negra',
+        '12-25': 'Natal',
+        // Moveable holidays (example for 2026, though typically calculated dynamically, we can just add fixed dates or simple month-day mapping)
+        '02-16': 'Carnaval (2026)',
+        '02-17': 'Carnaval (2026)',
+        '02-18': 'Quarta-feira de Cinzas (2026)',
+        '04-03': 'Paixão de Cristo (2026)',
+        '06-04': 'Corpus Christi (2026)'
+    };
+
+    // Flatpickr Init Helper
+    window.SAS.utils.initDatePickers = () => {
+        if (typeof flatpickr !== 'undefined') {
+            flatpickr('input[type="date"]', {
+                locale: 'pt',
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd/m/Y',
+                allowInput: true,
+                parseDate: (datestr, format) => {
+                    // Trata digitação apenas com números (ex: 21072026 -> 21/07/2026)
+                    const nums = datestr.replace(/\D/g, '');
+                    if (nums.length === 8) {
+                        const day = parseInt(nums.substring(0, 2), 10);
+                        const month = parseInt(nums.substring(2, 4), 10) - 1;
+                        const year = parseInt(nums.substring(4, 8), 10);
+                        return new Date(year, month, day);
+                    }
+                    return flatpickr.parseDate(datestr, format);
+                },
+                onDayCreate: function(dObj, dStr, fp, dayElem) {
+                    // Extract MM-DD
+                    const date = dayElem.dateObj;
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const mmdd = `${month}-${day}`;
+                    
+                    if (window.SAS.utils.holidays[mmdd]) {
+                        dayElem.classList.add('holiday-date');
+                        dayElem.title = window.SAS.utils.holidays[mmdd];
+                    }
+                },
+                onReady: function(selectedDates, dateStr, instance) {
+                    if (instance.altInput) {
+                        instance.altInput.addEventListener('input', function(e) {
+                            let v = e.target.value.replace(/\D/g, '');
+                            if (v.length > 8) v = v.substring(0, 8);
+                            
+                            let formatted = v;
+                            if (v.length >= 5) {
+                                formatted = v.substring(0, 2) + '/' + v.substring(2, 4) + '/' + v.substring(4, 8);
+                            } else if (v.length >= 3) {
+                                formatted = v.substring(0, 2) + '/' + v.substring(2, 4);
+                            }
+                            
+                            e.target.value = formatted;
+                        });
+                    }
+                }
+            });
+        }
+    };
+
 })();

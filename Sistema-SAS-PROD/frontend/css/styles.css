@@ -44,3 +44,16 @@ body {
 .scrollbar-top > * {
     transform: rotateX(180deg);
 }
+
+/* Flatpickr Custom Holiday Styling */
+.flatpickr-day.holiday-date {
+    background-color: #fee2e2 !important; /* red-100 */
+    color: #dc2626 !important; /* red-600 */
+    border-color: #fca5a5 !important; /* red-300 */
+    font-weight: bold;
+}
+
+.flatpickr-day.holiday-date:hover {
+    background-color: #fca5a5 !important; /* red-300 */
+    color: #991b1b !important; /* red-800 */
+}

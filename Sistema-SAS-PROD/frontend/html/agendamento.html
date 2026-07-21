@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/sonner@1.4.0/dist/sonner.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
 </head>
 
 <body>
@@ -276,7 +279,7 @@
                 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in p-8 text-center">
                     <h3 class="text-2xl font-bold text-slate-800 mb-2">Nova Demanda</h3>
                     <p class="text-slate-600 mb-6">
-                        Digite o nome do(a) Servidor(a) ou Ex-Servidor(a) para colocar na fila:
+                        Digite o nome do(a) requerente para colocar na fila:
                     </p>
                     <input type="text" id="inputNomeFila" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none mb-6 font-bold text-slate-800 text-center text-lg" placeholder="Nome completo...">
                     
@@ -293,6 +296,7 @@
         `;
 
         lucide.createIcons();
+        window.SAS.utils.initDatePickers();
 
         // Logic
         const form = document.getElementById('agendamentoForm');
