@@ -313,7 +313,9 @@
         if (isUpdateMode) {
             (async () => {
                 try {
-                    const res = await fetch(`/api/agendamentos`);
+                    const token = localStorage.getItem('sas_token');
+                    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                    const res = await fetch(`/api/agendamentos`, { headers });
                     const all = await res.json();
                     if (!all.error) {
                         const ticket = all.find(a => String(a.id) === String(ticketId));
@@ -543,17 +545,23 @@
 
             try {
                 let res;
+                const token = localStorage.getItem('sas_token');
+                const headers = { 
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                };
+
                 // 1. Save Record
                 if (isUpdateMode) {
                     res = await fetch(`/api/agendamentos/${ticketId}`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: headers,
                         body: JSON.stringify(payload)
                     });
                 } else {
                     res = await fetch('/api/agendamentos', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: headers,
                         body: JSON.stringify(payload)
                     });
                 }
@@ -573,6 +581,7 @@
                         formData.append('file', file);
                         await fetch(`/api/agendamentos/${agendamentoId}/anexos`, {
                             method: 'POST',
+                            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
                             body: formData
                         });
                     }
