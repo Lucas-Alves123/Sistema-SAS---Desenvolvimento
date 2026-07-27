@@ -79,6 +79,8 @@
                                     <option value="status">Por Status</option>
                                     <option value="service">Por Serviço</option>
                                     <option value="attendant">Por Atendente</option>
+                                    <option value="wait_time">Tempo Médio de Espera (min)</option>
+                                    <option value="peak_hours">Pico de Movimento (Hora)</option>
                                 </select>
                             </div>
 
@@ -549,11 +551,49 @@
                 });
                 labels = Object.keys(counts);
                 values = Object.values(counts);
+            } else if (metric === 'wait_time') {
+                const sums = {};
+                const counts = {};
+                data.forEach(d => {
+                    if (d.hora_chegada && d.hora_atendimento) {
+                        // Considerar apenas atendimentos válidos e não do futuro
+                        const hC = new Date(d.hora_chegada);
+                        const hA = new Date(d.hora_atendimento);
+                        if (!isNaN(hC) && !isNaN(hA) && hA >= hC) {
+                            const diffMin = (hA - hC) / 60000;
+                            // Ignora outliers absurdos > 12 horas por segurança de dados ruins
+                            if (diffMin < 720) {
+                                const s = d.tipo_servico || 'Geral';
+                                sums[s] = (sums[s] || 0) + diffMin;
+                                counts[s] = (counts[s] || 0) + 1;
+                            }
+                        }
+                    }
+                });
+                labels = Object.keys(sums);
+                values = labels.map(l => Math.round(sums[l] / counts[l]));
+            } else if (metric === 'peak_hours') {
+                const counts = {};
+                data.forEach(d => {
+                    const timeStr = d.hora_chegada || d.created_at;
+                    if (timeStr) {
+                        const date = new Date(timeStr);
+                        if (!isNaN(date)) {
+                            const h = String(date.getHours()).padStart(2, '0') + 'h';
+                            counts[h] = (counts[h] || 0) + 1;
+                        }
+                    }
+                });
+                labels = Object.keys(counts).sort((a, b) => parseInt(a) - parseInt(b));
+                values = labels.map(l => counts[l]);
             }
 
             if (myChart) {
                 myChart.destroy();
             }
+
+            // Gerar paleta de cores estendida caso tenham muitos itens (como horas)
+            const extendedColors = labels.map((_, i) => backgroundColors[i % backgroundColors.length]);
 
             const ctx = document.getElementById('myChart').getContext('2d');
             myChart = new Chart(ctx, {
@@ -561,9 +601,9 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Quantidade',
+                        label: metric === 'wait_time' ? 'Minutos' : 'Quantidade',
                         data: values,
-                        backgroundColor: backgroundColors.slice(0, labels.length),
+                        backgroundColor: extendedColors,
                         borderWidth: 1
                     }]
                 },

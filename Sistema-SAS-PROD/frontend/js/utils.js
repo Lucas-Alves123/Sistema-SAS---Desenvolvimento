@@ -131,11 +131,13 @@
         '04-21': 'Tiradentes',
         '05-01': 'Dia do Trabalhador',
         '06-24': 'São João',
+        '07-16': 'Nossa Senhora do Carmo (Recife)',
         '09-07': 'Independência do Brasil',
         '10-12': 'Nossa Senhora Aparecida',
         '11-02': 'Finados',
         '11-15': 'Proclamação da República',
         '11-20': 'Dia Nacional de Zumbi e da Consciência Negra',
+        '12-08': 'Nossa Senhora da Conceição (Recife)',
         '12-25': 'Natal',
         // Moveable holidays (example for 2026, though typically calculated dynamically, we can just add fixed dates or simple month-day mapping)
         '02-16': 'Carnaval (2026)',

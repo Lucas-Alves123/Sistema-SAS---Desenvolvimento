@@ -28,8 +28,8 @@ KNOWLEDGE_PATH = os.path.join(os.path.dirname(__file__), '..', 'ai_knowledge.jso
 api_key = getattr(Config, 'GEMINI_API_KEY', None)
 if api_key:
     genai.configure(api_key=api_key)
-    # Using gemini-2.0-flash as it is available and stable
-    model_name = 'models/gemini-2.0-flash'
+    # Using gemini-1.5-flash to avoid 404 errors on older API versions
+    model_name = 'gemini-1.5-flash'
     model = genai.GenerativeModel(model_name, tools=SAS_AGENTS)
 else:
     model = None
@@ -255,6 +255,11 @@ def fuzzy_find(raw_message, normalized_message, knowledge, history=None, user_co
     # 0. Check Local Logic/Math/Identity first
     local_res = local_logic_handler(normalized_message)
     if local_res: return local_res
+
+    # 0.5. Check Exact FAQ matches (From quick buttons) to save API quota
+    for faq_item in knowledge.get('faq', []):
+        if faq_item.get('pergunta', '').lower().strip() == raw_message.lower().strip():
+            return faq_item.get('resposta', '')
 
     social = knowledge.get('social', {})
     greetings = social.get('greetings', [])

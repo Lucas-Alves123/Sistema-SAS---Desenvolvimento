@@ -5,13 +5,24 @@
     const CHAT_TITLE = "SAS Assistente";
     const WELCOME_MSG = "Olá! Eu sou o seu **Manual Digital do SAS**. Posso te ajudar com o passo a passo de como usar o sistema. O que você quer aprender agora?";
     const QUICK_QUESTIONS = [
-        "Quais serviços estão disponíveis?",
-        "Como funciona o agendamento?",
-        "Documentos para Aposentadoria",
-        "Como trocar minha senha?"
+        "Como transferir atendimento?",
+        "Esqueci minha senha, e agora?",
+        "Qual o horário de funcionamento?",
+        "Para que serve o SAS?",
+        "Diferença entre Cancelar e Pausar"
     ];
 
     window.SAS.ai.init = () => {
+        // [MODO DE TESTE] Restringir visualização apenas para Lucas
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('sas_user'));
+            if (!currentUser || JSON.stringify(currentUser).toUpperCase().indexOf('LUCAS') === -1) {
+                return; // Esconde silenciosamente para os outros
+            }
+        } catch (e) {
+            return;
+        }
+
         // Prevent multiple initializations
         if (document.getElementById('sas-ai-container')) return;
 

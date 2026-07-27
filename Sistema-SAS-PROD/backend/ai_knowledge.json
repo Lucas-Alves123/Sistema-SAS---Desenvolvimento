@@ -6,6 +6,28 @@
         "contexto": "Criado para concentrar, em um único ambiente, a prestação de serviços da área administrativa da Secretaria de Saúde de Pernambuco, tem como finalidade atender os servidores da rede estadual, oferecendo esclarecimentos relacionados ao seu histórico funcional, direitos e demais demandas institucionais. A iniciativa busca orientar, agilizar e facilitar o atendimento ao servidor público.",
         "horario": "Nosso horário de atendimento é das 8h às 17h."
     },
+    "faq": [
+        {
+            "pergunta": "Como transferir atendimento?",
+            "resposta": "Para transferir, abra o atendimento atual e clique no botão azul secundário **Transferir**. Depois, escolha na lista o colega que vai receber (só aparece quem estiver **Online**). As anotações que você já fez vão junto!"
+        },
+        {
+            "pergunta": "Esqueci minha senha, e agora?",
+            "resposta": "Se você esqueceu a senha, vá na tela de login e clique em **Esqueci minha senha** para receber um link no e-mail. Se não tiver e-mail cadastrado, peça para o **Administrador (ADM)** do sistema ir no menu 'Usuários' e resetar a sua senha manualmente."
+        },
+        {
+            "pergunta": "Qual o horário de funcionamento?",
+            "resposta": "O horário de atendimento oficial da nossa central SAS é das **08:00 às 17:00**."
+        },
+        {
+            "pergunta": "Para que serve o SAS?",
+            "resposta": "O **SAS (Sistema de Atendimento ao Servidor)** serve para organizar e registrar todos os atendimentos feitos aos servidores da Secretaria de Saúde. Ele organiza a fila, mede o tempo de espera e guarda o histórico de problemas e soluções!"
+        },
+        {
+            "pergunta": "Diferença entre Cancelar e Pausar",
+            "resposta": "**Cancelar** é usado quando o servidor desiste ou não comparece. O atendimento morre ali e ele some da fila. \n**Pausar** (bolinha vermelha) é usado pelo **Atendente** para dizer ao sistema: *'Vou almoçar ou ao banheiro, não mande mais senhas para a minha mesa'*."
+        }
+    ],
     "servicos": [
         {
             "id": "aposentadoria",
