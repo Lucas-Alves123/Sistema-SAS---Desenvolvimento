@@ -326,9 +326,12 @@
                             if (desc.includes('=== Observação ===')) {
                                 const parts = desc.split(/\s*===\s*Observação\s*===\s*/);
                                 document.getElementById('descricao').value = parts[0] || '';
-                                document.getElementById('informacoes_complementares').value = parts[1] || '';
+                                document.getElementById('informacoes_complementares').value = (ticket.observacao_solucao && ticket.observacao_solucao !== '-') ? ticket.observacao_solucao : (parts[1] || '');
                             } else {
                                 document.getElementById('descricao').value = desc;
+                                if (ticket.observacao_solucao && ticket.observacao_solucao !== '-') {
+                                    document.getElementById('informacoes_complementares').value = ticket.observacao_solucao;
+                                }
                             }
                         }
                     }
@@ -479,17 +482,16 @@
                 servidor_situacao: document.getElementById('solic_situacao').value.substring(0, 50)
             };
 
-            let finalDescricao = document.getElementById('descricao').value.trim();
+            const finalDescricao = document.getElementById('descricao').value.trim();
             const infoComplementares = document.getElementById('informacoes_complementares').value.trim();
-            
-            if (infoComplementares) {
-                finalDescricao += '\n\n=== Observação ===\n' + infoComplementares;
-            }
             
             if (isUpdateMode) {
                 payload.status = 'concluido'; // Finaliza o atendimento de vez
                 payload.atendente_id = user ? user.id : null;
                 payload.observacao_problema = finalDescricao;
+                if (infoComplementares) {
+                    payload.observacao_solucao = infoComplementares;
+                }
             } else {
                 // Registro direto
                 payload.status = 'concluido'; // Já finaliza logo
@@ -498,6 +500,9 @@
                 payload.atendente_id = user ? user.id : null;
                 payload.assunto_secundario = finalDescricao.substring(0, 255);
                 payload.observacao_problema = finalDescricao;
+                if (infoComplementares) {
+                    payload.observacao_solucao = infoComplementares;
+                }
                 payload.force_duplicate = true;
             }
 

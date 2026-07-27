@@ -538,14 +538,19 @@
                             <div class="space-y-1.5 border-b border-slate-200/60 pb-4">
                                 <label class="block text-[9px] font-bold text-blue-700 uppercase tracking-widest px-1">Obs 1 — Problema</label>
                                 <div class="bg-white/60 p-2.5 rounded-lg border border-slate-200/60 max-h-24 overflow-y-auto custom-scrollbar shadow-sm">
-                                    <p class="text-[11px] text-gray-600 whitespace-pre-wrap leading-relaxed">${item.observacao_problema || 'Nenhuma registrada.'}</p>
+                                    <p class="text-[11px] text-gray-600 whitespace-pre-wrap leading-relaxed">${
+                                        (item.observacao_problema || 'Nenhuma registrada.').split('=== Observação ===')[0].trim()
+                                    }</p>
                                 </div>
                             </div>
                             <!-- Obs 2 -->
                             <div class="space-y-1.5">
-                                <label class="block text-[9px] font-bold text-green-700 uppercase tracking-widest px-1">Obs 2 — Solução</label>
+                                <label class="block text-[9px] font-bold text-green-700 uppercase tracking-widest px-1">Obs 2 — Solução / Observação</label>
                                 <div class="bg-white/60 p-2.5 rounded-lg border border-slate-200/60 max-h-24 overflow-y-auto custom-scrollbar shadow-sm">
-                                    <p class="text-[11px] text-gray-600 whitespace-pre-wrap leading-relaxed">${item.observacao_solucao || 'Nenhuma registrada.'}</p>
+                                    <p class="text-[11px] text-gray-600 whitespace-pre-wrap leading-relaxed">${
+                                        (item.observacao_solucao && item.observacao_solucao !== '-' && item.observacao_solucao.trim() !== '') ? item.observacao_solucao :
+                                        (item.observacao_problema && item.observacao_problema.includes('=== Observação ===') ? item.observacao_problema.split('=== Observação ===')[1].trim() : 'Nenhuma registrada.')
+                                    }</p>
                                 </div>
                             </div>
                         </div>

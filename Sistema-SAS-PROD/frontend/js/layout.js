@@ -68,12 +68,17 @@
                     <div class="w-full px-4 sm:px-6 lg:px-8">
                         <div class="flex justify-between items-center h-20">
                             
+                            <!-- Mobile Menu Button -->
+                            <button id="mobileMenuBtn" class="md:hidden flex items-center justify-center p-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-slate-100 transition-colors mr-2">
+                                <i data-lucide="menu" class="w-6 h-6"></i>
+                            </button>
+
                             <!-- Logo Section -->
-                            <div class="flex items-center gap-3 cursor-pointer select-none" id="dev-logo-trigger">
+                            <div class="flex items-center gap-3 cursor-pointer select-none flex-1 md:flex-none" id="dev-logo-trigger">
                                 <div class="bg-blue-800 text-white font-bold px-3 py-1.5 rounded text-lg shadow-sm">SAS</div>
                                 <div class="flex flex-col leading-tight">
-                                    <span class="text-blue-800 font-bold text-sm">SAS</span>
-                                    <span class="text-gray-500 text-xs">Sistema de Atendimento</span>
+                                    <span class="text-blue-800 font-bold text-sm hidden sm:block">SAS</span>
+                                    <span class="text-gray-500 text-xs hidden sm:block">Sistema de Atendimento</span>
                                 </div>
                             </div>
 
@@ -120,7 +125,19 @@
                             </div>
                         </div>
                     </div>
-                </div>
+
+                    <!-- Mobile Navigation Menu (Hidden by default) -->
+                    <div id="mobileMenu" class="hidden md:hidden bg-white border-b border-slate-200">
+                        <nav class="flex flex-col px-4 pt-2 pb-4 space-y-1 shadow-inner">
+                            ${renderMenuItem('Início', 'home', 'Home', activePage === 'Home' ? 'Início' : activePage)}
+                            ${renderMenuItem('Agendamento', 'agendamento', 'Calendar', activePage)}
+                            ${renderMenuItem('Atendimento', 'atendimento', 'Headphones', activePage)}
+                            ${renderMenuItem('Monitor', 'monitor', 'Monitor', activePage)}
+                            ${renderMenuItem('Relatórios', 'relatorios', 'file-text', activePage)}
+                            ${['adm', 'dev', 'usuario'].includes(user.tipo) ? renderMenuItem('Usuários', 'usuarios', 'Users', activePage) : ''}
+                            ${user.tipo === 'dev' ? renderMenuItem('Chat', 'chat', 'message-square', activePage) : ''}
+                        </nav>
+                    </div>
                 </header>
 
                 <!-- Main Content -->
@@ -292,6 +309,14 @@
                 chevronIcon.classList.remove('rotate-180');
             }
         });
+
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
 
         // Logout Actions
         const handleLogout = () => {
