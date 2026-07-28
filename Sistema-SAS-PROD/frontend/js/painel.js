@@ -172,8 +172,8 @@ function announceCall(name, guiche, onFinishedCallback = null) {
         const spokenName = String(name || "").toLowerCase().trim();
         
         const phrase = cleanGuiche && cleanGuiche !== "-" 
-            ? `${spokenName}, dirigir-se ao guichê ${cleanGuiche}.`
-            : `${spokenName}, dirigir-se ao atendimento.`;
+            ? `, , , ${spokenName}, dirigir-se ao guichê ${cleanGuiche}.`
+            : `, , , ${spokenName}, dirigir-se ao atendimento.`;
         
         const utterance = new SpeechSynthesisUtterance(phrase);
         utterance.lang = 'pt-BR';

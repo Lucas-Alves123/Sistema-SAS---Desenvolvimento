@@ -434,7 +434,7 @@
             e.preventDefault();
 
             if (!form.checkValidity()) {
-                window.SAS.utils.notify('error', 'Por favor, preencha todos os campos obrigatórios marcados com asterisco (especialmente os Dados do Solicitante lá no topo).');
+                window.SAS.utils.notify('error', 'Por favor, preencha todos os campos obrigatórios marcados com asterisco (especialmente os Dados do Requerente lá no topo).');
                 form.reportValidity();
                 return;
             }
@@ -444,7 +444,7 @@
 
             const solic_cpf_raw = document.getElementById('solic_cpf').value.replace(/\D/g, '');
             if (solic_cpf_raw && solic_cpf_raw.length !== 11) {
-                window.SAS.utils.notify('error', 'CPF do solicitante incompleto');
+                window.SAS.utils.notify('error', 'CPF do requerente incompleto');
                 btnSubmit.classList.remove('hidden');
                 loadingState.classList.add('hidden');
                 return;

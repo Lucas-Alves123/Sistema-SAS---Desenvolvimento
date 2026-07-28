@@ -928,12 +928,11 @@
                 thead.innerHTML = `
                     <tr>
                         <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Data/Hora</th>
-                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Solicitante</th>
-                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">CPF do Solicitante</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Requerente</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">CPF do Requerente</th>
                         <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Telefone</th>
                         <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">E-mail</th>
-                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Servidor Relacionado</th>
-                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Matrícula (Servidor)</th>
+                        <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Matrícula</th>
                         <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Órgão</th>
                         <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Atendente</th>
                         <th class="sticky top-0 bg-slate-100 px-3 py-3 border-r border-b border-slate-300 z-20">Demanda</th>
@@ -1084,11 +1083,10 @@
                 } else {
                     tr.innerHTML = `
                         <td class="px-2 py-3 border-r border-slate-100 text-gray-600 whitespace-nowrap">${window.SAS.utils.formatDate(item.data_agendamento)} ${item.hora_inicio ? item.hora_inicio.substring(0, 5) : ''}</td>
-                        <td class="px-2 py-3 border-r border-slate-100 font-medium text-gray-800">${item.solicitante_nome || '-'} ${importIndicator} ${editIndicator}</td>
+                        <td class="px-2 py-3 border-r border-slate-100 font-medium text-gray-800">${(item.solicitante_nome && item.nome_completo && item.solicitante_nome !== item.nome_completo) ? item.solicitante_nome + ' (Para: ' + item.nome_completo + ')' : (item.nome_completo || item.solicitante_nome || '-')} ${importIndicator} ${editIndicator}</td>
                         <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${window.SAS.utils.formatCPF(item.solicitante_cpf || '') || '-'}</td>
                         <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.solicitante_telefone || '-'}</td>
                         <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.solicitante_email || '-'}</td>
-                        <td class="px-2 py-3 border-r border-slate-100 font-medium text-blue-700">${item.nome_completo || '-'}</td>
                         <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.matricula || '-'}</td>
                         <td class="px-2 py-3 border-r border-slate-100 text-gray-600">${item.servidor_orgao || '-'}</td>
                         <td class="px-2 py-3 border-r border-slate-100 font-bold text-blue-700">${item.atendente_nome || '-'}</td>
