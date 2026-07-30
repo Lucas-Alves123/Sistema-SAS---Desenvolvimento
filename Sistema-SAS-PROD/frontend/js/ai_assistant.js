@@ -12,6 +12,295 @@
         "Diferença entre Cancelar e Pausar"
     ];
 
+    const LOCAL_KNOWLEDGE = [
+        {
+            keywords: [["ctc"], ["tempo", "contribuicao"], ["certidao", "contribuicao"]],
+            question: "Para solicitar a CTC (Certidão de Tempo de Contribuição), precisamos saber o seu status atual. Você é servidor ativo ou já se desligou?",
+            options: [
+                "Sou Servidor Ativo",
+                "Sou Ex-Servidor (Desligado/Inativo)"
+            ]
+        },
+        {
+            keywords: [["ctc", "ativo"], ["ctc", "servidor", "ativo"], ["tempo", "contribuicao", "ativo"], ["sou servidor ativo"]],
+            answer: "Como você **continua na ativa**, não é possível solicitar a CTC. Para levar seu tempo para o INSS, você deve solicitar apenas a **Declaração de Vínculo**."
+        },
+        {
+            keywords: [["ctc", "desligado"], ["ctc", "ex-servidor"], ["ctc", "inativo"], ["tempo", "contribuicao", "desligado"], ["ex-servidor", "desligado"]],
+            answer: "Para solicitar a **CTC** (Certidão de Tempo de Contribuição), o requerimento correto é o **Requerimento C** (e não o A)."
+        },
+        {
+            keywords: [["cts"]],
+            answer: "Para solicitar a **CTS**, você deve preencher e enviar o **Requerimento de CTS**."
+        },
+        {
+            keywords: [["nome", "errado"], ["nome", "retificar"], ["nome", "mae"], ["regularizacao", "funcional"], ["retificacao"], ["retificar"]],
+            answer: "Para retificar dados incorretos no cadastro (como o nome da mãe, por exemplo), o servidor deve dar entrada na **Regularização Funcional**."
+        },
+        {
+            keywords: [["exoneracao"], ["acumulo", "vinculo"], ["notificacao", "estado"]],
+            answer: "Para dar entrada em **exoneração** (ex: notificação de acúmulo de vínculos), deve ser fornecido o **Requerimento A**."
+        },
+        {
+            keywords: [["salario", "desconto"], ["motivo", "desconto"], ["desconto"]],
+            answer: "Para analisar o motivo de o salário vir com desconto, é preciso preencher o **Requerimento A**."
+        },
+        {
+            keywords: [["dtc"]],
+            question: "Existem algumas situações diferentes sobre a DTC. Sobre o que você deseja saber?",
+            options: [
+                "DTC para Aposentadoria",
+                "DTC para Averbação",
+                "DTC (Regra Geral)"
+            ]
+        },
+        {
+            keywords: [["dtc", "aposentadoria"]],
+            answer: "Para solicitar a **DTC para fins de Aposentadoria**, é preciso preencher o **Requerimento A**."
+        },
+        {
+            keywords: [["dtc", "averbacao"]],
+            answer: "Para solicitar a **DTC para Averbação**, é preciso preencher o **Requerimento A**."
+        },
+        {
+            keywords: [["dtc", "geral"], ["dtc", "regra", "geral"], ["dtc", "rgps"]],
+            answer: "Para solicitar a **DTC**, regra geral (incluindo ao RGPS), é preciso preencher o **Requerimento A**."
+        },
+        {
+            keywords: [["processo", "nao", "tem", "numero"], ["saber", "processo", "numero"], ["andamento", "processo", "sem", "numero"], ["numero", "processo"]],
+            answer: "Caso deseje saber de um processo mas não tenha o número, você deve solicitar o número na unidade onde deu entrada."
+        },
+        {
+            keywords: [["mudar", "email"], ["mudar", "telefone"], ["alterar", "email"], ["alterar", "telefone"], ["atualizar", "telefone"], ["telefone"]],
+            answer: "Para mudar seu e-mail ou número de telefone, você deve preencher o **Requerimento A** solicitando **Regularização Funcional**."
+        },
+        {
+            keywords: [["problema", "pagamento"], ["problema", "frequencia"], ["folha", "ponto", "desconto"], ["pagamento"], ["contracheque"]],
+            answer: "Para problemas de pagamento, frequência ou descontos integrais no salário por falha na folha de ponto, você deve dar entrada no **Requerimento A** e anexar os contracheques referidos."
+        },
+        {
+            keywords: [["ppp"], ["ltcat"]],
+            answer: "Para solicitação de **PPP**, é preciso preencher o formulário do **PPP**, **LTCAT** e o **Requerimento A**."
+        },
+        {
+            keywords: [["direito", "ferias"], ["programar", "ferias"], ["ferias"]],
+            answer: "Para verificar direito a férias ou programá-las, você deve procurar a **sua chefia imediata**."
+        },
+        {
+            keywords: [["encerra", "contrato"], ["encerrar", "contrato"], ["finalizar", "contrato"]],
+            answer: "Para saber como encerrar seu contrato de trabalho, é preciso entrar em contato com a **sua unidade**."
+        },
+        {
+            keywords: [["receber", "pl"], ["recebeu", "pl"]],
+            answer: "Caso tenha parado de receber a PL, é preciso preencher o **Requerimento A**."
+        },
+        {
+            keywords: [["preencheu", "requerimento", "nao", "tem", "sei"], ["nao", "tem", "numero", "sei"], ["sem", "numero", "sei"]],
+            answer: "Se você preencheu um requerimento e ainda não tem o número do SEI, deve enviar o requerimento para o **e-mail do Protocolo Geral**."
+        },
+        {
+            keywords: [["folha", "ponto", "negaram"], ["folha", "ponto", "negada"], ["relacao", "frequencia"]],
+            answer: "Se você precisa comprovar frequência e a unidade negar a folha de ponto, você deve solicitar a **relação de frequência** via **Requerimento A**."
+        },
+        {
+            keywords: [["orientacoes", "aposentadoria"], ["entrada", "aposentadoria"], ["checklist", "aposentadoria"]],
+            answer: "Para orientações sobre aposentadoria (esclarecimento de vínculos e licenças-prêmio), deve ser fornecido o **Checklist de Aposentadoria** juntamente com o telefone do Atendimento ao Servidor."
+        },
+        {
+            keywords: [["entrada", "licenca", "premio"], ["concessao", "licenca", "premio"], ["decenio", "licenca"], ["dar entrada na licenca premio"]],
+            answer: "Para dar entrada na licença prêmio (ex: 4º decênio), deve-se pedir a **concessão da licença prêmio** (para fins de aposentadoria ou gozo) com o Requerimento A, e aguardar publicação no Diário Oficial."
+        },
+        {
+            keywords: [["aposentadoria", "ferias"], ["aposentadoria", "licenca"], ["gozar", "ferias", "aposentadoria"]],
+            answer: "É fortemente orientado que você **goze todas as suas férias e licenças-prêmio** pendentes antes de dar entrada na aposentadoria."
+        },
+        {
+            keywords: [["quanto", "tempo", "aposentadoria"], ["abono", "permanencia"], ["saber quanto tempo falta para aposentadoria"]],
+            answer: "Para saber quanto tempo falta para poder dar entrada na aposentadoria, o servidor é orientado a solicitar o **Abono de Permanência**."
+        },
+        {
+            keywords: [["aposentadoria"]],
+            question: "Entendi que você tem dúvidas sobre aposentadoria. O que exatamente você deseja saber?",
+            options: [
+                "Orientações para dar entrada na aposentadoria",
+                "Saber quanto tempo falta para aposentadoria"
+            ]
+        },
+        {
+            keywords: [["piso", "salarial"], ["receber", "piso"], ["valor", "piso"], ["piso"]],
+            answer: "Para solicitações referentes a **piso salarial** (valores a receber ou retroativos de uma unidade específica), você deve verificar diretamente com a **sua unidade de origem**. (Obs: não há impedimento de dar entrada via Requerimento A, mas a análise dependerá da unidade)."
+        },
+        {
+            keywords: [["reducao", "carga", "horaria"], ["neurodivergencia"], ["reducao"]],
+            answer: "Para solicitar a **redução de carga horária** (ex: portadores de neurodivergencia ou necessidades especiais), deve ser preenchido o formulário específico de redução de carga horária para dar entrada na SAD."
+        },
+        {
+            keywords: [["corrigir", "pasep"], ["pasep"], ["nao", "recebeu", "pasep"], ["nao", "recebe", "pis"], ["pis"]],
+            answer: "Para solicitar correção, alteração ou informações sobre o não recebimento do seu **PIS/PASEP**, você deve preencher o **Requerimento A**."
+        },
+        {
+            keywords: [["averbar", "tempo"], ["averbar", "ctc"], ["averbacao"], ["averbar"]],
+            answer: "Para fazer a **averbação de tempo** (como por exemplo averbação de CTC), você deve preencher o **Requerimento A**."
+        },
+        {
+            keywords: [["gozo", "licenca", "premio", "assinatura"], ["licenca", "premio", "sem", "assinatura"]],
+            answer: "A solicitação de gozo de licença prêmio **só é válida mediante a assinatura da chefia imediata**. Não é possível dar entrada sem a autorização e assinatura da sua chefia."
+        },
+        {
+            keywords: [["tempo", "inss"], ["levar", "inss"], ["contrato", "inss"]],
+            answer: "Para levar o tempo do seu contrato para o INSS, você deve solicitar a **DTC**."
+        },
+        {
+            keywords: [["marcar", "pericia"], ["tipo", "pericia"], ["duvida", "pericia", "medica"], ["pericia"]],
+            answer: "Para dúvidas sobre marcação ou tipo de perícia médica, você pode ligar para o número **(81) 99488-3044** para falar diretamente com a perícia."
+        },
+        {
+            keywords: [["atualizar", "conta", "banco"], ["mudar", "conta"], ["alterar", "dados", "bancarios"], ["troca", "conta", "bancaria"], ["trocar", "conta"], ["conta", "banco"], ["dados", "bancarios"]],
+            answer: "Para solicitar a atualização ou troca da sua conta de banco:\n- **Servidores da ativa**: Devem preencher o **Requerimento A**.\n- **Aposentados/Pensionistas**: Devem procurar a **FUNAPE**."
+        },
+        {
+            keywords: [["vem", "problema"], ["cartao", "vem"], ["vem"]],
+            answer: "Para problemas com o cartão VEM, o ideal é procurar primeiro o atendimento do próprio VEM. Se necessário, você pode solicitar um novo **Termo de Adesão**."
+        },
+        {
+            keywords: [["remocao", "perseguicao"], ["remocao", "local", "trabalho"], ["perseguicao"], ["remocao"]],
+            answer: "Para solicitar remoção do seu local de trabalho, independentemente do motivo, você deve preencher o **Requerimento A**."
+        },
+        {
+            keywords: [["comprovar", "carga", "horaria"], ["declaracao", "vinculo"], ["carga", "horaria"]],
+            answer: "Para comprovar sua carga horária, você deve solicitar a **Declaração de Vínculo**."
+        },
+        {
+            keywords: [["certidao", "nao", "averbei", "inss"], ["certidao", "inss"], ["declaracao", "nao", "averbei"], ["declaracao", "nao", "averbacao"]],
+            answer: "Para solicitar uma certidão ou declaração informando que não averbou nenhum tempo no INSS, você deve preencher o **Requerimento A**."
+        },
+        {
+            keywords: [["motivo", "licenca", "premio"], ["demora", "licenca", "premio"], ["atraso", "licenca", "premio"]],
+            answer: "A data de publicação da Licença Prêmio pode sofrer alterações devido a **faltas ou outras ocorrências** (ex: no início da sua carreira). Para consultar o motivo exato, é necessário realizar uma consulta ao seu histórico no **SGP**."
+        },
+        {
+            keywords: [["email", "protocolo"], ["reenviar", "email", "protocolo"], ["abertura", "processo", "sei"]],
+            answer: "Após a abertura do processo no sistema SEI (ou envio do e-mail para o protocolo), orienta-se **entrar em contato novamente em 10 dias** para obter informações sobre o andamento. É necessário informar o número do processo SEI disponibilizado pelo setor de protocolo."
+        },
+        {
+            keywords: [["funape"]],
+            question: "Encontrei alguns serviços relacionados à FUNAPE. Qual o seu caso?",
+            options: [
+                "Trocar conta bancária"
+            ]
+        },
+        {
+            keywords: [["inss"]],
+            question: "Temos algumas situações envolvendo o INSS. Qual é a sua necessidade?",
+            options: [
+                "Levar tempo de contrato para o INSS",
+                "Certidão de não averbei no INSS"
+            ]
+        },
+        {
+            keywords: [["licenca", "premio"]],
+            question: "Sobre qual aspecto da Licença Prêmio você quer saber?",
+            options: [
+                "Dar entrada na licença prêmio",
+                "Motivo de demora/atraso da licença prêmio",
+                "Licença prêmio sem assinatura"
+            ]
+        },
+        {
+            keywords: [["pcd"], ["enquadrar", "pcd"]],
+            answer: "Para questões de enquadramento como **PCD** (Pessoa com Deficiência), é preciso entrar em contato diretamente com a **Perícia Médica do Estado**."
+        },
+        {
+            keywords: [["assinatura", "contrato"], ["assinar", "contrato"]],
+            answer: "Nós não realizamos atendimentos relacionados a **assinatura de contrato**. Para obter suporte e orientações, você deve entrar em contato com o setor de **Gerência de Política e Regulação do Trabalho** através do WhatsApp: **(81) 3184-0331**."
+        },
+        {
+            keywords: [["emitir", "holerite"], ["emitir", "contracheque"], ["acesso", "holerite"], ["acesso", "contracheque"], ["holerite"]],
+            answer: "Para acessar ou emitir seu **contracheque (holerite)**, vá ao site **www.nps.pe.gov.br** e faça login com seu CPF e senha. Selecione a seção 'Pagamentos' (ou similar) e escolha o mês desejado para download. Se for seu primeiro acesso, o portal oferece a opção de criar uma senha."
+        },
+        {
+            keywords: [["sassepe"], ["plano", "sassepe"], ["adesao", "sassepe"]],
+            answer: "Demandas sobre o **SASSEPE** (como adesão ao plano ou dúvidas) devem ser tratadas **diretamente com o SASSEPE**. Você pode obter mais informações ou acessar os serviços através do site oficial: **www.iassepe.pe.gov.br/sassepe**."
+        },
+        {
+            keywords: [["ficha", "funcional"], ["ficha"]],
+            answer: "Para solicitar a **Ficha Funcional**, é preciso preencher o **Requerimento A**."
+        },
+        {
+            keywords: [["plantao", "extra"], ["informe", "rendimento", "plantao"]],
+            answer: "Para solicitar informes de rendimento ou tratar assuntos referentes a **Plantão Extra**, você deve **dar entrada diretamente na sua Unidade**."
+        },
+        {
+            keywords: [["enfsus"], ["problema", "enfsus"]],
+            answer: "Para resolver problemas de acesso ou qualquer demanda relacionada ao sistema **ENFSUS**, você precisa **procurar a sua Unidade**."
+        },
+        {
+            keywords: [["licenca", "sem", "vencimento"]],
+            answer: "A licença sem vencimentos possui caráter **discricionário**. Isso significa que a solicitação será analisada pela gestão da unidade hospitalar, que pode deferir ou indeferir o pedido. Orientamos que você reapresente a solicitação com uma **justificativa clara e detalhada**, acompanhada de toda a **documentação comprobatória** possível, para subsidiar a nova análise da gestão."
+        },
+        {
+            keywords: [["conversao", "tempo", "especial"], ["tempo", "especial"]],
+            answer: "Para solicitar a **Conversão de Tempo Especial para Comum**, você deve preencher o **Requerimento A**."
+        },
+        {
+            keywords: [["anotacao", "diploma"], ["diploma"]],
+            answer: "Para solicitar **Anotação de Diploma**, você deve preencher o **Requerimento A** e marcar a **Opção 7**."
+        },
+        {
+            keywords: [["perigo", "laboral"], ["erigo", "laboral"], ["pagamento", "laboral"], ["risco", "laboral"]],
+            answer: "Para verificar questões sobre não recebimento ou pagamento do **Perigo Laboral**, é preciso preencher o **Requerimento A**."
+        },
+        {
+            keywords: [["vinculo", "aberto"], ["ex", "servidora", "vinculo"]],
+            answer: "Caso você seja um ex-servidor e o seu **vínculo continua em aberto**, é preciso preencher o **Requerimento A** para solicitar a regularização."
+        },
+        {
+            keywords: [["vinculo", "prefeitura"], ["declaracao", "vinculo", "prefeitura"]],
+            answer: "Nós **não atendemos** demandas referentes a emissão de declaração de vínculo com a **Prefeitura**."
+        },
+        {
+            keywords: [["publicacao", "processo"], ["sei", "externo"], ["cadastro", "sei"], ["acesso", "sei"]],
+            answer: "Para acompanhar a publicação e tramitação do seu processo, você pode solicitar acesso ao **SEI Externo**.\nPara liberar o cadastro:\n1. Preencha o formulário em https://sei.pe.gov.br/sei/controlador_externo.php?acao=usuario_externo_logar&id_orgao_acesso_externo=17 clicando em \"Clique aqui para se cadastrar\".\n2. Envie para o e-mail **suporte.sei@sad.pe.gov.br**: Comprovante de residência; RG e CPF; Termo de Declaração de Concordância e Veracidade assinado.\n\nVocê também pode consultar o **Diário Oficial** pelo link: https://diariooficial.cepe.com.br/diariooficialweb"
+        },
+        {
+            keywords: [["valores", "enfsus"], ["valor", "enfsus"]],
+            answer: "Para questões referentes a **valores do ENFSUS**, você deve preencher o **Requerimento A** diretamente na sua **unidade**."
+        },
+        {
+            keywords: [["declaracao", "experiencia", "profissional"], ["experiencia", "profissional"]],
+            answer: "Para comprovação de **Experiência Profissional**, o documento correto que emitimos é a **Declaração de Vínculo**."
+        },
+        {
+            keywords: [["terceiros", "processo"], ["esposa", "processo"], ["marido", "processo"], ["andamento", "sem", "procuracao"], ["procuracao"]],
+            answer: "Para repassar andamento de processo ou informações funcionais para terceiros (esposa, marido, filhos, etc.), é **obrigatória a apresentação de procuração**. Sem procuração, não é possível fornecer as informações."
+        }
+    ];
+
+    function getLocalAnswer(message) {
+        // Normaliza a string para letras minúsculas e remove acentos
+        const msg = message.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        
+        let bestMatch = null;
+        let maxKeywords = 0;
+
+        for (const item of LOCAL_KNOWLEDGE) {
+            for (const condition of item.keywords) {
+                const match = condition.every(kw => {
+                    const cleanKw = kw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    return msg.includes(cleanKw);
+                });
+                if (match) {
+                    // Pega o match mais específico (com mais palavras-chave)
+                    if (condition.length > maxKeywords) {
+                        maxKeywords = condition.length;
+                        bestMatch = item;
+                    }
+                }
+            }
+        }
+        return bestMatch;
+    }
+
     window.SAS.ai.init = () => {
         // [MODO DE TESTE] Restringir visualização apenas para Lucas
         try {
@@ -364,6 +653,40 @@
             `;
             messagesArea.appendChild(typingDiv);
             messagesArea.scrollTop = messagesArea.scrollHeight;
+
+            const localItem = getLocalAnswer(message);
+            if (localItem) {
+                setTimeout(() => {
+                    typingDiv.remove();
+                    
+                    if (localItem.answer) {
+                        addMessage(localItem.answer);
+                    }
+                    
+                    if (localItem.options && localItem.options.length > 0) {
+                        const questionMsg = localItem.question || "Por favor, seja mais específico. Qual destas opções você deseja?";
+                        addMessage(questionMsg);
+                        
+                        // Adiciona as sugestões (botões clicáveis)
+                        const sugDiv = document.createElement('div');
+                        sugDiv.className = 'flex flex-wrap gap-2 pt-2 mb-4';
+                        sugDiv.innerHTML = localItem.options.map(q => `
+                            <button class="suggestion-btn text-[11px] bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1.5 rounded-full hover:bg-blue-600 hover:text-white transition-all">
+                                ${q}
+                            </button>
+                        `).join('');
+                        messagesArea.appendChild(sugDiv);
+                        messagesArea.scrollTop = messagesArea.scrollHeight;
+                        
+                        sugDiv.querySelectorAll('.suggestion-btn').forEach(btn => {
+                            btn.addEventListener('click', () => handleSend(btn.textContent.trim()));
+                        });
+                    }
+
+                    if (window.lucide) window.lucide.createIcons();
+                }, 600);
+                return;
+            }
 
             let userContextStr = "";
             try {

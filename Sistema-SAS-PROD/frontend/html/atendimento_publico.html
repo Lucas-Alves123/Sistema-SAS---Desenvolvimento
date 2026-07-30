@@ -365,11 +365,34 @@
             }
         }
 
+        // Auto-lookup logic
+        async function lookupData(valor) {
+            if (!valor) return;
+            try {
+                const res = await fetch('/api/identificacao/validar?valor=' + encodeURIComponent(valor));
+                const json = await res.json();
+                if (json.success && json.data && json.data.length > 0) {
+                    const serv = json.data[0];
+                    if (serv.nome_completo) document.getElementById('solic_nome').value = serv.nome_completo;
+                    if (serv.cpf) document.getElementById('solic_cpf').value = window.SAS.utils.formatCPF(serv.cpf);
+                    if (serv.matricula) document.getElementById('solic_matricula').value = serv.matricula;
+                    if (serv.cargo) document.getElementById('solic_cargo').value = serv.cargo;
+                    if (serv.local_trabalho) document.getElementById('solic_local_trabalho').value = serv.local_trabalho;
+                    if (serv.email) document.getElementById('solic_email').value = serv.email;
+                    if (serv.telefone) document.getElementById('solic_telefone').value = window.SAS.utils.formatTelefone(serv.telefone);
+                    window.SAS.utils.notify('success', 'Dados do servidor preenchidos automaticamente.');
+                }
+            } catch (err) {
+                console.error('Erro na busca de dados:', err);
+            }
+        }
+
         // Format CPFs
         document.getElementById('solic_cpf').addEventListener('input', e => {
             let val = e.target.value.replace(/\D/g, '');
             if (val.length > 11) val = val.substring(0, 11);
             e.target.value = window.SAS.utils.formatCPF(val);
+            if (val.length === 11) lookupData(val);
         });
 
         // Format Telefone
