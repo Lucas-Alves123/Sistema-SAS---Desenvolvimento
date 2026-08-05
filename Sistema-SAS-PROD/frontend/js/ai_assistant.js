@@ -27,7 +27,7 @@
         },
         {
             keywords: [["ctc", "desligado"], ["ctc", "ex-servidor"], ["ctc", "inativo"], ["tempo", "contribuicao", "desligado"], ["ex-servidor", "desligado"]],
-            answer: "Para solicitar a **CTC** (Certidão de Tempo de Contribuição), o requerimento correto é o **Requerimento C** (e não o A)."
+            answer: "Para solicitar a **CTC** (Certidão de Tempo de Contribuição), o requerimento correto é o **Requerimento A**."
         },
         {
             keywords: [["cts"]],
@@ -273,6 +273,82 @@
         {
             keywords: [["terceiros", "processo"], ["esposa", "processo"], ["marido", "processo"], ["andamento", "sem", "procuracao"], ["procuracao"]],
             answer: "Para repassar andamento de processo ou informações funcionais para terceiros (esposa, marido, filhos, etc.), é **obrigatória a apresentação de procuração**. Sem procuração, não é possível fornecer as informações."
+        },
+        {
+            keywords: [["afastada", "inss"], ["afastado", "inss"], ["inss", "pedindo", "declaracao"], ["declaracao", "inss"]],
+            answer: "Se você está afastado(a) pelo INSS e eles estão pedindo uma declaração, você deve preencher o **Requerimento A** solicitando uma **Declaração de Vínculo**."
+        },
+        {
+            keywords: [["repasse", "enfermagem"], ["nao", "recebeu", "repasse"], ["falta", "repasse"]],
+            answer: "Caso não tenha recebido o repasse da enfermagem, é preciso preencher o **Requerimento A**."
+        },
+        {
+            keywords: [["renovar", "contrato"], ["duvida", "contrato", "trabalho"], ["duvidas", "contrato"]],
+            answer: "Para renovar ou tirar dúvidas sobre o seu contrato de trabalho, informamos que é preciso procurar ou entrar em contato com a **gestão de trabalho da sua unidade**."
+        },
+        {
+            keywords: [["revisao", "valores"], ["revisao", "valor"]],
+            answer: "Para solicitar a revisão de valores, você deve preencher o **Requerimento A**."
+        },
+        {
+            keywords: [["ctc", "fusam"], ["tempo", "fusam"]],
+            answer: "Para dar entrada numa CTC do tempo da FUSAM, você deve preencher o **Requerimento FUNAPE de CTC**."
+        },
+        {
+            keywords: [["troca", "cargo", "carteira", "digital"], ["cargo", "carteira", "digital"], ["carteira", "digital"]],
+            answer: "Para solicitar a troca de cargo na carteira digital, é preciso preencher o **Requerimento A**."
+        },
+        {
+            keywords: [["aposentadoria", "especial", "saude"], ["aposentadoria", "especial", "valia"]],
+            answer: "Sim, a aposentadoria especial já é válida para a área da saúde, **desde que sejam atendidos alguns requisitos**."
+        },
+        {
+            keywords: [["requerimento", "cada", "vinculo"]],
+            answer: "Sim, é necessário preencher **um requerimento para cada vínculo**."
+        },
+        {
+            keywords: [["reduzir", "carga", "horaria", "pericia"], ["pericia", "carga", "horaria"], ["como", "reduzir", "carga", "horaria"]],
+            answer: "A redução da carga horária apenas é possível **depois de passar por uma perícia médica**."
+        },
+        {
+            keywords: [["remocao", "voltar"], ["pediu", "remocao", "voltar"]],
+            answer: "Se você pediu remoção mas gostaria de voltar, informamos que essa demanda é resolvida **diretamente na sua Gestão de Pessoas**."
+        },
+        {
+            keywords: [["dtc", "ativa"], ["dtc", "ativo"]],
+            answer: "Como você ainda está na ativa, **não será possível dar entrada em DTC**. Isso é feito somente quando o contrato acabar."
+        },
+        {
+            keywords: [["assinar", "comprovante", "vinculo"]],
+            answer: "Não, não é necessário que ninguém assine o seu comprovante de vínculo."
+        },
+        {
+            keywords: [["remocao", "problemas", "saude"], ["remocao", "saude"], ["remocao", "doenca"]],
+            answer: "Para solicitar remoção por problemas de saúde, você deve dar entrada no **Requerimento A**, apresentando o **laudo médico do Estado**."
+        },
+        {
+            keywords: [["aposentadoria", "integral"], ["entrada", "aposentadoria", "integral"]],
+            answer: "Para solicitar a aposentadoria integral, você deve preencher o **Requerimento FUNAPE**, a **Opção de Regra de Aposentadoria** e a **Declaração de Residência**."
+        },
+        {
+            keywords: [["licenca", "sem", "vencimento", "aposentadoria"], ["licenca", "aposentadoria"]],
+            answer: "Não é possível dar entrada em licença sem vencimento enquanto se pede aposentadoria. O motivo é que, mesmo com tempo de contribuição e idade, a licença sem vencimento iria gerar vacância."
+        },
+        {
+            keywords: [["afastar", "acompanhar", "marido"], ["afastar", "acompanhar", "familiar"], ["tratamento", "oncologico"]],
+            answer: "Você deve buscar a **chefia imediata da sua unidade** para tratar da possibilidade de afastamento para acompanhamento de familiar, bem como receber a orientação para o **agendamento da perícia médica**."
+        },
+        {
+            keywords: [["colocar", "filho", "sassepe"], ["colocar", "filha", "sassepe"], ["adicionar", "dependente", "sassepe"], ["retirar", "dependente", "sassepe"], ["cancelar", "sassepe"]],
+            answer: "Para adicionar ou retirar dependentes, bem como para cancelar o SASSEPE, você deverá entrar em contato diretamente com o próprio SASSEPE, por meio do site: **www.iassepe.pe.gov.br/sassepe**."
+        },
+        {
+            keywords: [["mudanca", "regime"], ["diarista", "plantao"], ["mudar", "plantao"]],
+            answer: "Para solicitar a mudança de regime (ex: de diarista para plantão), é necessário procurar o **setor de Recursos Humanos (RH) da sua unidade de lotação** e formalizar a solicitação por meio do **Requerimento A**. A demanda será encaminhada para análise do setor responsável."
+        },
+        {
+            keywords: [["atestado", "beneficio"], ["medico", "varios", "dias", "beneficio"], ["entrar", "beneficio"]],
+            answer: "Nesse caso, será necessário procurar o setor de Recursos Humanos (RH) da sua unidade, a fim de obter informações mais precisas sobre a demanda."
         }
     ];
 
@@ -302,15 +378,7 @@
     }
 
     window.SAS.ai.init = () => {
-        // [MODO DE TESTE] Restringir visualização apenas para Lucas
-        try {
-            const currentUser = JSON.parse(localStorage.getItem('sas_user'));
-            if (!currentUser || JSON.stringify(currentUser).toUpperCase().indexOf('LUCAS') === -1) {
-                return; // Esconde silenciosamente para os outros
-            }
-        } catch (e) {
-            return;
-        }
+        // O assistente de IA agora está liberado para todos os usuários
 
         // Prevent multiple initializations
         if (document.getElementById('sas-ai-container')) return;

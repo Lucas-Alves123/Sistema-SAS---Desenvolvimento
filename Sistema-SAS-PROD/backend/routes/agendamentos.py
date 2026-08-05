@@ -497,6 +497,8 @@ def update_agendamento(id):
         values = []
         for key, value in data.items():
             if key != 'id':
+                if value == '' and key in ['guiche', 'atendente_id', 'sessao_id']:
+                    value = None
                 fields.append(f"`{key}` = %s")
                 values.append(value)
         
